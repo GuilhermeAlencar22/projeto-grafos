@@ -15,24 +15,19 @@ REC,BEL,nacional,"conexão entre hub regional e aeroporto intermediário",2.66
 REC,VIX,nacional,"conexão entre hub regional e aeroporto intermediário",2.33
 REC,GYN,nacional,"conexão entre hub regional e aeroporto intermediário",2.75
 REC,CGH,nacional,"conexão entre hub regional e aeroporto intermediário",3.25
-SSA,FOR,regional,"conexão regional nordeste",
-SSA,NAT,regional,"conexão regional nordeste",
-SSA,JPA,regional,"conexão regional nordeste",
-SSA,THE,regional,"conexão regional nordeste",
-SSA,GRU,hub,"conexão entre hub regional e hub nacional",
-SSA,BSB,hub,"conexão entre hub regional e hub nacional",
-SSA,GIG,hub,"conexão entre hub regional e hub nacional",
-SSA,CNF,hub,"conexão entre hubs regionais",
-SSA,CGH,nacional,"conexão entre hub regional e aeroporto intermediário",
-SSA,VIX,nacional,"conexão entre hub regional e aeroporto intermediário",
-SSA,GYN,nacional,"conexão entre hub regional e aeroporto intermediário",
-SSA,CWB,nacional,"conexão entre hub regional e aeroporto intermediário",
-SSA,FLN,nacional,"conexão entre hub regional e aeroporto intermediário",
-SSA,POA,nacional,"conexão entre hub regional e aeroporto intermediário",
-SSA,MAO,nacional,"conexão entre hub regional e aeroporto intermediário",
-SSA,BEL,nacional,"conexão entre hub regional e aeroporto intermediário",
-SSA,PVH,nacional,"conexão entre hub regional e aeroporto periférico",
-SSA,RBR,nacional,"conexão entre hub regional e aeroporto periférico",
+SSA,FOR,regional,"conexão regional nordeste",1.75
+SSA,NAT,regional,"conexão regional nordeste",1.5
+SSA,JPA,regional,"conexão regional nordeste",1.5
+SSA,GRU,hub,"conexão entre hub regional e hub nacional",2.25
+SSA,BSB,hub,"conexão entre hub regional e hub nacional",1.91
+SSA,GIG,hub,"conexão entre hub regional e hub nacional",2.08
+SSA,CNF,hub,"conexão entre hubs regionais",1.58
+SSA,CGH,nacional,"conexão entre hub regional e aeroporto intermediário",2.41
+SSA,VIX,nacional,"conexão entre hub regional e aeroporto intermediário",1.58
+SSA,GYN,nacional,"conexão entre hub regional e aeroporto intermediário",2.08
+SSA,CWB,nacional,"conexão entre hub regional e aeroporto intermediário",3.0
+SSA,POA,nacional,"conexão entre hub regional e aeroporto intermediário",3.83
+SSA,BEL,nacional,"conexão entre hub regional e aeroporto intermediário",1.58
 FOR,NAT,regional,"conexão regional nordeste",
 FOR,JPA,regional,"conexão regional nordeste",
 FOR,THE,regional,"conexão regional nordeste",
