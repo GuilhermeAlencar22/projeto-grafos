@@ -1,0 +1,39 @@
+{
+  "dataset": {
+    "nome": "facebook_combined",
+    "tipo": "nao-direcionado",
+    "ponderado": false
+  },
+  "bfs_dfs": [
+    {
+      "algoritmo": "BFS",
+      "source": 0,
+      "tempo": 0.04056835174560547
+    },
+    {
+      "algoritmo": "DFS",
+      "source": 10,
+      "tempo": 0.04764389991760254
+    },
+    {
+      "algoritmo": "BFS",
+      "source": 100,
+      "tempo": 0.04130887985229492
+    },
+    {
+      "algoritmo": "DFS",
+      "source": 50,
+      "tempo": 0.0882573127746582
+    },
+    {
+      "algoritmo": "BFS",
+      "source": 200,
+      "tempo": 0.04877305030822754
+    },
+    {
+      "algoritmo": "DFS",
+      "source": 150,
+      "tempo": 0.05033469200134277
+    }
+  ]
+}
