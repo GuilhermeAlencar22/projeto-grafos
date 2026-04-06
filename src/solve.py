@@ -1,6 +1,14 @@
 import json
 import csv
 from graphs.algorithms import dijkstra
+from viz import (
+    gerar_arvore_percurso,
+    plot_histograma_graus,
+    plot_ranking,
+    plot_regioes,
+    plot_subgrafo_hubs,
+    gerar_grafo_interativo
+)
 
 from utils.metrics import (
     metricas_globais,
@@ -10,15 +18,15 @@ from utils.metrics import (
 )
 
 from graphs.io import carregar_aeroportos, carregar_grafo
+
 def salvar_json(path, data):
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
 def salvar_csv(path, data):
     if not data:
         return
-
-    with open(path, "w", newline="") as f:
+    with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=data[0].keys())
         writer.writeheader()
         writer.writerows(data)
@@ -50,19 +58,39 @@ def main():
     salvar_json("out/rankings.json", rankings)
 
     rotas = []
-    with open("data/rotas.csv") as f:
+    with open("data/rotas.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            origem = row["origem"]
-            destino = row["destino"]
+            origem = row.get("origem")
+            destino = row.get("destino")
+
+            if not origem or not destino:
+                continue
+
             custo, caminho = dijkstra(grafo, origem, destino)
             rotas.append({
                 "origem": origem,
                 "destino": destino,
-                "custo": custo,
+                "custo": round(custo, 2) if custo != float("inf") else custo,
                 "caminho": " -> ".join(caminho) if caminho else "sem caminho"
             })
+
     salvar_csv("out/distancias_rotas.csv", rotas)
+
+    caminhos_para_plotar = []
+    for rota in rotas:
+        if (rota["origem"], rota["destino"]) in [("REC", "POA"), ("MAO", "GRU")]:
+            if rota["caminho"] != "sem caminho":
+                caminhos_para_plotar.append(rota["caminho"].split(" -> "))
+
+    gerar_arvore_percurso(grafo, caminhos_para_plotar, aeroportos)
+
+    plot_histograma_graus(grafo)
+    plot_ranking(grafo)
+    plot_regioes(grafo, aeroportos)
+    plot_subgrafo_hubs(grafo, aeroportos)
+
+    gerar_grafo_interativo(grafo, aeroportos, ego)
 
 if __name__ == "__main__":
     main()
