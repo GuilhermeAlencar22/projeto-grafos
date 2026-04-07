@@ -41,3 +41,6 @@ class Graph:
 
     def __contains__(self, node):
         return node in self.adj
+    
+    def __iter__(self):
+        return iter(self.adj)

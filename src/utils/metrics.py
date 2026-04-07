@@ -11,13 +11,12 @@ def calcular_densidade(n, e):
 
 def metricas_globais(grafo):
     V = len(grafo)
-    E = sum(len(vizinhos) for vizinhos in grafo.values()) // 2
-    densidade = calcular_densidade(V, E)
+    E = len(grafo.edges())
 
     return {
         "ordem": V,
         "tamanho": E,
-        "densidade": densidade
+        "densidade": calcular_densidade(V, E)
     }
 
 
@@ -40,7 +39,6 @@ def subgrafo_por_regiao(grafo, aeroportos_info):
 
         E = E // 2
         densidade = calcular_densidade(V, E)
-
         resultado.append({
             "regiao": regiao,
             "ordem": V,
@@ -53,7 +51,7 @@ def subgrafo_por_regiao(grafo, aeroportos_info):
 def calcular_graus(grafo):
     graus = []
 
-    for v in grafo:
+    for v in grafo.get_nodes():
         graus.append({
             "aeroporto": v,
             "grau": len(grafo[v])
@@ -64,13 +62,11 @@ def calcular_graus(grafo):
 def ego_network_metrics(grafo):
     resultado = []
 
-    for v in grafo:
+    for v in grafo.get_nodes():
         vizinhos = set(grafo[v])
         ego_vertices = vizinhos.union({v})
-
         V = len(ego_vertices)
         E = 0
-
         for u in ego_vertices:
             for w in grafo[u].keys():
                 if w in ego_vertices:

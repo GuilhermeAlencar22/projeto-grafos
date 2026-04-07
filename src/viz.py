@@ -7,6 +7,7 @@ from collections import defaultdict
 def _ensure_out():
     os.makedirs("out", exist_ok=True)
 
+
 def gerar_arvore_percurso(grafo, caminhos, aeroportos=None, output_path="out/arvore_percurso.html"):
     _ensure_out()
 
@@ -35,61 +36,41 @@ def gerar_arvore_percurso(grafo, caminhos, aeroportos=None, output_path="out/arv
         for i in range(len(caminho) - 1):
             u, v = caminho[i], caminho[i + 1]
 
-            net.add_edge(
-                u, v,
-                color=cor,
-                width=6,
-                smooth={"type": "dynamic"}
-            )
-
-    net.set_options("""
-    {
-      "physics": {
-        "barnesHut": {
-          "gravitationalConstant": -30000,
-          "springLength": 200
-        }
-      }
-    }
-    """)
+            net.add_edge(u, v, color=cor, width=6)
 
     net.write_html(output_path)
+
 
 def gerar_grafo_interativo(grafo, aeroportos, ego_metrics):
     _ensure_out()
 
     net = Network(height="800px", width="100%", bgcolor="#020617", font_color="white")
 
+    ego_dict = {e["aeroporto"]: e for e in ego_metrics}
+
     for node in grafo:
         grau = len(grafo[node])
         regiao = aeroportos[node]["regiao"]
 
-        ego = next((e for e in ego_metrics if e["aeroporto"] == node), None)
+        ego = ego_dict.get(node)
         densidade = round(ego["densidade_ego"], 3) if ego else 0
 
         net.add_node(
             node,
             label=node,
             size=10 + grau * 1.5,
-            title=f"""
-            <b>{node}</b><br>
-            Região: {regiao}<br>
-            Grau: {grau}<br>
-            Densidade: {densidade}
-            """
+            color="#38bdf8",
+            title=f"<b>{node}</b><br>Região: {regiao}<br>Grau: {grau}<br>Densidade: {densidade}"
         )
 
     for u in grafo:
         for v in grafo[u]:
             if u < v:
-                net.add_edge(u, v, color="#1e293b", width=1)
+                net.add_edge(u, v, color="#1e293b", width=1, id=f"{u}_{v}")
 
     net.set_options("""
     {
-      "interaction": {
-        "hover": true,
-        "navigationButtons": true
-      },
+      "interaction": { "hover": true },
       "physics": {
         "barnesHut": {
           "gravitationalConstant": -40000,
@@ -115,25 +96,93 @@ def gerar_grafo_interativo(grafo, aeroportos, ego_metrics):
             let val = document.getElementById("search").value.toUpperCase();
             network.focus(val, {scale:1.5});
         }
+
+        let selectedNode = null;
+
+        function resetGraph(){
+            let edges = network.body.data.edges;
+            let nodes = network.body.data.nodes;
+
+            edges.get().forEach(edge => {
+                edges.update({
+                    id: edge.id,
+                    color: { color: "#1e293b", opacity: 1 },
+                    width: 1
+                });
+            });
+
+            nodes.get().forEach(n => {
+                nodes.update({
+                    id: n.id,
+                    color: { background: "#38bdf8" },
+                    size: 10
+                });
+            });
+
+            selectedNode = null;
+        }
+
+        network.on("click", function(params){
+
+            if (!params.nodes || params.nodes.length === 0){
+                resetGraph();
+                return;
+            }
+
+            let node = params.nodes[0];
+
+            if (selectedNode === node){
+                resetGraph();
+                return;
+            }
+
+            resetGraph();
+            selectedNode = node;
+
+            let edges = network.body.data.edges;
+            let nodes = network.body.data.nodes;
+
+            edges.get().forEach(edge => {
+                if (edge.from === node || edge.to === node){
+                    edges.update({
+                        id: edge.id,
+                        color: { color: "#ef4444" },
+                        width: 4
+                    });
+                } else {
+                    edges.update({
+                        id: edge.id,
+                        color: { color: "#334155", opacity: 0.2 },
+                        width: 1
+                    });
+                }
+            });
+
+            nodes.update({
+                id: node,
+                color: { background: "#ef4444" },
+                size: 25
+            });
+
+        });
         </script>
         """
 
-        html = html.replace("</body>", ui + "</body")
+        html = html.replace("</body>", ui + "</body>")
 
         f.seek(0)
         f.write(html)
         f.truncate()
 
+
 def plot_histograma_graus(grafo):
     _ensure_out()
 
-    graus = [len(v) for v in grafo.values()]
+    graus = [len(v) for v in grafo.adj.values()]
 
     plt.figure()
     plt.hist(graus)
     plt.title("Distribuição de Graus")
-    plt.xlabel("Grau")
-    plt.ylabel("Frequência")
     plt.savefig("out/histograma.png")
     plt.close()
 
@@ -141,27 +190,22 @@ def plot_histograma_graus(grafo):
 def plot_ranking(grafo):
     _ensure_out()
 
-    graus = {k: len(v) for k, v in grafo.items()}
+    graus = {k: len(v) for k, v in grafo.adj.items()}
     top = sorted(graus.items(), key=lambda x: x[1], reverse=True)[:10]
-
     labels = [k for k, _ in top]
     vals = [v for _, v in top]
 
     plt.figure()
     plt.bar(labels, vals)
     plt.title("Top 10 Aeroportos Mais Conectados")
-    plt.xlabel("Aeroporto")
-    plt.ylabel("Grau")
     plt.savefig("out/ranking.png")
     plt.close()
 
 
 def plot_regioes(grafo, aeroportos):
     _ensure_out()
-
     soma = defaultdict(int)
     cont = defaultdict(int)
-
     for n in grafo:
         r = aeroportos[n]["regiao"]
         soma[r] += len(grafo[n])
@@ -172,8 +216,6 @@ def plot_regioes(grafo, aeroportos):
     plt.figure()
     plt.bar(medias.keys(), medias.values())
     plt.title("Grau Médio por Região")
-    plt.xlabel("Região")
-    plt.ylabel("Grau Médio")
     plt.savefig("out/regioes.png")
     plt.close()
 
@@ -181,11 +223,9 @@ def plot_regioes(grafo, aeroportos):
 def plot_subgrafo_hubs(grafo, aeroportos):
     _ensure_out()
 
-    graus = {k: len(v) for k, v in grafo.items()}
+    graus = {k: len(v) for k, v in grafo.adj.items()}
     hubs = sorted(graus, key=graus.get, reverse=True)[:8]
-
     net = Network(height="700px", width="100%", bgcolor="#020617", font_color="white")
-
     for h in hubs:
         net.add_node(h, size=20 + graus[h])
 
