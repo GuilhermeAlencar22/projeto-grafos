@@ -26,7 +26,7 @@ def load_facebook_teste_graph(path):
     return graph
 
 
-def load_edge_csv_graph(path, weight_column="peso"):
+def load_edge_csv_graph(path, weight_column="peso", debug=False):
     df = pd.read_csv(path, dtype={"source": str, "target": str})
 
     required_columns = {"source", "target"}
@@ -50,5 +50,18 @@ def load_edge_csv_graph(path, weight_column="peso"):
 
         graph[source].append((target, weight))
         graph[target].append((source, weight))
+
+    if debug:
+        n_nodes = len(graph)
+        n_edges_undirected = sum(len(graph[n]) for n in graph) // 2
+        print(f"[load_edge_csv_graph] arquivo: {path}")
+        print(f"[load_edge_csv_graph] nós |V| = {n_nodes}")
+        print(f"[load_edge_csv_graph] arestas |E| (não-dir.) = {n_edges_undirected}")
+        sample_nodes = sorted(graph.keys())[:5]
+        for n in sample_nodes:
+            viz = graph[n][:5]
+            mais = len(graph[n]) - len(viz)
+            sufixo = f" ... (+{mais} vizinhos)" if mais > 0 else ""
+            print(f"  {n}: {viz}{sufixo}")
 
     return graph

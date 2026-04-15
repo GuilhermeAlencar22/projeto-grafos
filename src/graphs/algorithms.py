@@ -2,21 +2,26 @@ from collections import deque
 import heapq
 
 def bfs(graph, start):
-    visited = set()
+    """BFS com níveis (distância em arestas a partir de start).
+
+    Marca vizinhos ao enfileirar para níveis corretos e evitar duplicatas na fila.
+    Retorna (ordem_de_visita, dict_no -> nivel).
+    """
+    visited = {start}
+    levels = {start: 0}
     queue = deque([start])
-    order = []
+    order = [start]
 
     while queue:
         node = queue.popleft()
-        if node not in visited:
-            visited.add(node)
-            order.append(node)
+        for neighbor, _ in graph.neighbors(node):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                levels[neighbor] = levels[node] + 1
+                queue.append(neighbor)
+                order.append(neighbor)
 
-            for neighbor, _ in graph.neighbors(node):
-                if neighbor not in visited:
-                    queue.append(neighbor)
-
-    return order
+    return order, levels
 
 
 def dfs(graph, start):

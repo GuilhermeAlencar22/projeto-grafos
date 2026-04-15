@@ -6,5 +6,6 @@ def test_bfs():
     g.add_edge("A", "B")
     g.add_edge("B", "C")
 
-    result = bfs(g, "A")
-    assert result == ["A", "B", "C"]
+    order, levels = bfs(g, "A")
+    assert order == ["A", "B", "C"]
+    assert levels == {"A": 0, "B": 1, "C": 2}
