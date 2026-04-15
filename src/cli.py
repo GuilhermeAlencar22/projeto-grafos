@@ -1,9 +1,10 @@
 import argparse
 import time
+from pathlib import Path
 
 from graphs.graph import Graph
 from graphs.algorithms import bfs, dfs
-from graphs.io import load_facebook_graph
+from graphs.io import load_facebook_teste_graph, load_edge_csv_graph
 
 def main():
     g = Graph()
@@ -19,11 +20,16 @@ def main():
     parser.add_argument("--dataset")
     parser.add_argument("--alg")
     parser.add_argument("--source")
+    parser.add_argument("--weight-col", default="peso")
 
     args = parser.parse_args()
 
     if args.dataset and "dataset_parte2" in args.dataset:
-        dados = load_facebook_graph(args.dataset)
+        dataset_path = Path(args.dataset)
+        if dataset_path.suffix.lower() == ".csv":
+            dados = load_edge_csv_graph(args.dataset, weight_column=args.weight_col)
+        else:
+            dados = load_facebook_teste_graph(args.dataset)
 
         g2 = Graph()
 
