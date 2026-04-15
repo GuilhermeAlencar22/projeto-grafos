@@ -123,8 +123,7 @@ Visualização dinâmica utilizando `pyvis`.
    cd nome-do-repositorio ```
 2. **Criar e ativar ambiente virtual:**
     ```bash
-    python3 -m venv venv
-    source venv/bin/activate  # Linux/Mac
+    python3 -m venv venv  # Linux/Mac
     # No Windows use: venv\Scripts\activate ```
 3. **Instalar dependências**
     ```bash

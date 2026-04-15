@@ -1,5 +1,6 @@
 import json
 import csv
+import os
 from graphs.algorithms import dijkstra
 from viz import (
     gerar_arvore_percurso,
@@ -32,6 +33,8 @@ def salvar_csv(path, data):
         writer.writerows(data)
 
 def main():
+    os.makedirs("out", exist_ok=True)
+
     aeroportos = carregar_aeroportos("data/aeroportos_data.csv")
     grafo = carregar_grafo("data/adjacencias_aeroportos.csv")
 
@@ -77,11 +80,15 @@ def main():
 
     salvar_csv("out/distancias_rotas.csv", rotas)
 
-    caminhos_para_plotar = []
-    for rota in rotas:
-        if (rota["origem"], rota["destino"]) in [("REC", "POA"), ("MAO", "GRU")]:
-            if rota["caminho"] != "sem caminho":
-                caminhos_para_plotar.append(rota["caminho"].split(" -> "))
+    obrigatorios = {("REC", "POA"), ("MAO", "GRU")}
+    caminhos_para_plotar = [
+        rota["caminho"].split(" -> ")
+        for rota in rotas
+        if (rota["origem"], rota["destino"]) in obrigatorios
+        and rota["caminho"] != "sem caminho"
+    ]
+    if not caminhos_para_plotar:
+        print("Aviso: nenhum caminho obrigatório encontrado para plotar.")
 
     gerar_arvore_percurso(grafo, caminhos_para_plotar, aeroportos)
 
