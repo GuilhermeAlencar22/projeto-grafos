@@ -359,7 +359,6 @@ def gerar_grafo_interativo(grafo, aeroportos, ego_metrics):
 
 
 def _estilo_base(ax, fig, titulo, subtitulo=""):
-    """Aplica tema escuro consistente em todos os gráficos."""
     BG      = "#0f172a"
     PANEL   = "#1e293b"
     BORDA   = "#334155"
