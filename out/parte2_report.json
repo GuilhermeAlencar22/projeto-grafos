@@ -402,5 +402,85 @@
       }
     ],
     "tempo_total_cli_s": 21.844655
-  }
+  },
+  "dijkstra": [
+    {
+      "source": "tt0012313",
+      "target": "tt0003599",
+      "sem_caminho": true,
+      "custo_total": null,
+      "tamanho_caminho": 0,
+      "caminho": [],
+      "tempo_s": 0.286702
+    },
+    {
+      "source": "tt0012313",
+      "target": "tt0012314",
+      "sem_caminho": false,
+      "custo_total": 0.045455,
+      "tamanho_caminho": 2,
+      "caminho": [
+        "tt0012313",
+        "tt0012314"
+      ],
+      "tempo_s": 0.0
+    },
+    {
+      "source": "tt0012313",
+      "target": "tt0007627",
+      "sem_caminho": false,
+      "custo_total": 2.535714,
+      "tamanho_caminho": 13,
+      "caminho": [
+        "tt0012313",
+        "tt0016481",
+        "tt0019391",
+        "tt0021416",
+        "tt0024665",
+        "tt0023496",
+        "tt0021971",
+        "tt0023864",
+        "tt0028684",
+        "tt0028573"
+      ],
+      "tempo_s": 0.287628
+    },
+    {
+      "source": "tt0007627",
+      "target": "tt0029092",
+      "sem_caminho": false,
+      "custo_total": 4.014322,
+      "tamanho_caminho": 23,
+      "caminho": [
+        "tt0007627",
+        "tt0008613",
+        "tt0029835",
+        "tt0028573",
+        "tt0028684",
+        "tt0028605",
+        "tt0027803",
+        "tt0023207",
+        "tt0022454",
+        "tt0021342"
+      ],
+      "tempo_s": 0.279992
+    },
+    {
+      "source": "tt0012313",
+      "target": "tt0022240",
+      "sem_caminho": false,
+      "custo_total": 1.076191,
+      "tamanho_caminho": 7,
+      "caminho": [
+        "tt0012313",
+        "tt0010821",
+        "tt0010596",
+        "tt0011676",
+        "tt0025329",
+        "tt0023410",
+        "tt0022240"
+      ],
+      "tempo_s": 0.068
+    }
+  ]
 }

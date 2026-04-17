@@ -5,7 +5,7 @@ from collections import Counter
 from pathlib import Path
 
 from graphs.graph import Graph, print_degree_sample_stats
-from graphs.algorithms import bfs, dfs
+from graphs.algorithms import bfs, dfs, dijkstra, validar_pesos_para_dijkstra
 from graphs.analysis import componente_alcancavel, componente_tem_ciclo
 from graphs.io import load_edge_csv_graph
 
@@ -68,6 +68,7 @@ def _sanear_estrutura_report(report: dict) -> None:
     report.pop("bfs_dfs", None)
     report.setdefault("bfs", [])
     report.setdefault("dfs", [])
+    report.setdefault("dijkstra", [])
 
 
 def _atualizar_report_dataset(report_path: Path, dataset_info: dict):
@@ -105,6 +106,152 @@ def _fontes_etapa3(graph: Graph, raw_fontes: str) -> list[str]:
             if len(escolhidos) >= 3:
                 break
     return escolhidos[:3]
+
+
+def _enumerar_componentes(graph: Graph) -> list[list[str]]:
+    """Lista de componentes conexas (nao dirigido: vizinhanca simetrica)."""
+    visitados: set[str] = set()
+    comps: list[list[str]] = []
+    for start in graph.get_nodes():
+        if start in visitados:
+            continue
+        pilha = [start]
+        visitados.add(start)
+        comp: list[str] = []
+        while pilha:
+            u = pilha.pop()
+            comp.append(u)
+            for v, _ in graph.neighbors(u):
+                if v not in visitados:
+                    visitados.add(v)
+                    pilha.append(v)
+        comps.append(comp)
+    return comps
+
+
+def _pares_variados_dijkstra_padrao(graph: Graph) -> list[tuple[str, str]]:
+    """Cinco pares variados: componente gigante (incl. distancia), sem caminho entre componentes."""
+    comps = _enumerar_componentes(graph)
+    comps.sort(key=len, reverse=True)
+    if not comps or not comps[0]:
+        raise ValueError("Grafo vazio.")
+    giant = comps[0]
+    hub = giant[0]
+
+    seen = set()
+
+    def par_chave(a: str, b: str) -> tuple[str, str]:
+        return tuple(sorted((a, b)))
+
+    def tentar_adicionar(out: list[tuple[str, str]], s: str, t: str) -> bool:
+        if s == t:
+            return False
+        k = par_chave(s, t)
+        if k in seen:
+            return False
+        seen.add(k)
+        out.append((s, t))
+        return True
+
+    out: list[tuple[str, str]] = []
+
+    outras = [c for c in comps[1:] if c]
+    outras.sort(key=len)
+    if outras:
+        tentar_adicionar(out, hub, outras[0][0])
+
+    for v, _ in graph.neighbors(hub):
+        if tentar_adicionar(out, hub, v):
+            break
+
+    _, niveis = bfs(graph, hub)
+    if niveis:
+        dist_max = max(niveis.values())
+        mais_longe = max(niveis.keys(), key=lambda x: niveis[x])
+        if len(out) < 5:
+            tentar_adicionar(out, hub, mais_longe)
+
+        _, n2 = bfs(graph, mais_longe)
+        if n2 and len(out) < 5:
+            diam_aprox = max(n2.keys(), key=lambda x: n2[x])
+            tentar_adicionar(out, mais_longe, diam_aprox)
+
+        if dist_max > 2 and len(out) < 5:
+            alvo_nivel = max(1, dist_max // 2)
+            mid = next(
+                (n for n, nv in niveis.items() if nv == alvo_nivel and n != hub),
+                None,
+            )
+            if mid is not None:
+                tentar_adicionar(out, hub, mid)
+
+    if len(out) < 5:
+        for u in giant:
+            if len(out) >= 5:
+                break
+            for v, _ in graph.neighbors(u):
+                if len(out) >= 5:
+                    break
+                tentar_adicionar(out, u, v)
+
+    if len(out) < 5:
+        nos_g = giant[:]
+        for i, a in enumerate(nos_g):
+            if len(out) >= 5:
+                break
+            for b in nos_g[i + 1 :]:
+                if tentar_adicionar(out, a, b):
+                    if len(out) >= 5:
+                        break
+
+    if len(out) < 5:
+        raise ValueError(
+            "Nao foi possivel montar 5 pares distintos para Dijkstra neste grafo."
+        )
+    return out[:5]
+
+
+def _pares_dijkstra_do_cli(graph: Graph, raw: str | None) -> list[tuple[str, str]]:
+    if raw and raw.strip():
+        out = []
+        for parte in raw.split(";"):
+            parte = parte.strip()
+            if not parte:
+                continue
+            bits = [x.strip() for x in parte.split(",")]
+            if len(bits) != 2:
+                raise ValueError(
+                    'Cada par deve ser "origem,destino" separados por ; em --dijkstra-pares'
+                )
+            s, t = bits[0], bits[1]
+            if s not in graph.adj or t not in graph.adj:
+                raise ValueError(f"No inexistente no grafo: {s} ou {t}")
+            out.append((s, t))
+        if len(out) < 5:
+            raise ValueError(
+                "Informe pelo menos 5 pares em --dijkstra-pares (separados por ;)"
+            )
+        return out
+    return _pares_variados_dijkstra_padrao(graph)
+
+
+def _gravar_report_dijkstra(report_path: Path, execucoes: list[dict]):
+    """Substitui a lista dijkstra no report, preservando dataset, bfs, dfs e etapa3."""
+    if report_path.exists():
+        try:
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            report = {}
+    else:
+        report = {}
+
+    _sanear_estrutura_report(report)
+    report["dijkstra"] = execucoes
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
 
 def _atualizar_report_etapa3(report_path: Path, payload: dict):
@@ -189,6 +336,14 @@ def main():
             f'(padrão: {DEFAULT_ETAPA3_FONTES}).'
         ),
     )
+    parser.add_argument(
+        "--dijkstra-pares",
+        default=None,
+        help=(
+            'Etapa 4: pelo menos 5 pares "origem,destino" separados por ; '
+            "(ex.: tt1,tt2;tt3,tt4;...). Padrão: 5 arestas distintas do grafo."
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -199,13 +354,21 @@ def main():
             raise ValueError(
                 "Use um CSV de arestas do IMDb (ex.: data/dataset_parte2/imdb_edges.csv)."
             )
+        weight_col = args.weight_col
+        if args.alg == "DIJKSTRA":
+            weight_col = "peso"
+            if args.weight_col != "peso":
+                print(
+                    "[cli] DIJKSTRA: usa obrigatoriamente a coluna 'peso' (pesos nao negativos)."
+                )
+
         print(f"[cli] dataset: {dataset_path}")
-        print(f"[cli] coluna de peso: {args.weight_col}")
+        print(f"[cli] coluna de peso: {weight_col}")
         if args.alg:
             print(f"[cli] algoritmo: {args.alg}")
 
         dados = load_edge_csv_graph(
-            str(dataset_path), weight_column=args.weight_col, debug=args.debug
+            str(dataset_path), weight_column=weight_col, debug=args.debug
         )
 
         g2 = Graph()
@@ -395,6 +558,54 @@ def main():
             print(f"  Tempo total CLI: {payload_etapa3['tempo_total_cli_s']}s")
             print(f"  Report atualizado: {DEFAULT_REPORT_PATH}")
             print("=== fim ETAPA 3 ===\n")
+
+        elif args.alg == "DIJKSTRA":
+            validar_pesos_para_dijkstra(g2)
+            pares = _pares_dijkstra_do_cli(g2, args.dijkstra_pares)
+            registros = []
+            for src, tgt in pares:
+                t0p = time.time()
+                resultado = dijkstra(g2, src, tgt)
+                dt = time.time() - t0p
+                if resultado is None:
+                    registros.append(
+                        {
+                            "source": src,
+                            "target": tgt,
+                            "sem_caminho": True,
+                            "custo_total": None,
+                            "tamanho_caminho": 0,
+                            "caminho": [],
+                            "tempo_s": round(dt, 6),
+                        }
+                    )
+                else:
+                    custo, caminho = resultado
+                    linha = {
+                        "source": src,
+                        "target": tgt,
+                        "sem_caminho": False,
+                        "custo_total": round(float(custo), 9),
+                        "tamanho_caminho": len(caminho),
+                        "caminho": caminho[:10],
+                        "tempo_s": round(dt, 6),
+                    }
+                    registros.append(linha)
+
+            _gravar_report_dijkstra(DEFAULT_REPORT_PATH, registros)
+            print("\n=== DIJKSTRA (Etapa 4) ===")
+            for r in registros:
+                if r.get("sem_caminho"):
+                    print(f"  {r['source']} -> {r['target']}: sem caminho")
+                else:
+                    print(
+                        f"  {r['source']} -> {r['target']}: "
+                        f"custo={r['custo_total']} "
+                        f"nos={r['tamanho_caminho']} "
+                        f"tempo={r['tempo_s']}s"
+                    )
+            print(f"  Report: {DEFAULT_REPORT_PATH}")
+            print("=== fim DIJKSTRA ===\n")
 
 if __name__ == "__main__":
     main()
