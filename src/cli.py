@@ -6,10 +6,12 @@ from pathlib import Path
 
 from graphs.graph import Graph, print_degree_sample_stats
 from graphs.algorithms import bfs, dfs
+from graphs.analysis import componente_alcancavel, componente_tem_ciclo
 from graphs.io import load_edge_csv_graph
 
 DEFAULT_IMDB_DATASET = "data/dataset_parte2/imdb_edges.csv"
 DEFAULT_CHECK_SOURCE = "tt0012313"
+DEFAULT_ETAPA3_FONTES = "tt0012313,tt0002605,tt0000147"
 DEFAULT_REPORT_PATH = Path(__file__).resolve().parents[1] / "out" / "parte2_report.json"
 
 
@@ -87,6 +89,43 @@ def _atualizar_report_dataset(report_path: Path, dataset_info: dict):
     )
 
 
+def _fontes_etapa3(graph: Graph, raw_fontes: str) -> list[str]:
+    """Até 3 fontes distintas válidas no grafo (prioriza lista informada)."""
+    candidatos = [x.strip() for x in raw_fontes.split(",") if x.strip()]
+    escolhidos = []
+    for c in candidatos:
+        if c in graph.adj and c not in escolhidos:
+            escolhidos.append(c)
+        if len(escolhidos) >= 3:
+            break
+    if len(escolhidos) < 3:
+        for n in sorted(graph.get_nodes()):
+            if n not in escolhidos:
+                escolhidos.append(n)
+            if len(escolhidos) >= 3:
+                break
+    return escolhidos[:3]
+
+
+def _atualizar_report_etapa3(report_path: Path, payload: dict):
+    """Grava bloco etapa3 sem alterar dataset nem listas bfs/dfs."""
+    if report_path.exists():
+        try:
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            report = {}
+    else:
+        report = {}
+
+    _sanear_estrutura_report(report)
+    report["etapa3"] = payload
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
 def _registrar_execucao_busca(
     report_path: Path,
     algoritmo: str,
@@ -141,6 +180,14 @@ def main():
         "--debug",
         action="store_true",
         help="Ativa logs do loader e estatísticas de grau do grafo.",
+    )
+    parser.add_argument(
+        "--etapa3-fontes",
+        default=DEFAULT_ETAPA3_FONTES,
+        help=(
+            "Etapa 3: até 3 ids IMDb separados por vírgula "
+            f'(padrão: {DEFAULT_ETAPA3_FONTES}).'
+        ),
     )
 
     args = parser.parse_args()
@@ -277,6 +324,77 @@ def main():
                 tempo_total_cli=tempo_cli,
             )
             print(f"Execução registrada em: {DEFAULT_REPORT_PATH}")
+
+        elif args.alg == "ETAPA3":
+            fontes = _fontes_etapa3(g2, args.etapa3_fontes)
+            por_fonte = []
+            for s in fontes:
+                comp = componente_alcancavel(g2, s)
+                tam_comp = len(comp)
+                ciclo = componente_tem_ciclo(g2, comp) if tam_comp else False
+
+                t0_b = time.time()
+                ordem_b, niveis = bfs(g2, s)
+                dt_b = time.time() - t0_b
+                camadas = max(niveis.values()) if niveis else 0
+
+                t0_d = time.time()
+                ordem_d = dfs(g2, s)
+                dt_d = time.time() - t0_d
+
+                por_fonte.append(
+                    {
+                        "source": s,
+                        "componente": {
+                            "tamanho": tam_comp,
+                            "ciclo": ciclo,
+                        },
+                        "bfs": {
+                            "source": s,
+                            "visitados": len(ordem_b),
+                            "camadas": camadas,
+                            "tamanho_componente_alcancada": len(ordem_b),
+                            "amostra_ordem": ordem_b[:15],
+                            "tempo_s": round(dt_b, 6),
+                        },
+                        "dfs": {
+                            "source": s,
+                            "visitados": len(ordem_d),
+                            "ciclo_na_componente": ciclo,
+                            "amostra_ordem": ordem_d[:15],
+                            "tempo_s": round(dt_d, 6),
+                        },
+                    }
+                )
+
+            tempo_cli = time.time() - t0_total
+            payload_etapa3 = {
+                "descricao": "Formalizacao BFS/DFS com 3 fontes distintas (Parte 2)",
+                "fontes_utilizadas": fontes,
+                "por_fonte": por_fonte,
+                "tempo_total_cli_s": round(tempo_cli, 6),
+            }
+            _atualizar_report_etapa3(DEFAULT_REPORT_PATH, payload_etapa3)
+
+            print("\n=== ETAPA 3 — BFS/DFS formal ===")
+            for bloco in por_fonte:
+                print(f"  Fonte {bloco['source']}:")
+                print(
+                    f"    componente: |V|={bloco['componente']['tamanho']}  "
+                    f"ciclo={bloco['componente']['ciclo']}"
+                )
+                print(
+                    f"    BFS: visitados={bloco['bfs']['visitados']}  "
+                    f"camadas={bloco['bfs']['camadas']}  "
+                    f"tempo={bloco['bfs']['tempo_s']}s"
+                )
+                print(
+                    f"    DFS: visitados={bloco['dfs']['visitados']}  "
+                    f"tempo={bloco['dfs']['tempo_s']}s"
+                )
+            print(f"  Tempo total CLI: {payload_etapa3['tempo_total_cli_s']}s")
+            print(f"  Report atualizado: {DEFAULT_REPORT_PATH}")
+            print("=== fim ETAPA 3 ===\n")
 
 if __name__ == "__main__":
     main()

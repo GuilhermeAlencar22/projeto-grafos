@@ -255,5 +255,152 @@
       "source": "tt0012313",
       "tempo": 0.130326509475708
     }
-  ]
+  ],
+  "etapa3": {
+    "descricao": "Formalizacao BFS/DFS com 3 fontes distintas (Parte 2)",
+    "fontes_utilizadas": [
+      "tt0012313",
+      "tt0000630",
+      "tt0028274"
+    ],
+    "por_fonte": [
+      {
+        "source": "tt0012313",
+        "componente": {
+          "tamanho": 17117,
+          "ciclo": true
+        },
+        "bfs": {
+          "source": "tt0012313",
+          "visitados": 17117,
+          "camadas": 12,
+          "tamanho_componente_alcancada": 17117,
+          "amostra_ordem": [
+            "tt0012313",
+            "tt0012314",
+            "tt0010821",
+            "tt0011220",
+            "tt0013086",
+            "tt0011217",
+            "tt0012386",
+            "tt0014092",
+            "tt0007983",
+            "tt0010309",
+            "tt0011664",
+            "tt0012494",
+            "tt0014839",
+            "tt0015175",
+            "tt0023436"
+          ],
+          "tempo_s": 0.141567
+        },
+        "dfs": {
+          "source": "tt0012313",
+          "visitados": 17117,
+          "ciclo_na_componente": true,
+          "amostra_ordem": [
+            "tt0012313",
+            "tt0024457",
+            "tt0023557",
+            "tt0019536",
+            "tt0016127",
+            "tt0022345",
+            "tt0022543",
+            "tt0024202",
+            "tt0011524",
+            "tt0002628",
+            "tt0003431",
+            "tt0026461",
+            "tt0019482",
+            "tt0020993",
+            "tt0019586"
+          ],
+          "tempo_s": 0.204732
+        }
+      },
+      {
+        "source": "tt0000630",
+        "componente": {
+          "tamanho": 2,
+          "ciclo": false
+        },
+        "bfs": {
+          "source": "tt0000630",
+          "visitados": 2,
+          "camadas": 1,
+          "tamanho_componente_alcancada": 2,
+          "amostra_ordem": [
+            "tt0000630",
+            "tt0003489"
+          ],
+          "tempo_s": 0.001019
+        },
+        "dfs": {
+          "source": "tt0000630",
+          "visitados": 2,
+          "ciclo_na_componente": false,
+          "amostra_ordem": [
+            "tt0000630",
+            "tt0003489"
+          ],
+          "tempo_s": 0.0
+        }
+      },
+      {
+        "source": "tt0028274",
+        "componente": {
+          "tamanho": 51,
+          "ciclo": true
+        },
+        "bfs": {
+          "source": "tt0028274",
+          "visitados": 51,
+          "camadas": 3,
+          "tamanho_componente_alcancada": 51,
+          "amostra_ordem": [
+            "tt0028274",
+            "tt0029351",
+            "tt0028082",
+            "tt0025000",
+            "tt0026284",
+            "tt0027971",
+            "tt0028085",
+            "tt0029088",
+            "tt0027600",
+            "tt0028014",
+            "tt0028210",
+            "tt0029412",
+            "tt0027245",
+            "tt0023972",
+            "tt0025476"
+          ],
+          "tempo_s": 0.0
+        },
+        "dfs": {
+          "source": "tt0028274",
+          "visitados": 51,
+          "ciclo_na_componente": true,
+          "amostra_ordem": [
+            "tt0028274",
+            "tt0029412",
+            "tt0028210",
+            "tt0027333",
+            "tt0028014",
+            "tt0029094",
+            "tt0029369",
+            "tt0022947",
+            "tt0027375",
+            "tt0021729",
+            "tt0023972",
+            "tt0027257",
+            "tt0021009",
+            "tt0018858",
+            "tt0024345"
+          ],
+          "tempo_s": 0.0
+        }
+      }
+    ],
+    "tempo_total_cli_s": 21.844655
+  }
 }
