@@ -482,5 +482,26 @@
       ],
       "tempo_s": 0.068
     }
+  ],
+  "bellman_ford": [
+    {
+      "dataset": "data/dataset_parte2/bf_sem_ciclo_negativo.csv",
+      "source": "s",
+      "ciclo_negativo": false,
+      "distancias": {
+        "a": 5.0,
+        "b": 2.0,
+        "c": 2.0,
+        "s": 0.0
+      },
+      "tempo_s": 0.0
+    },
+    {
+      "dataset": "data/dataset_parte2/bf_com_ciclo_negativo.csv",
+      "source": "a",
+      "ciclo_negativo": true,
+      "distancias": null,
+      "tempo_s": 0.0
+    }
   ]
 }

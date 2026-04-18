@@ -26,7 +26,7 @@ def load_facebook_teste_graph(path):
     return graph
 
 
-def load_edge_csv_graph(path, weight_column="peso", debug=False):
+def load_edge_csv_graph(path, weight_column="peso", debug=False, directed=False):
     df = pd.read_csv(path, dtype={"source": str, "target": str})
 
     required_columns = {"source", "target"}
@@ -49,7 +49,8 @@ def load_edge_csv_graph(path, weight_column="peso", debug=False):
             graph[target] = []
 
         graph[source].append((target, weight))
-        graph[target].append((source, weight))
+        if not directed:
+            graph[target].append((source, weight))
 
     if debug:
         n_nodes = len(graph)

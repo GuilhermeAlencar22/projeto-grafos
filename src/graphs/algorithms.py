@@ -60,6 +60,50 @@ def dijkstra(graph, start, target):
     return dist[target], caminho
 
 
+def bellman_ford(graph, start):
+    """
+    Caminhos minimos a partir de `start` em grafo dirigido (pesos reais, negativos ok).
+
+    Retorna (ciclo_negativo, distancias):
+    - (True, None) se existir ciclo de custo total negativo alcanavel a partir de `start`
+      (as distancias nao sao validas; nao use o segundo retorno).
+    - (False, dist) em que `dist[v]` e o custo minimo de `start` a `v`, ou inf se `v`
+      nao e alcanavel.
+    """
+    if start not in graph.adj:
+        raise ValueError(f"No inicial inexistente no grafo: {start}")
+
+    nodes = graph.get_nodes()
+    n = len(nodes)
+    INF = float("inf")
+    dist = {v: INF for v in nodes}
+    dist[start] = 0.0
+
+    for _ in range(max(0, n - 1)):
+        alterou = False
+        for u in nodes:
+            du = dist[u]
+            if du == INF:
+                continue
+            for v, w in graph.neighbors(u):
+                nd = du + w
+                if nd < dist[v]:
+                    dist[v] = nd
+                    alterou = True
+        if not alterou:
+            break
+
+    for u in nodes:
+        du = dist[u]
+        if du == INF:
+            continue
+        for v, w in graph.neighbors(u):
+            if du + w < dist[v]:
+                return True, None
+
+    return False, dist
+
+
 def bfs(graph, start):
     """BFS com níveis (distância em arestas a partir de start).
 

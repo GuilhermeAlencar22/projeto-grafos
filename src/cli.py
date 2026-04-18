@@ -5,7 +5,13 @@ from collections import Counter
 from pathlib import Path
 
 from graphs.graph import Graph, print_degree_sample_stats
-from graphs.algorithms import bfs, dfs, dijkstra, validar_pesos_para_dijkstra
+from graphs.algorithms import (
+    bellman_ford,
+    bfs,
+    dfs,
+    dijkstra,
+    validar_pesos_para_dijkstra,
+)
 from graphs.analysis import componente_alcancavel, componente_tem_ciclo
 from graphs.io import load_edge_csv_graph
 
@@ -13,6 +19,113 @@ DEFAULT_IMDB_DATASET = "data/dataset_parte2/imdb_edges.csv"
 DEFAULT_CHECK_SOURCE = "tt0012313"
 DEFAULT_ETAPA3_FONTES = "tt0012313,tt0002605,tt0000147"
 DEFAULT_REPORT_PATH = Path(__file__).resolve().parents[1] / "out" / "parte2_report.json"
+
+
+def _distancias_bellman_json(dist: dict[str, float]) -> dict[str, float | None]:
+    """Serializa distancias Bellman-Ford: inf -> null, chaves ordenadas."""
+    out: dict[str, float | None] = {}
+    for k in sorted(dist.keys()):
+        d = dist[k]
+        out[k] = None if d == float("inf") else round(float(d), 9)
+    return out
+
+
+def _gravar_report_bellman_ford(report_path: Path, execucoes: list[dict]):
+    """Substitui a lista bellman_ford no report, preservando demais chaves."""
+    if report_path.exists():
+        try:
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            report = {}
+    else:
+        report = {}
+
+    _sanear_estrutura_report(report)
+    report["bellman_ford"] = execucoes
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
+    """Etapa 5: dois CSVs controlados por padrao; --dataset diferente do IMDb roda um arquivo."""
+    report_path = DEFAULT_REPORT_PATH
+    imdb_padrao = (projeto_root / DEFAULT_IMDB_DATASET).resolve()
+    bf_padrao = [
+        (
+            projeto_root / "data/dataset_parte2/bf_sem_ciclo_negativo.csv",
+            "s",
+        ),
+        (
+            projeto_root / "data/dataset_parte2/bf_com_ciclo_negativo.csv",
+            "a",
+        ),
+    ]
+
+    dataset_arg = Path(args.dataset).resolve()
+    if dataset_arg != imdb_padrao:
+        fonte = args.source or "s"
+        runs = [(dataset_arg, fonte)]
+    else:
+        runs = bf_padrao
+
+    registros: list[dict] = []
+    t0_total = time.time()
+
+    for caminho_csv, src in runs:
+        if not caminho_csv.exists():
+            raise FileNotFoundError(f"Arquivo nao encontrado: {caminho_csv}")
+
+        dados = load_edge_csv_graph(
+            str(caminho_csv), weight_column="peso", directed=True
+        )
+        gbf = Graph()
+        for u in dados:
+            for v, w in dados[u]:
+                gbf.add_directed_edge(u, v, w)
+
+        if src not in gbf.adj:
+            raise ValueError(f"No fonte invalido para este grafo: {src}")
+
+        t0 = time.time()
+        ciclo_neg, dist = bellman_ford(gbf, src)
+        dt = time.time() - t0
+
+        try:
+            ds_rel = caminho_csv.relative_to(projeto_root)
+            ds_str = str(ds_rel).replace("\\", "/")
+        except ValueError:
+            ds_str = str(caminho_csv)
+
+        linha: dict = {
+            "dataset": ds_str,
+            "source": src,
+            "ciclo_negativo": ciclo_neg,
+            "distancias": None if ciclo_neg else _distancias_bellman_json(dist),
+            "tempo_s": round(dt, 6),
+        }
+        registros.append(linha)
+
+    _gravar_report_bellman_ford(report_path, registros)
+
+    print("\n=== BELLMAN-FORD (Etapa 5) ===")
+    for r in registros:
+        print(f"  {r['dataset']}  source={r['source']}")
+        print(
+            f"    ciclo_negativo={r['ciclo_negativo']}  "
+            f"tempo_s={r['tempo_s']}"
+        )
+        if r["ciclo_negativo"]:
+            print(
+                "    distancias omitidas (ciclo negativo alcancavel a partir da fonte)."
+            )
+        else:
+            print(f"    distancias: {r['distancias']}")
+    print(f"  Report: {report_path}")
+    print(f"  Tempo total CLI: {time.time() - t0_total:.6f}s")
+    print("=== fim BELLMAN-FORD ===\n")
 
 
 def _metricas_grafo(g2: Graph):
@@ -69,6 +182,7 @@ def _sanear_estrutura_report(report: dict) -> None:
     report.setdefault("bfs", [])
     report.setdefault("dfs", [])
     report.setdefault("dijkstra", [])
+    report.setdefault("bellman_ford", [])
 
 
 def _atualizar_report_dataset(report_path: Path, dataset_info: dict):
@@ -320,7 +434,14 @@ def _registrar_execucao_busca(
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", default=DEFAULT_IMDB_DATASET)
-    parser.add_argument("--alg")
+    parser.add_argument(
+        "--alg",
+        help=(
+            "Algoritmo: CHECK, BFS, DFS, ETAPA3, DIJKSTRA, BELLMAN_FORD. "
+            "BELLMAN-FORD usa por padrao os CSVs bf_sem_ciclo_negativo e "
+            "bf_com_ciclo_negativo (nao carrega o IMDb)."
+        ),
+    )
     parser.add_argument("--source")
     parser.add_argument("--weight-col", default="peso")
     parser.add_argument(
@@ -346,6 +467,12 @@ def main():
     )
 
     args = parser.parse_args()
+
+    projeto_root = Path(__file__).resolve().parents[1]
+
+    if args.alg == "BELLMAN_FORD":
+        _cli_bellman_ford(args, projeto_root)
+        return
 
     if args.dataset:
         t0_total = time.time()

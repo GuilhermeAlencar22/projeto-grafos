@@ -16,6 +16,12 @@ class Graph:
         self.adj[u].append((v, weight))
         self.adj[v].append((u, weight))
 
+    def add_directed_edge(self, u, v, weight=1):
+        """Aresta dirigida u -> v (Bellman-Ford / fluxos); nao adiciona o arco reverso."""
+        self.add_node(u)
+        self.add_node(v)
+        self.adj[u].append((v, weight))
+
     def neighbors(self, node):
         if node in self.adj:
             return self.adj[node]
