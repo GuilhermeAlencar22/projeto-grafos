@@ -2,6 +2,8 @@
 
 Gera data/dataset_parte2/imdb_bellman_ford.csv a partir de title.principals e title.ratings.
 
+Usa apenas category=director em principals; pares de filmes ligados por diretores em comum.
+
 
 
 Uso (no diretorio do projeto ou com caminhos absolutos):
@@ -19,6 +21,10 @@ Opcional (somente titulos titleType=movie):
 
 
 Arquivos .tsv.gz tambem sao aceitos.
+
+
+
+Opcional para testes: --max-directors N, --progress-step N (progresso por linhas em principals).
 
 """
 
@@ -42,7 +48,7 @@ from pathlib import Path
 
 
 
-VALID_ACTOR_CATEGORIES = {"actor", "actress", "self"}
+VALID_DIRECTOR_CATEGORY = "director"
 
 
 
@@ -51,8 +57,6 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent.parent
 
 DEFAULT_OUTPUT = PROJECT_ROOT / "data/dataset_parte2/imdb_bellman_ford.csv"
-
-PESO_DECIMALS = 6
 
 
 
@@ -134,11 +138,31 @@ def load_ratings(path: Path) -> dict[str, float]:
 
 
 
-def load_title_actors(path: Path, valid_titles: set[str]) -> dict[str, set[str]]:
+def load_title_directors(
+    path: Path,
+    valid_titles: set[str],
+    *,
+    max_directors: int | None = None,
+    progress_step: int | None = None,
+) -> dict[str, set[str]]:
 
-    """filme -> conjunto de nconst (atores) para titulos que tem nota."""
+    """filme (tconst) -> conjunto de nconst dos diretores (category=director).
 
-    title_to_actors: dict[str, set[str]] = defaultdict(set)
+    Se max_directors e informado, acumula apenas os primeiros N nconst distintos
+
+    (ordem no arquivo apos filtros). A leitura de principals ENCERRA assim que esse
+
+    conjunto atinge N elementos: nao varre o restante do arquivo (trade-off: prefixo
+
+    do ficheiro; pode haver menos titulos por diretor que numa leitura completa).
+
+    """
+
+    title_to_directors: dict[str, set[str]] = defaultdict(set)
+
+    directors_in_scope: set[str] = set()
+
+    linhas_lidas = 0
 
     with _open_text(path) as fh:
 
@@ -146,13 +170,19 @@ def load_title_actors(path: Path, valid_titles: set[str]) -> dict[str, set[str]]
 
         for row in reader:
 
+            linhas_lidas += 1
+
+            if progress_step and linhas_lidas % progress_step == 0:
+
+                print(f"   principals: {linhas_lidas} linhas lidas")
+
             tconst = row.get("tconst")
 
             if not tconst or tconst not in valid_titles:
 
                 continue
 
-            if row.get("category") not in VALID_ACTOR_CATEGORIES:
+            if row.get("category") != VALID_DIRECTOR_CATEGORY:
 
                 continue
 
@@ -162,21 +192,39 @@ def load_title_actors(path: Path, valid_titles: set[str]) -> dict[str, set[str]]
 
                 continue
 
-            title_to_actors[tconst].add(nconst)
+            if max_directors is not None:
 
-    return title_to_actors
+                if nconst not in directors_in_scope:
+
+                    if len(directors_in_scope) >= max_directors:
+
+                        break
+
+                    directors_in_scope.add(nconst)
+
+            title_to_directors[tconst].add(nconst)
+
+            if max_directors is not None and len(directors_in_scope) >= max_directors:
+
+                break
+
+    if progress_step:
+
+        print(f"   principals: total {linhas_lidas} linhas lidas")
+
+    return title_to_directors
 
 
 
 
 
-def count_distinct_actors(title_to_actors: dict[str, set[str]]) -> int:
+def count_distinct_directors(title_to_directors: dict[str, set[str]]) -> int:
 
     unicos: set[str] = set()
 
-    for actors in title_to_actors.values():
+    for diretores in title_to_directors.values():
 
-        unicos.update(actors)
+        unicos.update(diretores)
 
     return len(unicos)
 
@@ -184,47 +232,53 @@ def count_distinct_actors(title_to_actors: dict[str, set[str]]) -> int:
 
 
 
-def build_pair_common_actors(
+def build_pair_common_directors(
 
-    title_to_actors: dict[str, set[str]],
+    title_to_directors: dict[str, set[str]],
 
 ) -> Counter[tuple[str, str]]:
 
     """
 
-    Para cada par de filmes que compartilham pelo menos um ator,
-
-    conta quantos atores em comum.
+    Constroi diretor -> filmes; para cada diretor, gera pares de filmes com esse diretor.
 
 
 
-    Titulos por ator sao deduplicados (set) antes das combinacoes.
+    Para cada par de filmes que compartilham pelo menos um diretor,
+
+    conta quantos diretores em comum.
+
+
+
+    Por diretor: titulos entram num set (deduplicados). Antes das combinacoes,
+
+    usa-se o conjunto unico ordenado (sem repetir o mesmo filme duas vezes).
 
     Chaves (a, b) com a < b na ordenacao lexicografica dos ids.
 
     """
 
-    actor_to_titles: dict[str, set[str]] = defaultdict(set)
+    director_to_titles: dict[str, set[str]] = defaultdict(set)
 
-    for title, actors in title_to_actors.items():
+    for title, diretores in title_to_directors.items():
 
-        for actor in actors:
+        for diretor in diretores:
 
-            actor_to_titles[actor].add(title)
+            director_to_titles[diretor].add(title)
 
 
 
     pair_counts: Counter[tuple[str, str]] = Counter()
 
-    for titles_set in actor_to_titles.values():
+    for _diretor, titulos_do_diretor in director_to_titles.items():
 
-        if len(titles_set) < 2:
+        titulos_unicos = sorted(set(titulos_do_diretor))
+
+        if len(titulos_unicos) < 2:
 
             continue
 
-        unique_titles = sorted(titles_set)
-
-        for a, b in combinations(unique_titles, 2):
+        for a, b in combinations(titulos_unicos, 2):
 
             pair_counts[(a, b)] += 1
 
@@ -246,7 +300,7 @@ def build_directed_edges(
 
     A -> B somente se rating(B) > rating(A).
 
-    peso = 2 - atores_em_comum - (rating_B - rating_A)
+    peso = 2 - diretores_em_comum - (rating_B - rating_A)
 
     Sem duplicar (source, target): um unico peso por arco.
 
@@ -256,7 +310,7 @@ def build_directed_edges(
 
     for (a, b), k in pair_counts.items():
 
-        # k = quantidade de atores em comum entre os dois titulos (a, b).
+        # k = quantidade de diretores em comum entre os dois titulos (a, b).
 
         ra = ratings.get(a)
 
@@ -308,7 +362,7 @@ def write_csv(output_path: Path, edges: dict[tuple[str, str], float]) -> int:
 
         for (source, target) in sorted(edges.keys()):
 
-            peso = round(edges[(source, target)], PESO_DECIMALS)
+            peso = round(edges[(source, target)], 6)
 
             w.writerow([source, target, peso])
 
@@ -324,7 +378,11 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
 
-        description="Constroi imdb_bellman_ford.csv a partir de principals + ratings."
+        description=(
+
+            "Constroi imdb_bellman_ford.csv (diretores em comum, principals category=director + ratings)."
+
+        ),
 
     )
 
@@ -336,7 +394,13 @@ def main() -> None:
 
         default=Path("title.principals.tsv"),
 
-        help="title.principals.tsv ou .tsv.gz (padrao: ./title.principals.tsv)",
+        help=(
+
+            "title.principals.tsv ou .tsv.gz — usa apenas linhas category=director "
+
+            "(padrao: ./title.principals.tsv)"
+
+        ),
 
     )
 
@@ -382,7 +446,65 @@ def main() -> None:
 
     )
 
+    parser.add_argument(
+
+        "--max-edges",
+
+        type=int,
+
+        default=None,
+
+        help=(
+
+            "Opcional: limita quantos arcos sao escritos (ordenacao deterministica "
+
+            "por source e target). Util para testes sem CSV gigante."
+
+        ),
+
+    )
+
+    parser.add_argument(
+
+        "--max-directors",
+
+        type=int,
+
+        default=None,
+
+        help=(
+
+            "Opcional: numero maximo de diretores distintos (nconst); ordem = aparecimento "
+
+            "no principals. Encerra a leitura do arquivo assim que esse limite e atingido "
+
+            "(nao varre o restante do .tsv/.gz)."
+
+        ),
+
+    )
+
+    parser.add_argument(
+
+        "--progress-step",
+
+        type=int,
+
+        default=None,
+
+        help="Opcional: imprime progresso a cada N linhas lidas de title.principals.",
+
+    )
+
     args = parser.parse_args()
+
+    if args.progress_step is not None and args.progress_step <= 0:
+
+        raise SystemExit("ERRO: --progress-step deve ser um inteiro positivo.")
+
+    if args.max_directors is not None and args.max_directors < 0:
+
+        raise SystemExit("ERRO: --max-directors nao pode ser negativo.")
 
 
 
@@ -390,7 +512,7 @@ def main() -> None:
 
     ratings = load_ratings(args.ratings)
 
-    n_rating_total = len(ratings)
+    n_titulos_com_rating_na_base = len(ratings)
 
 
 
@@ -410,17 +532,26 @@ def main() -> None:
 
 
 
-    print("Carregando elenco (principals)...")
+    print("Carregando diretores (principals, category=director)...")
 
-    title_to_actors = load_title_actors(args.principals, valid)
+    if args.max_directors is not None:
 
-    print(f"   Titulos com rating e elenco: {len(title_to_actors)}")
+        print(f"   Limite ativo: --max-directors={args.max_directors}")
+
+    title_to_directors = load_title_directors(
+        args.principals,
+        valid,
+        max_directors=args.max_directors,
+        progress_step=args.progress_step,
+    )
+
+    print(f"   Titulos com rating e pelo menos um diretor: {len(title_to_directors)}")
 
 
 
-    print("Contando pares com atores em comum (titulos deduplicados por ator)...")
+    print("Contando pares com diretores em comum (titulos deduplicados por diretor)...")
 
-    pair_counts = build_pair_common_actors(title_to_actors)
+    pair_counts = build_pair_common_directors(title_to_directors)
 
     print(f"   Pares candidatos: {len(pair_counts)}")
 
@@ -430,15 +561,25 @@ def main() -> None:
 
     edges = build_directed_edges(pair_counts, ratings)
 
+    if args.max_edges is not None and len(edges) > args.max_edges:
+
+        ordem = sorted(edges.keys())
+
+        edges = {k: edges[k] for k in ordem[: args.max_edges]}
+
+        print(f"   Aplicado --max-edges={args.max_edges} (ordenacao lexicografica).")
+
     out_path = args.output.resolve()
 
     n_arcos = write_csv(args.output, edges)
 
 
 
-    n_atores = count_distinct_actors(title_to_actors)
+    n_diretores = count_distinct_directors(title_to_directors)
 
-    n_filmes_usados = len(title_to_actors)
+    n_filmes_com_rating_usados = len(title_to_directors)
+
+    caminho_absoluto = str(out_path.resolve())
 
 
 
@@ -446,21 +587,15 @@ def main() -> None:
 
     print("--- Resumo ---")
 
-    print(f"  Filmes com rating usados (com pelo menos um ator): {n_filmes_usados}")
+    print(f"  Filmes com rating usados: {n_filmes_com_rating_usados}")
 
-    if args.basics is not None:
+    print(f"  Titulos com rating na base: {n_titulos_com_rating_na_base}")
 
-        print(f"  Titulos com rating na base (antes do filtro basics): {n_rating_total}")
-
-    else:
-
-        print(f"  Titulos com rating na base: {n_rating_total}")
-
-    print(f"  Atores distintos considerados: {n_atores}")
+    print(f"  Diretores distintos considerados: {n_diretores}")
 
     print(f"  Arcos dirigidos gerados: {n_arcos}")
 
-    print(f"  Arquivo salvo: {out_path}")
+    print(f"  Arquivo salvo (caminho absoluto): {caminho_absoluto}")
 
 
 
