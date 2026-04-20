@@ -16,9 +16,13 @@ from graphs.analysis import componente_alcancavel, componente_tem_ciclo
 from graphs.io import load_edge_csv_graph
 
 DEFAULT_IMDB_DATASET = "data/dataset_parte2/imdb_edges.csv"
+DEFAULT_BELLMAN_IMDB_DATASET = "data/dataset_parte2/imdb_bellman_ford.csv"
 DEFAULT_CHECK_SOURCE = "tt0012313"
 DEFAULT_ETAPA3_FONTES = "tt0012313,tt0002605,tt0000147"
 DEFAULT_REPORT_PATH = Path(__file__).resolve().parents[1] / "out" / "parte2_report.json"
+
+# Acima disto, o report guarda apenas amostra das distancias (grafo IMDb grande).
+BELLMAN_FULL_REPORT_MAX_VERTICES = 3000
 
 
 def _distancias_bellman_json(dist: dict[str, float]) -> dict[str, float | None]:
@@ -28,6 +32,20 @@ def _distancias_bellman_json(dist: dict[str, float]) -> dict[str, float | None]:
         d = dist[k]
         out[k] = None if d == float("inf") else round(float(d), 9)
     return out
+
+
+def _serialize_bellman_dist_for_report(dist: dict[str, float]) -> dict:
+    """Serializa distancias completas ou resumo quando |V| e grande."""
+    if len(dist) <= BELLMAN_FULL_REPORT_MAX_VERTICES:
+        return _distancias_bellman_json(dist)
+    amostra_chaves = sorted(dist.keys())[:40]
+    amostra = _distancias_bellman_json({k: dist[k] for k in amostra_chaves})
+    return {
+        "omitido_por_tamanho": True,
+        "n_vertices": len(dist),
+        "limite_relatorio_vertices": BELLMAN_FULL_REPORT_MAX_VERTICES,
+        "distancias_amostra": amostra,
+    }
 
 
 def _gravar_report_bellman_ford(report_path: Path, execucoes: list[dict]):
@@ -49,26 +67,89 @@ def _gravar_report_bellman_ford(report_path: Path, execucoes: list[dict]):
     )
 
 
+def _default_fonte_bellman(dataset_path: Path) -> str:
+    """Fonte padrao sem --source: datasets de validacao bf_* (s/a) ou tconst IMDb.
+
+    imdb_bellman_ford.csv nunca usa 's'; usa um tconst valido (padrao tt0012313).
+    """
+    nome = dataset_path.name.lower()
+    if nome.startswith("bf_validacao_sem"):
+        return "s"
+    if nome.startswith("bf_validacao_com"):
+        return "a"
+    return DEFAULT_CHECK_SOURCE
+
+
 def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
-    """Etapa 5: dois CSVs controlados por padrao; --dataset diferente do IMDb roda um arquivo."""
+    """Etapa 5 — Bellman-Ford no grafo dirigido IMDb (diretores em comum + diferenca de rating).
+
+    Dataset principal: data/dataset_parte2/imdb_bellman_ford.csv (gerado por build_bellman_dataset.py).
+
+    Datasets de validacao (Bellman-Ford) em testes/ (opcional: --bellman-demo ou fallback).
+    """
     report_path = DEFAULT_REPORT_PATH
-    imdb_padrao = (projeto_root / DEFAULT_IMDB_DATASET).resolve()
+    imdb_edges_path = (projeto_root / DEFAULT_IMDB_DATASET).resolve()
+    bellman_csv_path = (projeto_root / DEFAULT_BELLMAN_IMDB_DATASET).resolve()
+    # Datasets de validacao — grafo artificial controlado (sem fluxo principal IMDb).
     bf_padrao = [
         (
-            projeto_root / "data/dataset_parte2/bf_sem_ciclo_negativo.csv",
+            projeto_root / "data/dataset_parte2/testes/bf_validacao_sem_ciclo.csv",
             "s",
         ),
         (
-            projeto_root / "data/dataset_parte2/bf_com_ciclo_negativo.csv",
+            projeto_root / "data/dataset_parte2/testes/bf_validacao_com_ciclo.csv",
             "a",
         ),
     ]
 
     dataset_arg = Path(args.dataset).resolve()
-    if dataset_arg != imdb_padrao:
-        fonte = args.source or "s"
+
+    if getattr(args, "bellman_demo", False):
+        if dataset_arg != imdb_edges_path:
+            print(
+                "[cli] AVISO: --bellman-demo ignora --dataset e usa apenas datasets de "
+                "validacao em testes/."
+            )
+        print(
+            "[cli] Etapa 5 — datasets de validacao Bellman-Ford (grafo artificial controlado; "
+            "bf_validacao_sem_ciclo + bf_validacao_com_ciclo)."
+        )
+        runs = bf_padrao
+    elif dataset_arg != imdb_edges_path:
+        fonte = args.source or _default_fonte_bellman(dataset_arg)
         runs = [(dataset_arg, fonte)]
+        if dataset_arg.resolve() == bellman_csv_path.resolve():
+            print(
+                "[cli] Etapa 5 — dataset principal imdb_bellman_ford.csv "
+                "(diretores em comum, pesos por rating); "
+                f"fonte={fonte}"
+            )
+        else:
+            print(
+                f"[cli] Etapa 5 — Bellman-Ford dataset explicito ({dataset_arg.name}); "
+                f"fonte={fonte}"
+            )
+    elif bellman_csv_path.exists():
+        fonte = args.source or DEFAULT_CHECK_SOURCE
+        runs = [(bellman_csv_path, fonte)]
+        print(
+            "[cli] Etapa 5 — dataset principal "
+            f"{DEFAULT_BELLMAN_IMDB_DATASET} "
+            "(grafo dirigido: diretores em comum + rating); "
+            f"fonte={fonte}"
+        )
     else:
+        print(
+            "[cli] AVISO: "
+            f"{DEFAULT_BELLMAN_IMDB_DATASET} nao encontrado. "
+            "Gere com: python src/parte2/build_bellman_dataset.py "
+            "--principals <title.principals.tsv.gz> --ratings <title.ratings.tsv.gz> "
+            "[--basics <title.basics.tsv.gz>] [--max-edges N]"
+        )
+        print(
+            "[cli] Etapa 5 — fallback para datasets de validacao "
+            "(grafo artificial controlado em testes/)."
+        )
         runs = bf_padrao
 
     registros: list[dict] = []
@@ -103,14 +184,21 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
             "dataset": ds_str,
             "source": src,
             "ciclo_negativo": ciclo_neg,
-            "distancias": None if ciclo_neg else _distancias_bellman_json(dist),
+            "distancias": (
+                None
+                if ciclo_neg
+                else _serialize_bellman_dist_for_report(dist)
+            ),
             "tempo_s": round(dt, 6),
         }
         registros.append(linha)
 
     _gravar_report_bellman_ford(report_path, registros)
 
-    print("\n=== BELLMAN-FORD (Etapa 5) ===")
+    print(
+        "\n=== BELLMAN-FORD — Etapa 5 "
+        "(principal: IMDb; testes/: datasets de validacao se usados) ==="
+    )
     for r in registros:
         print(f"  {r['dataset']}  source={r['source']}")
         print(
@@ -120,6 +208,13 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
         if r["ciclo_negativo"]:
             print(
                 "    distancias omitidas (ciclo negativo alcancavel a partir da fonte)."
+            )
+        elif isinstance(r["distancias"], dict) and r["distancias"].get(
+            "omitido_por_tamanho"
+        ):
+            print(
+                "    distancias: resumo no report (grafo grande; "
+                f"n_vertices={r['distancias'].get('n_vertices')})."
             )
         else:
             print(f"    distancias: {r['distancias']}")
@@ -177,7 +272,7 @@ def _distribuicao_graus(g2: Graph):
 
 
 def _sanear_estrutura_report(report: dict) -> None:
-    """Remove legado 'bfs_dfs', garante listas 'bfs' e 'dfs' sem apagar dados atuais."""
+    """Remove formato JSON legado da chave 'bfs_dfs'; preserva listas 'bfs' e 'dfs'."""
     report.pop("bfs_dfs", None)
     report.setdefault("bfs", [])
     report.setdefault("dfs", [])
@@ -438,8 +533,11 @@ def main():
         "--alg",
         help=(
             "Algoritmo: CHECK, BFS, DFS, ETAPA3, DIJKSTRA, BELLMAN_FORD. "
-            "BELLMAN-FORD usa por padrao os CSVs bf_sem_ciclo_negativo e "
-            "bf_com_ciclo_negativo (nao carrega o IMDb)."
+            "BELLMAN_FORD (Etapa 5): grafo dirigido gerado com diretores em comum e "
+            f"diferenca de rating — dataset principal {DEFAULT_BELLMAN_IMDB_DATASET}; "
+            f"--source e tconst IMDb (padrao sem --source: {DEFAULT_CHECK_SOURCE}). "
+            "Com --dataset padrao imdb_edges.csv usa esse CSV Bellman se existir; senao "
+            "datasets de validacao em testes/. --bellman-demo forca esse modo."
         ),
     )
     parser.add_argument("--source")
@@ -463,6 +561,14 @@ def main():
         help=(
             'Etapa 4: pelo menos 5 pares "origem,destino" separados por ; '
             "(ex.: tt1,tt2;tt3,tt4;...). Padrão: 5 arestas distintas do grafo."
+        ),
+    )
+    parser.add_argument(
+        "--bellman-demo",
+        action="store_true",
+        help=(
+            "Somente com --alg BELLMAN_FORD: forca os datasets de validacao em testes/ "
+            "(grafo artificial controlado), sem imdb_bellman_ford.csv."
         ),
     )
 

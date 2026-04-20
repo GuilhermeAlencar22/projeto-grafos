@@ -485,7 +485,7 @@
   ],
   "bellman_ford": [
     {
-      "dataset": "data/dataset_parte2/bf_sem_ciclo_negativo.csv",
+      "dataset": "data/dataset_parte2/testes/bf_validacao_sem_ciclo.csv",
       "source": "s",
       "ciclo_negativo": false,
       "distancias": {
@@ -497,7 +497,7 @@
       "tempo_s": 0.0
     },
     {
-      "dataset": "data/dataset_parte2/bf_com_ciclo_negativo.csv",
+      "dataset": "data/dataset_parte2/testes/bf_validacao_com_ciclo.csv",
       "source": "a",
       "ciclo_negativo": true,
       "distancias": null,
