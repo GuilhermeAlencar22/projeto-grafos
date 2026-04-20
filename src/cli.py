@@ -60,11 +60,7 @@ def _gravar_report_bellman_ford(report_path: Path, execucoes: list[dict]):
 
     _sanear_estrutura_report(report)
     report["bellman_ford"] = execucoes
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    _gravar_report_json(report_path, report)
 
 
 def _default_fonte_bellman(dataset_path: Path) -> str:
@@ -153,7 +149,7 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
         runs = bf_padrao
 
     registros: list[dict] = []
-    t0_total = time.time()
+    t0_total = time.perf_counter()
 
     for caminho_csv, src in runs:
         if not caminho_csv.exists():
@@ -170,9 +166,9 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
         if src not in gbf.adj:
             raise ValueError(f"No fonte invalido para este grafo: {src}")
 
-        t0 = time.time()
+        t0 = time.perf_counter()
         ciclo_neg, dist = bellman_ford(gbf, src)
-        dt = time.time() - t0
+        dt = time.perf_counter() - t0
 
         try:
             ds_rel = caminho_csv.relative_to(projeto_root)
@@ -189,7 +185,7 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
                 if ciclo_neg
                 else _serialize_bellman_dist_for_report(dist)
             ),
-            "tempo_s": round(dt, 6),
+            "tempo_s": round(float(dt), 9),
         }
         registros.append(linha)
 
@@ -219,7 +215,7 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
         else:
             print(f"    distancias: {r['distancias']}")
     print(f"  Report: {report_path}")
-    print(f"  Tempo total CLI: {time.time() - t0_total:.6f}s")
+    print(f"  Tempo total CLI: {time.perf_counter() - t0_total:.6f}s")
     print("=== fim BELLMAN-FORD ===\n")
 
 
@@ -278,6 +274,124 @@ def _sanear_estrutura_report(report: dict) -> None:
     report.setdefault("dfs", [])
     report.setdefault("dijkstra", [])
     report.setdefault("bellman_ford", [])
+    report.setdefault(
+        "benchmark",
+        {},
+    )
+
+
+def _tempo_segundos_do_item_busca(item: dict) -> float:
+    """Segundos numéricos a partir de tempo_s (preferido) ou tempo (legado)."""
+    if item.get("tempo_s") is not None:
+        return float(item["tempo_s"])
+    if item.get("tempo") is not None:
+        return float(item["tempo"])
+    return 0.0
+
+
+def _sincronizar_benchmark(report: dict) -> None:
+    """Preenche report['benchmark'] de forma padronizada (Etapa 6).
+
+    Copia/normaliza dados de bfs, dfs, dijkstra, bellman_ford e completa BFS/DFS
+    com fontes da etapa3 quando ainda não constam (3 fontes distintas típicas).
+    """
+    meta = {
+        "unidade_tempo": "s",
+        "relogio": "perf_counter",
+        "versao_esquema": 1,
+    }
+
+    # --- BFS: listas CLI + complemento etapa3 (fontes não repetidas) ---
+    bfs_bench: list[dict] = []
+    seen_bfs: set[str] = set()
+    for raw in report.get("bfs", []):
+        e = dict(raw)
+        ts = _tempo_segundos_do_item_busca(e)
+        e["tempo_s"] = round(ts, 9)
+        e.setdefault("tempo", e["tempo_s"])
+        e.setdefault("origem", "cli")
+        bfs_bench.append(e)
+        if e.get("source"):
+            seen_bfs.add(e["source"])
+    for bloco in report.get("etapa3", {}).get("por_fonte", []):
+        src = bloco.get("source")
+        if not src or src in seen_bfs:
+            continue
+        b_inner = bloco.get("bfs") or {}
+        bfs_bench.append(
+            {
+                "source": src,
+                "tempo_s": round(float(b_inner.get("tempo_s", 0)), 9),
+                "visitados": b_inner.get("visitados"),
+                "origem": "etapa3",
+            }
+        )
+        seen_bfs.add(src)
+
+    # --- DFS: idem ---
+    dfs_bench: list[dict] = []
+    seen_dfs: set[str] = set()
+    for raw in report.get("dfs", []):
+        e = dict(raw)
+        ts = _tempo_segundos_do_item_busca(e)
+        e["tempo_s"] = round(ts, 9)
+        e.setdefault("tempo", e["tempo_s"])
+        e.setdefault("origem", "cli")
+        dfs_bench.append(e)
+        if e.get("source"):
+            seen_dfs.add(e["source"])
+    for bloco in report.get("etapa3", {}).get("por_fonte", []):
+        src = bloco.get("source")
+        if not src or src in seen_dfs:
+            continue
+        d_inner = bloco.get("dfs") or {}
+        dfs_bench.append(
+            {
+                "source": src,
+                "tempo_s": round(float(d_inner.get("tempo_s", 0)), 9),
+                "visitados": d_inner.get("visitados"),
+                "origem": "etapa3",
+            }
+        )
+        seen_dfs.add(src)
+
+    # --- Dijkstra / Bellman-Ford: garantir tempo_s numérico ---
+    dj_bench: list[dict] = []
+    for raw in report.get("dijkstra", []):
+        e = dict(raw)
+        if e.get("tempo_s") is None:
+            e["tempo_s"] = 0.0
+        else:
+            e["tempo_s"] = round(float(e["tempo_s"]), 9)
+        dj_bench.append(e)
+
+    bf_bench: list[dict] = []
+    for raw in report.get("bellman_ford", []):
+        e = dict(raw)
+        if e.get("tempo_s") is None:
+            e["tempo_s"] = 0.0
+        else:
+            e["tempo_s"] = round(float(e["tempo_s"]), 9)
+        bf_bench.append(e)
+
+    report["benchmark"] = {
+        "meta": meta,
+        "bfs": bfs_bench,
+        "dfs": dfs_bench,
+        "dijkstra": dj_bench,
+        "bellman_ford": bf_bench,
+    }
+
+
+def _gravar_report_json(report_path: Path, report: dict) -> None:
+    """Escreve report completo com benchmark sincronizado."""
+    _sanear_estrutura_report(report)
+    _sincronizar_benchmark(report)
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
 
 def _atualizar_report_dataset(report_path: Path, dataset_info: dict):
@@ -292,11 +406,7 @@ def _atualizar_report_dataset(report_path: Path, dataset_info: dict):
 
     _sanear_estrutura_report(report)
     report["dataset"] = dataset_info
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    _gravar_report_json(report_path, report)
 
 
 def _fontes_etapa3(graph: Graph, raw_fontes: str) -> list[str]:
@@ -456,11 +566,7 @@ def _gravar_report_dijkstra(report_path: Path, execucoes: list[dict]):
 
     _sanear_estrutura_report(report)
     report["dijkstra"] = execucoes
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    _gravar_report_json(report_path, report)
 
 
 def _atualizar_report_etapa3(report_path: Path, payload: dict):
@@ -475,11 +581,7 @@ def _atualizar_report_etapa3(report_path: Path, payload: dict):
 
     _sanear_estrutura_report(report)
     report["etapa3"] = payload
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    _gravar_report_json(report_path, report)
 
 
 def _registrar_execucao_busca(
@@ -506,24 +608,23 @@ def _registrar_execucao_busca(
     if chave not in ("bfs", "dfs"):
         raise ValueError(f"Algoritmo invalido para registro no report: {algoritmo}")
 
+    ts = round(float(tempo), 9)
     entrada: dict = {
         "source": str(source),
-        "tempo": round(float(tempo), 9),
+        "tempo_s": ts,
+        "tempo": ts,
     }
     if visitados is not None:
         entrada["visitados"] = visitados
     if primeiros_nos is not None:
         entrada["primeiros_nos"] = primeiros_nos
     if tempo_total_cli is not None:
-        entrada["tempo_total_cli"] = round(float(tempo_total_cli), 9)
+        entrada["tempo_total_cli_s"] = round(float(tempo_total_cli), 9)
+        entrada["tempo_total_cli"] = entrada["tempo_total_cli_s"]
 
     report[chave].append(entrada)
 
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    _gravar_report_json(report_path, report)
 
 
 def main():
@@ -581,7 +682,7 @@ def main():
         return
 
     if args.dataset:
-        t0_total = time.time()
+        t0_total = time.perf_counter()
         dataset_path = Path(args.dataset).resolve()
         if dataset_path.suffix.lower() != ".csv":
             raise ValueError(
@@ -651,31 +752,31 @@ def main():
             print(f"  Maior componente: {maior_componente}")
             print(f"  Fonte BFS/DFS: {fonte}")
 
-            t0_bfs = time.time()
+            t0_bfs = time.perf_counter()
             ordem_bfs, _ = bfs(g2, fonte)
-            dt_bfs = time.time() - t0_bfs
+            dt_bfs = time.perf_counter() - t0_bfs
             print(
                 f"  BFS: visitados={len(ordem_bfs)}  "
                 f"primeiros 5={ordem_bfs[:5]}  tempo={dt_bfs:.4f}s"
             )
 
-            t0_dfs = time.time()
+            t0_dfs = time.perf_counter()
             ordem_dfs = dfs(g2, fonte)
-            dt_dfs = time.time() - t0_dfs
+            dt_dfs = time.perf_counter() - t0_dfs
             print(
                 f"  DFS: visitados={len(ordem_dfs)}  "
                 f"primeiros 5={ordem_dfs[:5]}  tempo={dt_dfs:.4f}s"
             )
 
-            print(f"  Tempo total: {time.time() - t0_total:.4f}s")
+            print(f"  Tempo total: {time.perf_counter() - t0_total:.4f}s")
             print(f"  Report dataset atualizado em: {DEFAULT_REPORT_PATH}")
             print("=== fim CHECK ===\n")
 
         elif args.alg == "BFS":
             fonte_exec = args.source or DEFAULT_CHECK_SOURCE
-            inicio = time.time()
+            inicio = time.perf_counter()
             resultado, niveis = bfs(g2, fonte_exec)
-            fim = time.time()
+            fim = time.perf_counter()
             tempo_bfs = fim - inicio
 
             print("BFS Parte 2 executado com sucesso")
@@ -685,7 +786,7 @@ def main():
                 print(f"  {n}  (nível {niveis[n]})")
             print("Total visitados:", len(resultado))
             print("Tempo BFS:", tempo_bfs)
-            tempo_cli = time.time() - t0_total
+            tempo_cli = time.perf_counter() - t0_total
             print("Tempo total (cli):", tempo_cli)
             _registrar_execucao_busca(
                 DEFAULT_REPORT_PATH,
@@ -700,15 +801,15 @@ def main():
 
         elif args.alg == "DFS":
             fonte_exec = args.source or DEFAULT_CHECK_SOURCE
-            inicio = time.time()
+            inicio = time.perf_counter()
             resultado = dfs(g2, fonte_exec)
-            fim = time.time()
+            fim = time.perf_counter()
             tempo_dfs = fim - inicio
 
             print("DFS Parte 2 executado com sucesso")
             print("Total visitados:", len(resultado))
             print("Tempo DFS:", tempo_dfs)
-            tempo_cli = time.time() - t0_total
+            tempo_cli = time.perf_counter() - t0_total
             print("Tempo total (cli):", tempo_cli)
             _registrar_execucao_busca(
                 DEFAULT_REPORT_PATH,
@@ -729,14 +830,14 @@ def main():
                 tam_comp = len(comp)
                 ciclo = componente_tem_ciclo(g2, comp) if tam_comp else False
 
-                t0_b = time.time()
+                t0_b = time.perf_counter()
                 ordem_b, niveis = bfs(g2, s)
-                dt_b = time.time() - t0_b
+                dt_b = time.perf_counter() - t0_b
                 camadas = max(niveis.values()) if niveis else 0
 
-                t0_d = time.time()
+                t0_d = time.perf_counter()
                 ordem_d = dfs(g2, s)
-                dt_d = time.time() - t0_d
+                dt_d = time.perf_counter() - t0_d
 
                 por_fonte.append(
                     {
@@ -751,24 +852,24 @@ def main():
                             "camadas": camadas,
                             "tamanho_componente_alcancada": len(ordem_b),
                             "amostra_ordem": ordem_b[:15],
-                            "tempo_s": round(dt_b, 6),
+                            "tempo_s": round(float(dt_b), 9),
                         },
                         "dfs": {
                             "source": s,
                             "visitados": len(ordem_d),
                             "ciclo_na_componente": ciclo,
                             "amostra_ordem": ordem_d[:15],
-                            "tempo_s": round(dt_d, 6),
+                            "tempo_s": round(float(dt_d), 9),
                         },
                     }
                 )
 
-            tempo_cli = time.time() - t0_total
+            tempo_cli = time.perf_counter() - t0_total
             payload_etapa3 = {
                 "descricao": "Formalizacao BFS/DFS com 3 fontes distintas (Parte 2)",
                 "fontes_utilizadas": fontes,
                 "por_fonte": por_fonte,
-                "tempo_total_cli_s": round(tempo_cli, 6),
+                "tempo_total_cli_s": round(float(tempo_cli), 9),
             }
             _atualizar_report_etapa3(DEFAULT_REPORT_PATH, payload_etapa3)
 
@@ -797,9 +898,9 @@ def main():
             pares = _pares_dijkstra_do_cli(g2, args.dijkstra_pares)
             registros = []
             for src, tgt in pares:
-                t0p = time.time()
+                t0p = time.perf_counter()
                 resultado = dijkstra(g2, src, tgt)
-                dt = time.time() - t0p
+                dt = time.perf_counter() - t0p
                 if resultado is None:
                     registros.append(
                         {
@@ -809,7 +910,7 @@ def main():
                             "custo_total": None,
                             "tamanho_caminho": 0,
                             "caminho": [],
-                            "tempo_s": round(dt, 6),
+                            "tempo_s": round(float(dt), 9),
                         }
                     )
                 else:
@@ -821,7 +922,7 @@ def main():
                         "custo_total": round(float(custo), 9),
                         "tamanho_caminho": len(caminho),
                         "caminho": caminho[:10],
-                        "tempo_s": round(dt, 6),
+                        "tempo_s": round(float(dt), 9),
                     }
                     registros.append(linha)
 
