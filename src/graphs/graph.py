@@ -17,7 +17,6 @@ class Graph:
         self.adj[v].append((u, weight))
 
     def add_directed_edge(self, u, v, weight=1):
-        """Aresta dirigida u -> v (Bellman-Ford / fluxos); nao adiciona o arco reverso."""
         self.add_node(u)
         self.add_node(v)
         self.adj[u].append((v, weight))
@@ -36,7 +35,6 @@ class Graph:
 
 
 def print_degree_sample_stats(graph, sample_size=10):
-    """Imprime grau de uma amostra aleatória, nó de maior grau e grau médio."""
     nodes = graph.get_nodes()
     if not nodes:
         print("[graus] grafo vazio")

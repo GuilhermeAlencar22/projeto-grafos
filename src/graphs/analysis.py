@@ -4,7 +4,6 @@ from graphs.graph import Graph
 
 
 def componente_alcancavel(graph: Graph, start: str) -> list:
-    """Nós da componente conexa que contém start (BFS)."""
     if start not in graph.adj:
         return []
     visitados = {start}
@@ -21,10 +20,6 @@ def componente_alcancavel(graph: Graph, start: str) -> list:
 
 
 def componente_tem_ciclo(graph: Graph, vertices: list) -> bool:
-    """
-    Em grafo simples não direcionado e conexo, há ciclo se e somente se
-    |E| > |V| - 1. Aqui contamos arestas únicas induzidas no subgrafo.
-    """
     verts = set(vertices)
     n = len(verts)
     if n < 3:

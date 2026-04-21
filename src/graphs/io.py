@@ -1,19 +1,17 @@
 import pandas as pd
 
+
 def load_airports(path):
     df = pd.read_csv(path)
     return df
+
 
 def load_edges(path):
     df = pd.read_csv(path)
     return df
 
-def load_facebook_teste_graph(path):
-    """Legado: le dataset nao dirigido estilo Facebook (lista de arestas).
 
-    Nao faz parte do fluxo atual da CLI (Parte 2 usa CSV IMDb). Arquivo historico:
-    data/dataset_parte2/legado/facebook_teste_legado.txt
-    """
+def load_facebook_teste_graph(path):
     graph = {}
 
     with open(path, "r") as f:

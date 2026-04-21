@@ -1,3 +1,5 @@
+"""monta imdb_edges.csv cruzando elenco, genero e notas dos arquivos do imdb."""
+
 import argparse
 import csv
 import gzip
@@ -154,7 +156,9 @@ def write_edges_csv(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Gera dataset derivado IMDb para Parte 2.")
+    parser = argparse.ArgumentParser(
+        description="Gera dataset derivado IMDb (arestas entre filmes por ator em comum)."
+    )
     parser.add_argument("--basics", required=True, help="Caminho para title.basics.tsv.gz")
     parser.add_argument("--principals", required=True, help="Caminho para title.principals.tsv.gz")
     parser.add_argument("--ratings", required=True, help="Caminho para title.ratings.tsv.gz")

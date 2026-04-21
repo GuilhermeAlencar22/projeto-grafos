@@ -1,32 +1,4 @@
-"""
-
-Gera data/dataset_parte2/imdb_bellman_ford.csv a partir de title.principals e title.ratings.
-
-Usa apenas category=director em principals; pares de filmes ligados por diretores em comum.
-
-
-
-Uso (no diretorio do projeto ou com caminhos absolutos):
-
-  python src/parte2/build_bellman_dataset.py --principals caminho/title.principals.tsv \\
-
-      --ratings caminho/title.ratings.tsv
-
-
-
-Opcional (somente titulos titleType=movie):
-
-  python src/parte2/build_bellman_dataset.py ... --basics caminho/title.basics.tsv.gz
-
-
-
-Arquivos .tsv.gz tambem sao aceitos.
-
-
-
-Opcional para testes: --max-directors N, --progress-step N (progresso por linhas em principals).
-
-"""
+"""monta imdb_bellman_ford.csv ligando filmes por diretor em comum e pela nota."""
 
 
 
@@ -64,8 +36,6 @@ DEFAULT_OUTPUT = PROJECT_ROOT / "data/dataset_parte2/imdb_bellman_ford.csv"
 
 def _open_text(path: Path):
 
-    """Abre TSV texto; se o nome termina em .gz, descompacta."""
-
     raw = path.expanduser().resolve()
 
     if raw.suffix == ".gz" or str(raw).endswith(".gz"):
@@ -79,8 +49,6 @@ def _open_text(path: Path):
 
 
 def load_movie_tconsts(path: Path) -> set[str]:
-
-    """tconst com titleType == movie (para filtro opcional via title.basics)."""
 
     out: set[str] = set()
 
@@ -107,8 +75,6 @@ def load_movie_tconsts(path: Path) -> set[str]:
 
 
 def load_ratings(path: Path) -> dict[str, float]:
-
-    """filme (tconst) -> averageRating."""
 
     out: dict[str, float] = {}
 
@@ -145,18 +111,6 @@ def load_title_directors(
     max_directors: int | None = None,
     progress_step: int | None = None,
 ) -> dict[str, set[str]]:
-
-    """filme (tconst) -> conjunto de nconst dos diretores (category=director).
-
-    Se max_directors e informado, acumula apenas os primeiros N nconst distintos
-
-    (ordem no arquivo apos filtros). A leitura de principals ENCERRA assim que esse
-
-    conjunto atinge N elementos: nao varre o restante do arquivo (trade-off: prefixo
-
-    do ficheiro; pode haver menos titulos por diretor que numa leitura completa).
-
-    """
 
     title_to_directors: dict[str, set[str]] = defaultdict(set)
 
@@ -238,26 +192,6 @@ def build_pair_common_directors(
 
 ) -> Counter[tuple[str, str]]:
 
-    """
-
-    Constroi diretor -> filmes; para cada diretor, gera pares de filmes com esse diretor.
-
-
-
-    Para cada par de filmes que compartilham pelo menos um diretor,
-
-    conta quantos diretores em comum.
-
-
-
-    Por diretor: titulos entram num set (deduplicados). Antes das combinacoes,
-
-    usa-se o conjunto unico ordenado (sem repetir o mesmo filme duas vezes).
-
-    Chaves (a, b) com a < b na ordenacao lexicografica dos ids.
-
-    """
-
     director_to_titles: dict[str, set[str]] = defaultdict(set)
 
     for title, diretores in title_to_directors.items():
@@ -296,21 +230,11 @@ def build_directed_edges(
 
 ) -> dict[tuple[str, str], float]:
 
-    """
-
-    A -> B somente se rating(B) > rating(A).
-
-    peso = 2 - diretores_em_comum - (rating_B - rating_A)
-
-    Sem duplicar (source, target): um unico peso por arco.
-
-    """
-
     edges: dict[tuple[str, str], float] = {}
 
     for (a, b), k in pair_counts.items():
 
-        # k = quantidade de diretores em comum entre os dois titulos (a, b).
+        # k: diretores em comum neste par de titulos
 
         ra = ratings.get(a)
 
@@ -336,7 +260,7 @@ def build_directed_edges(
 
             diff = ra - rb
 
-        # diff = diferenca de rating entre target e source (sempre > 0 neste ramo).
+        # diff positivo: rating do alvo maior que o da fonte (este ramo)
 
         peso = 2.0 - k - diff
 

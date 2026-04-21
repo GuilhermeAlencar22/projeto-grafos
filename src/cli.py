@@ -1,3 +1,5 @@
+"""roda os algoritmos no grafo do imdb e grava os resultados no json do relatorio."""
+
 import argparse
 import json
 import time
@@ -18,7 +20,7 @@ from graphs.io import load_edge_csv_graph
 DEFAULT_IMDB_DATASET = "data/dataset_parte2/imdb_edges.csv"
 DEFAULT_BELLMAN_IMDB_DATASET = "data/dataset_parte2/imdb_bellman_ford.csv"
 DEFAULT_CHECK_SOURCE = "tt0012313"
-DEFAULT_ETAPA3_FONTES = "tt0012313,tt0002605,tt0000147"
+DEFAULT_TRES_FONTES = "tt0012313,tt0002605,tt0000147"
 DEFAULT_REPORT_PATH = Path(__file__).resolve().parents[1] / "out" / "parte2_report.json"
 
 # Acima disto, o report guarda apenas amostra das distancias (grafo IMDb grande).
@@ -26,7 +28,6 @@ BELLMAN_FULL_REPORT_MAX_VERTICES = 3000
 
 
 def _distancias_bellman_json(dist: dict[str, float]) -> dict[str, float | None]:
-    """Serializa distancias Bellman-Ford: inf -> null, chaves ordenadas."""
     out: dict[str, float | None] = {}
     for k in sorted(dist.keys()):
         d = dist[k]
@@ -34,8 +35,7 @@ def _distancias_bellman_json(dist: dict[str, float]) -> dict[str, float | None]:
     return out
 
 
-def _serialize_bellman_dist_for_report(dist: dict[str, float]) -> dict:
-    """Serializa distancias completas ou resumo quando |V| e grande."""
+def _distancias_bellman_pro_relatorio(dist: dict[str, float]) -> dict:
     if len(dist) <= BELLMAN_FULL_REPORT_MAX_VERTICES:
         return _distancias_bellman_json(dist)
     amostra_chaves = sorted(dist.keys())[:40]
@@ -49,7 +49,6 @@ def _serialize_bellman_dist_for_report(dist: dict[str, float]) -> dict:
 
 
 def _gravar_report_bellman_ford(report_path: Path, execucoes: list[dict]):
-    """Substitui a lista bellman_ford no report, preservando demais chaves."""
     if report_path.exists():
         try:
             report = json.loads(report_path.read_text(encoding="utf-8"))
@@ -58,16 +57,12 @@ def _gravar_report_bellman_ford(report_path: Path, execucoes: list[dict]):
     else:
         report = {}
 
-    _sanear_estrutura_report(report)
+    _limpar_estrutura_relatorio(report)
     report["bellman_ford"] = execucoes
     _gravar_report_json(report_path, report)
 
 
 def _default_fonte_bellman(dataset_path: Path) -> str:
-    """Fonte padrao sem --source: datasets de validacao bf_* (s/a) ou tconst IMDb.
-
-    imdb_bellman_ford.csv nunca usa 's'; usa um tconst valido (padrao tt0012313).
-    """
     nome = dataset_path.name.lower()
     if nome.startswith("bf_validacao_sem"):
         return "s"
@@ -77,16 +72,10 @@ def _default_fonte_bellman(dataset_path: Path) -> str:
 
 
 def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
-    """Etapa 5 — Bellman-Ford no grafo dirigido IMDb (diretores em comum + diferenca de rating).
-
-    Dataset principal: data/dataset_parte2/imdb_bellman_ford.csv (gerado por build_bellman_dataset.py).
-
-    Datasets de validacao (Bellman-Ford) em testes/ (opcional: --bellman-demo ou fallback).
-    """
     report_path = DEFAULT_REPORT_PATH
     imdb_edges_path = (projeto_root / DEFAULT_IMDB_DATASET).resolve()
     bellman_csv_path = (projeto_root / DEFAULT_BELLMAN_IMDB_DATASET).resolve()
-    # Datasets de validacao — grafo artificial controlado (sem fluxo principal IMDb).
+    # csvs pequenos de teste (bf_*), nao o imdb inteiro
     bf_padrao = [
         (
             projeto_root / "data/dataset_parte2/testes/bf_validacao_sem_ciclo.csv",
@@ -103,12 +92,10 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
     if getattr(args, "bellman_demo", False):
         if dataset_arg != imdb_edges_path:
             print(
-                "[cli] AVISO: --bellman-demo ignora --dataset e usa apenas datasets de "
-                "validacao em testes/."
+                "[cli] aviso: --bellman-demo ignora --dataset e usa so os csv em testes/."
             )
         print(
-            "[cli] Etapa 5 — datasets de validacao Bellman-Ford (grafo artificial controlado; "
-            "bf_validacao_sem_ciclo + bf_validacao_com_ciclo)."
+            "[cli] bellman-ford: csvs bf_validacao_sem_ciclo e bf_validacao_com_ciclo."
         )
         runs = bf_padrao
     elif dataset_arg != imdb_edges_path:
@@ -116,22 +103,22 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
         runs = [(dataset_arg, fonte)]
         if dataset_arg.resolve() == bellman_csv_path.resolve():
             print(
-                "[cli] Etapa 5 — dataset principal imdb_bellman_ford.csv "
+                "[cli] bellman-ford: imdb_bellman_ford.csv "
                 "(diretores em comum, pesos por rating); "
                 f"fonte={fonte}"
             )
         else:
             print(
-                f"[cli] Etapa 5 — Bellman-Ford dataset explicito ({dataset_arg.name}); "
+                f"[cli] bellman-ford: csv escolhido ({dataset_arg.name}); "
                 f"fonte={fonte}"
             )
     elif bellman_csv_path.exists():
         fonte = args.source or DEFAULT_CHECK_SOURCE
         runs = [(bellman_csv_path, fonte)]
         print(
-            "[cli] Etapa 5 — dataset principal "
+            "[cli] bellman-ford: "
             f"{DEFAULT_BELLMAN_IMDB_DATASET} "
-            "(grafo dirigido: diretores em comum + rating); "
+            "(diretores em comum + rating); "
             f"fonte={fonte}"
         )
     else:
@@ -143,8 +130,8 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
             "[--basics <title.basics.tsv.gz>] [--max-edges N]"
         )
         print(
-            "[cli] Etapa 5 — fallback para datasets de validacao "
-            "(grafo artificial controlado em testes/)."
+            "[cli] bellman-ford: cai nos csv de teste em testes/ "
+            "(imdb_bellman_ford.csv nao encontrado)."
         )
         runs = bf_padrao
 
@@ -183,7 +170,7 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
             "distancias": (
                 None
                 if ciclo_neg
-                else _serialize_bellman_dist_for_report(dist)
+                else _distancias_bellman_pro_relatorio(dist)
             ),
             "tempo_s": round(float(dt), 9),
         }
@@ -191,10 +178,7 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
 
     _gravar_report_bellman_ford(report_path, registros)
 
-    print(
-        "\n=== BELLMAN-FORD — Etapa 5 "
-        "(principal: IMDb; testes/: datasets de validacao se usados) ==="
-    )
+    print("\n=== bellman-ford ===")
     for r in registros:
         print(f"  {r['dataset']}  source={r['source']}")
         print(
@@ -216,11 +200,10 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
             print(f"    distancias: {r['distancias']}")
     print(f"  Report: {report_path}")
     print(f"  Tempo total CLI: {time.perf_counter() - t0_total:.6f}s")
-    print("=== fim BELLMAN-FORD ===\n")
+    print("=== fim bellman-ford ===\n")
 
 
 def _metricas_grafo(g2: Graph):
-    """Retorna (|V|, |E| não-dir., grau médio, nó de maior grau, grau máximo)."""
     nodes = g2.get_nodes()
     if not nodes:
         return 0, 0, 0.0, None, 0
@@ -234,7 +217,6 @@ def _metricas_grafo(g2: Graph):
 
 
 def _metricas_componentes(g2: Graph):
-    """Retorna (quantidade_componentes, tamanho_maior_componente)."""
     visited = set()
     componentes = 0
     maior = 0
@@ -262,13 +244,11 @@ def _metricas_componentes(g2: Graph):
 
 
 def _distribuicao_graus(g2: Graph):
-    """Retorna distribuição organizada de graus (grau -> quantidade de nós)."""
     counter = Counter(len(g2.neighbors(n)) for n in g2.get_nodes())
     return {str(grau): qtd for grau, qtd in sorted(counter.items())}
 
 
-def _sanear_estrutura_report(report: dict) -> None:
-    """Remove formato JSON legado da chave 'bfs_dfs'; preserva listas 'bfs' e 'dfs'."""
+def _limpar_estrutura_relatorio(report: dict) -> None:
     report.pop("bfs_dfs", None)
     report.setdefault("bfs", [])
     report.setdefault("dfs", [])
@@ -281,7 +261,6 @@ def _sanear_estrutura_report(report: dict) -> None:
 
 
 def _tempo_segundos_do_item_busca(item: dict) -> float:
-    """Segundos numéricos a partir de tempo_s (preferido) ou tempo (legado)."""
     if item.get("tempo_s") is not None:
         return float(item["tempo_s"])
     if item.get("tempo") is not None:
@@ -290,18 +269,15 @@ def _tempo_segundos_do_item_busca(item: dict) -> float:
 
 
 def _sincronizar_benchmark(report: dict) -> None:
-    """Preenche report['benchmark'] de forma padronizada (Etapa 6).
-
-    Copia/normaliza dados de bfs, dfs, dijkstra, bellman_ford e completa BFS/DFS
-    com fontes da etapa3 quando ainda não constam (3 fontes distintas típicas).
-    """
     meta = {
         "unidade_tempo": "s",
         "relogio": "perf_counter",
         "versao_esquema": 1,
     }
 
-    # --- BFS: listas CLI + complemento etapa3 (fontes não repetidas) ---
+    bloco_fontes = report.get("tres_fontes") or {}
+
+    # bfs: entradas da cli + do bloco tres_fontes (sem repetir source)
     bfs_bench: list[dict] = []
     seen_bfs: set[str] = set()
     for raw in report.get("bfs", []):
@@ -313,7 +289,7 @@ def _sincronizar_benchmark(report: dict) -> None:
         bfs_bench.append(e)
         if e.get("source"):
             seen_bfs.add(e["source"])
-    for bloco in report.get("etapa3", {}).get("por_fonte", []):
+    for bloco in bloco_fontes.get("por_fonte", []):
         src = bloco.get("source")
         if not src or src in seen_bfs:
             continue
@@ -323,12 +299,12 @@ def _sincronizar_benchmark(report: dict) -> None:
                 "source": src,
                 "tempo_s": round(float(b_inner.get("tempo_s", 0)), 9),
                 "visitados": b_inner.get("visitados"),
-                "origem": "etapa3",
+                "origem": "tres_fontes",
             }
         )
         seen_bfs.add(src)
 
-    # --- DFS: idem ---
+    # dfs: mesma ideia
     dfs_bench: list[dict] = []
     seen_dfs: set[str] = set()
     for raw in report.get("dfs", []):
@@ -340,7 +316,7 @@ def _sincronizar_benchmark(report: dict) -> None:
         dfs_bench.append(e)
         if e.get("source"):
             seen_dfs.add(e["source"])
-    for bloco in report.get("etapa3", {}).get("por_fonte", []):
+    for bloco in bloco_fontes.get("por_fonte", []):
         src = bloco.get("source")
         if not src or src in seen_dfs:
             continue
@@ -350,12 +326,12 @@ def _sincronizar_benchmark(report: dict) -> None:
                 "source": src,
                 "tempo_s": round(float(d_inner.get("tempo_s", 0)), 9),
                 "visitados": d_inner.get("visitados"),
-                "origem": "etapa3",
+                "origem": "tres_fontes",
             }
         )
         seen_dfs.add(src)
 
-    # --- Dijkstra / Bellman-Ford: garantir tempo_s numérico ---
+    # dijkstra e bellman: normaliza tempo_s
     dj_bench: list[dict] = []
     for raw in report.get("dijkstra", []):
         e = dict(raw)
@@ -384,8 +360,7 @@ def _sincronizar_benchmark(report: dict) -> None:
 
 
 def _gravar_report_json(report_path: Path, report: dict) -> None:
-    """Escreve report completo com benchmark sincronizado."""
-    _sanear_estrutura_report(report)
+    _limpar_estrutura_relatorio(report)
     _sincronizar_benchmark(report)
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(
@@ -395,7 +370,6 @@ def _gravar_report_json(report_path: Path, report: dict) -> None:
 
 
 def _atualizar_report_dataset(report_path: Path, dataset_info: dict):
-    """Atualiza somente a chave 'dataset', preservando bfs/dfs e demais chaves."""
     if report_path.exists():
         try:
             report = json.loads(report_path.read_text(encoding="utf-8"))
@@ -404,13 +378,12 @@ def _atualizar_report_dataset(report_path: Path, dataset_info: dict):
     else:
         report = {}
 
-    _sanear_estrutura_report(report)
+    _limpar_estrutura_relatorio(report)
     report["dataset"] = dataset_info
     _gravar_report_json(report_path, report)
 
 
-def _fontes_etapa3(graph: Graph, raw_fontes: str) -> list[str]:
-    """Até 3 fontes distintas válidas no grafo (prioriza lista informada)."""
+def _tres_fontes_no_grafo(graph: Graph, raw_fontes: str) -> list[str]:
     candidatos = [x.strip() for x in raw_fontes.split(",") if x.strip()]
     escolhidos = []
     for c in candidatos:
@@ -428,7 +401,6 @@ def _fontes_etapa3(graph: Graph, raw_fontes: str) -> list[str]:
 
 
 def _enumerar_componentes(graph: Graph) -> list[list[str]]:
-    """Lista de componentes conexas (nao dirigido: vizinhanca simetrica)."""
     visitados: set[str] = set()
     comps: list[list[str]] = []
     for start in graph.get_nodes():
@@ -449,7 +421,6 @@ def _enumerar_componentes(graph: Graph) -> list[list[str]]:
 
 
 def _pares_variados_dijkstra_padrao(graph: Graph) -> list[tuple[str, str]]:
-    """Cinco pares variados: componente gigante (incl. distancia), sem caminho entre componentes."""
     comps = _enumerar_componentes(graph)
     comps.sort(key=len, reverse=True)
     if not comps or not comps[0]:
@@ -555,7 +526,6 @@ def _pares_dijkstra_do_cli(graph: Graph, raw: str | None) -> list[tuple[str, str
 
 
 def _gravar_report_dijkstra(report_path: Path, execucoes: list[dict]):
-    """Substitui a lista dijkstra no report, preservando dataset, bfs, dfs e etapa3."""
     if report_path.exists():
         try:
             report = json.loads(report_path.read_text(encoding="utf-8"))
@@ -564,13 +534,12 @@ def _gravar_report_dijkstra(report_path: Path, execucoes: list[dict]):
     else:
         report = {}
 
-    _sanear_estrutura_report(report)
+    _limpar_estrutura_relatorio(report)
     report["dijkstra"] = execucoes
     _gravar_report_json(report_path, report)
 
 
-def _atualizar_report_etapa3(report_path: Path, payload: dict):
-    """Grava bloco etapa3 sem alterar dataset nem listas bfs/dfs."""
+def _gravar_bloco_tres_fontes(report_path: Path, payload: dict):
     if report_path.exists():
         try:
             report = json.loads(report_path.read_text(encoding="utf-8"))
@@ -579,8 +548,8 @@ def _atualizar_report_etapa3(report_path: Path, payload: dict):
     else:
         report = {}
 
-    _sanear_estrutura_report(report)
-    report["etapa3"] = payload
+    _limpar_estrutura_relatorio(report)
+    report["tres_fontes"] = payload
     _gravar_report_json(report_path, report)
 
 
@@ -594,7 +563,6 @@ def _registrar_execucao_busca(
     primeiros_nos: list | None = None,
     tempo_total_cli: float | None = None,
 ):
-    """Registra execução de BFS/DFS em listas separadas; não altera o bloco dataset."""
     if report_path.exists():
         try:
             report = json.loads(report_path.read_text(encoding="utf-8"))
@@ -603,7 +571,7 @@ def _registrar_execucao_busca(
     else:
         report = {}
 
-    _sanear_estrutura_report(report)
+    _limpar_estrutura_relatorio(report)
     chave = algoritmo.lower()
     if chave not in ("bfs", "dfs"):
         raise ValueError(f"Algoritmo invalido para registro no report: {algoritmo}")
@@ -633,12 +601,12 @@ def main():
     parser.add_argument(
         "--alg",
         help=(
-            "Algoritmo: CHECK, BFS, DFS, ETAPA3, DIJKSTRA, BELLMAN_FORD. "
-            "BELLMAN_FORD (Etapa 5): grafo dirigido gerado com diretores em comum e "
-            f"diferenca de rating — dataset principal {DEFAULT_BELLMAN_IMDB_DATASET}; "
-            f"--source e tconst IMDb (padrao sem --source: {DEFAULT_CHECK_SOURCE}). "
-            "Com --dataset padrao imdb_edges.csv usa esse CSV Bellman se existir; senao "
-            "datasets de validacao em testes/. --bellman-demo forca esse modo."
+            "CHECK, BFS, DFS, TRES_FONTES, DIJKSTRA, BELLMAN_FORD. "
+            "bellman_ford: csv dirigido (diretores em comum e rating), "
+            f"padrao {DEFAULT_BELLMAN_IMDB_DATASET}; "
+            f"--source em ids imdb (sem --source: {DEFAULT_CHECK_SOURCE}). "
+            "com dataset padrao imdb_edges.csv usa o csv bellman se existir; senao os "
+            "bf_* em testes/. --bellman-demo forca so os bf_*."
         ),
     )
     parser.add_argument("--source")
@@ -646,30 +614,31 @@ def main():
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="Ativa logs do loader e estatísticas de grau do grafo.",
+        help="ativa logs do loader e estatisticas de grau.",
     )
     parser.add_argument(
-        "--etapa3-fontes",
-        default=DEFAULT_ETAPA3_FONTES,
+        "--tres-fontes",
+        default=DEFAULT_TRES_FONTES,
+        dest="tres_fontes",
         help=(
-            "Etapa 3: até 3 ids IMDb separados por vírgula "
-            f'(padrão: {DEFAULT_ETAPA3_FONTES}).'
+            "ate 3 ids imdb separados por virgula "
+            f"(padrao: {DEFAULT_TRES_FONTES})."
         ),
     )
     parser.add_argument(
         "--dijkstra-pares",
         default=None,
         help=(
-            'Etapa 4: pelo menos 5 pares "origem,destino" separados por ; '
-            "(ex.: tt1,tt2;tt3,tt4;...). Padrão: 5 arestas distintas do grafo."
+            'pelo menos 5 pares "origem,destino" separados por ; '
+            "(ex.: tt1,tt2;tt3,tt4;...). padrao: 5 pares escolhidos no grafo."
         ),
     )
     parser.add_argument(
         "--bellman-demo",
         action="store_true",
         help=(
-            "Somente com --alg BELLMAN_FORD: forca os datasets de validacao em testes/ "
-            "(grafo artificial controlado), sem imdb_bellman_ford.csv."
+            "so com --alg bellman_ford: usa so os bf_* em testes/, "
+            "sem imdb_bellman_ford.csv."
         ),
     )
 
@@ -744,7 +713,7 @@ def main():
             }
             _atualizar_report_dataset(DEFAULT_REPORT_PATH, dataset_info)
 
-            print("\n=== CHECK Parte 2 (resumo) ===")
+            print("\n=== check (resumo) ===")
             print(f"  |V| = {n_v}    |E| = {n_e}")
             print(f"  Grau médio: {grau_medio:.4f}")
             print(f"  Maior grau: {no_max} (grau {grau_max})")
@@ -779,7 +748,7 @@ def main():
             fim = time.perf_counter()
             tempo_bfs = fim - inicio
 
-            print("BFS Parte 2 executado com sucesso")
+            print("bfs executado com sucesso")
             primeiros = resultado[:10]
             print("Primeiros 10 nós visitados e nível:")
             for n in primeiros:
@@ -806,7 +775,7 @@ def main():
             fim = time.perf_counter()
             tempo_dfs = fim - inicio
 
-            print("DFS Parte 2 executado com sucesso")
+            print("dfs executado com sucesso")
             print("Total visitados:", len(resultado))
             print("Tempo DFS:", tempo_dfs)
             tempo_cli = time.perf_counter() - t0_total
@@ -822,8 +791,8 @@ def main():
             )
             print(f"Execução registrada em: {DEFAULT_REPORT_PATH}")
 
-        elif args.alg == "ETAPA3":
-            fontes = _fontes_etapa3(g2, args.etapa3_fontes)
+        elif args.alg == "TRES_FONTES":
+            fontes = _tres_fontes_no_grafo(g2, args.tres_fontes)
             por_fonte = []
             for s in fontes:
                 comp = componente_alcancavel(g2, s)
@@ -865,15 +834,15 @@ def main():
                 )
 
             tempo_cli = time.perf_counter() - t0_total
-            payload_etapa3 = {
-                "descricao": "Formalizacao BFS/DFS com 3 fontes distintas (Parte 2)",
+            payload_tres_fontes = {
+                "descricao": "bfs e dfs com ate tres ids como fonte",
                 "fontes_utilizadas": fontes,
                 "por_fonte": por_fonte,
                 "tempo_total_cli_s": round(float(tempo_cli), 9),
             }
-            _atualizar_report_etapa3(DEFAULT_REPORT_PATH, payload_etapa3)
+            _gravar_bloco_tres_fontes(DEFAULT_REPORT_PATH, payload_tres_fontes)
 
-            print("\n=== ETAPA 3 — BFS/DFS formal ===")
+            print("\n=== bfs/dfs (tres fontes) ===")
             for bloco in por_fonte:
                 print(f"  Fonte {bloco['source']}:")
                 print(
@@ -889,9 +858,9 @@ def main():
                     f"    DFS: visitados={bloco['dfs']['visitados']}  "
                     f"tempo={bloco['dfs']['tempo_s']}s"
                 )
-            print(f"  Tempo total CLI: {payload_etapa3['tempo_total_cli_s']}s")
-            print(f"  Report atualizado: {DEFAULT_REPORT_PATH}")
-            print("=== fim ETAPA 3 ===\n")
+            print(f"  tempo total cli: {payload_tres_fontes['tempo_total_cli_s']}s")
+            print(f"  report: {DEFAULT_REPORT_PATH}")
+            print("=== fim ===\n")
 
         elif args.alg == "DIJKSTRA":
             validar_pesos_para_dijkstra(g2)
@@ -927,7 +896,7 @@ def main():
                     registros.append(linha)
 
             _gravar_report_dijkstra(DEFAULT_REPORT_PATH, registros)
-            print("\n=== DIJKSTRA (Etapa 4) ===")
+            print("\n=== dijkstra ===")
             for r in registros:
                 if r.get("sem_caminho"):
                     print(f"  {r['source']} -> {r['target']}: sem caminho")

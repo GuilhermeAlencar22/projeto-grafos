@@ -1,9 +1,10 @@
+"""implementa menor caminho, bellman-ford e as buscas em largura e profundidade."""
+
 from collections import deque
 import heapq
 
 
 def _validar_pesos_nao_negativos(graph):
-    """Levanta erro se existir aresta com peso negativo (requisito de Dijkstra)."""
     for u in graph.get_nodes():
         for v, w in graph.neighbors(u):
             if w < 0:
@@ -13,16 +14,10 @@ def _validar_pesos_nao_negativos(graph):
 
 
 def validar_pesos_para_dijkstra(graph):
-    """Uma varredura do grafo; chame antes de varias execucoes de dijkstra(...)."""
     _validar_pesos_nao_negativos(graph)
 
 
 def dijkstra(graph, start, target):
-    """
-    Caminho minimo com pesos nao negativos (lista de adjacencia do grafo nao direcionado).
-
-    Retorna (custo_total, caminho_como_lista) ou None se nao houver caminho.
-    """
     if start not in graph.adj or target not in graph.adj:
         return None
 
@@ -61,15 +56,6 @@ def dijkstra(graph, start, target):
 
 
 def bellman_ford(graph, start):
-    """
-    Caminhos minimos a partir de `start` em grafo dirigido (pesos reais, negativos ok).
-
-    Retorna (ciclo_negativo, distancias):
-    - (True, None) se existir ciclo de custo total negativo alcanavel a partir de `start`
-      (as distancias nao sao validas; nao use o segundo retorno).
-    - (False, dist) em que `dist[v]` e o custo minimo de `start` a `v`, ou inf se `v`
-      nao e alcanavel.
-    """
     if start not in graph.adj:
         raise ValueError(f"No inicial inexistente no grafo: {start}")
 
@@ -105,11 +91,6 @@ def bellman_ford(graph, start):
 
 
 def bfs(graph, start):
-    """BFS com níveis (distância em arestas a partir de start).
-
-    Marca vizinhos ao enfileirar para níveis corretos e evitar duplicatas na fila.
-    Retorna (ordem_de_visita, dict_no -> nivel).
-    """
     visited = {start}
     levels = {start: 0}
     queue = deque([start])

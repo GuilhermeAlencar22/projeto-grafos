@@ -360,8 +360,8 @@
       "tempo_total_cli": 8.2041595
     }
   ],
-  "etapa3": {
-    "descricao": "Formalizacao BFS/DFS com 3 fontes distintas (Parte 2)",
+  "tres_fontes": {
+    "descricao": "bfs e dfs com ate tres ids como fonte",
     "fontes_utilizadas": [
       "tt0012313",
       "tt0000630",
