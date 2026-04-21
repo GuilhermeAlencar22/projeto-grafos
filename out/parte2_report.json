@@ -248,12 +248,116 @@
     {
       "source": "tt0012313",
       "tempo": 0.08503603935241699
+    },
+    {
+      "source": "tt0012313",
+      "tempo_s": 0.0970133,
+      "tempo": 0.0970133,
+      "visitados": 17117,
+      "primeiros_nos": [
+        "tt0012313",
+        "tt0012314",
+        "tt0010821",
+        "tt0011220",
+        "tt0013086",
+        "tt0011217",
+        "tt0012386",
+        "tt0014092",
+        "tt0007983",
+        "tt0010309"
+      ],
+      "tempo_total_cli_s": 10.9414583,
+      "tempo_total_cli": 10.9414583
+    },
+    {
+      "source": "tt0000630",
+      "tempo_s": 3.56e-05,
+      "tempo": 3.56e-05,
+      "visitados": 2,
+      "primeiros_nos": [
+        "tt0000630",
+        "tt0003489"
+      ],
+      "tempo_total_cli_s": 9.93962,
+      "tempo_total_cli": 9.93962
+    },
+    {
+      "source": "tt0028274",
+      "tempo_s": 0.0001399,
+      "tempo": 0.0001399,
+      "visitados": 51,
+      "primeiros_nos": [
+        "tt0028274",
+        "tt0029351",
+        "tt0028082",
+        "tt0025000",
+        "tt0026284",
+        "tt0027971",
+        "tt0028085",
+        "tt0029088",
+        "tt0027600",
+        "tt0028014"
+      ],
+      "tempo_total_cli_s": 7.8291754,
+      "tempo_total_cli": 7.8291754
     }
   ],
   "dfs": [
     {
       "source": "tt0012313",
       "tempo": 0.130326509475708
+    },
+    {
+      "source": "tt0012313",
+      "tempo_s": 0.1247061,
+      "tempo": 0.1247061,
+      "visitados": 17117,
+      "primeiros_nos": [
+        "tt0012313",
+        "tt0024457",
+        "tt0023557",
+        "tt0019536",
+        "tt0016127",
+        "tt0022345",
+        "tt0022543",
+        "tt0024202",
+        "tt0011524",
+        "tt0002628"
+      ],
+      "tempo_total_cli_s": 8.0970763,
+      "tempo_total_cli": 8.0970763
+    },
+    {
+      "source": "tt0000630",
+      "tempo_s": 1.19e-05,
+      "tempo": 1.19e-05,
+      "visitados": 2,
+      "primeiros_nos": [
+        "tt0000630",
+        "tt0003489"
+      ],
+      "tempo_total_cli_s": 7.704935,
+      "tempo_total_cli": 7.704935
+    },
+    {
+      "source": "tt0028274",
+      "tempo_s": 0.0001773,
+      "tempo": 0.0001773,
+      "visitados": 51,
+      "primeiros_nos": [
+        "tt0028274",
+        "tt0029412",
+        "tt0028210",
+        "tt0027333",
+        "tt0028014",
+        "tt0029094",
+        "tt0029369",
+        "tt0022947",
+        "tt0027375",
+        "tt0021729"
+      ],
+      "tempo_total_cli_s": 8.2041595,
+      "tempo_total_cli": 8.2041595
     }
   ],
   "etapa3": {
@@ -485,23 +589,325 @@
   ],
   "bellman_ford": [
     {
-      "dataset": "data/dataset_parte2/testes/bf_validacao_sem_ciclo.csv",
-      "source": "s",
+      "dataset": "data/dataset_parte2/imdb_bellman_ford.csv",
+      "source": "tt0012313",
       "ciclo_negativo": false,
       "distancias": {
-        "a": 5.0,
-        "b": 2.0,
-        "c": 2.0,
-        "s": 0.0
+        "omitido_por_tamanho": true,
+        "n_vertices": 3378,
+        "limite_relatorio_vertices": 3000,
+        "distancias_amostra": {
+          "tt0000502": null,
+          "tt0000630": null,
+          "tt0000679": null,
+          "tt0000842": null,
+          "tt0000846": null,
+          "tt0000850": null,
+          "tt0000859": null,
+          "tt0000867": null,
+          "tt0000868": null,
+          "tt0000869": null,
+          "tt0000879": null,
+          "tt0000886": null,
+          "tt0000941": null,
+          "tt0000959": null,
+          "tt0000984": null,
+          "tt0001007": null,
+          "tt0001010": null,
+          "tt0001028": null,
+          "tt0001043": null,
+          "tt0001051": null,
+          "tt0001069": null,
+          "tt0001080": null,
+          "tt0001081": null,
+          "tt0001082": null,
+          "tt0001112": null,
+          "tt0001113": null,
+          "tt0001115": null,
+          "tt0001116": null,
+          "tt0001122": null,
+          "tt0001142": null,
+          "tt0001175": null,
+          "tt0001184": null,
+          "tt0001203": null,
+          "tt0001240": null,
+          "tt0001247": null,
+          "tt0001277": null,
+          "tt0001285": null,
+          "tt0001364": null,
+          "tt0001366": null,
+          "tt0001379": null
+        }
       },
-      "tempo_s": 0.0
-    },
-    {
-      "dataset": "data/dataset_parte2/testes/bf_validacao_com_ciclo.csv",
-      "source": "a",
-      "ciclo_negativo": true,
-      "distancias": null,
-      "tempo_s": 0.0
+      "tempo_s": 0.0006995
     }
-  ]
+  ],
+  "benchmark": {
+    "meta": {
+      "unidade_tempo": "s",
+      "relogio": "perf_counter",
+      "versao_esquema": 1
+    },
+    "bfs": [
+      {
+        "source": "tt0012313",
+        "tempo": 0.08503603935241699,
+        "tempo_s": 0.085036039,
+        "origem": "cli"
+      },
+      {
+        "source": "tt0012313",
+        "tempo_s": 0.0970133,
+        "tempo": 0.0970133,
+        "visitados": 17117,
+        "primeiros_nos": [
+          "tt0012313",
+          "tt0012314",
+          "tt0010821",
+          "tt0011220",
+          "tt0013086",
+          "tt0011217",
+          "tt0012386",
+          "tt0014092",
+          "tt0007983",
+          "tt0010309"
+        ],
+        "tempo_total_cli_s": 10.9414583,
+        "tempo_total_cli": 10.9414583,
+        "origem": "cli"
+      },
+      {
+        "source": "tt0000630",
+        "tempo_s": 3.56e-05,
+        "tempo": 3.56e-05,
+        "visitados": 2,
+        "primeiros_nos": [
+          "tt0000630",
+          "tt0003489"
+        ],
+        "tempo_total_cli_s": 9.93962,
+        "tempo_total_cli": 9.93962,
+        "origem": "cli"
+      },
+      {
+        "source": "tt0028274",
+        "tempo_s": 0.0001399,
+        "tempo": 0.0001399,
+        "visitados": 51,
+        "primeiros_nos": [
+          "tt0028274",
+          "tt0029351",
+          "tt0028082",
+          "tt0025000",
+          "tt0026284",
+          "tt0027971",
+          "tt0028085",
+          "tt0029088",
+          "tt0027600",
+          "tt0028014"
+        ],
+        "tempo_total_cli_s": 7.8291754,
+        "tempo_total_cli": 7.8291754,
+        "origem": "cli"
+      }
+    ],
+    "dfs": [
+      {
+        "source": "tt0012313",
+        "tempo": 0.130326509475708,
+        "tempo_s": 0.130326509,
+        "origem": "cli"
+      },
+      {
+        "source": "tt0012313",
+        "tempo_s": 0.1247061,
+        "tempo": 0.1247061,
+        "visitados": 17117,
+        "primeiros_nos": [
+          "tt0012313",
+          "tt0024457",
+          "tt0023557",
+          "tt0019536",
+          "tt0016127",
+          "tt0022345",
+          "tt0022543",
+          "tt0024202",
+          "tt0011524",
+          "tt0002628"
+        ],
+        "tempo_total_cli_s": 8.0970763,
+        "tempo_total_cli": 8.0970763,
+        "origem": "cli"
+      },
+      {
+        "source": "tt0000630",
+        "tempo_s": 1.19e-05,
+        "tempo": 1.19e-05,
+        "visitados": 2,
+        "primeiros_nos": [
+          "tt0000630",
+          "tt0003489"
+        ],
+        "tempo_total_cli_s": 7.704935,
+        "tempo_total_cli": 7.704935,
+        "origem": "cli"
+      },
+      {
+        "source": "tt0028274",
+        "tempo_s": 0.0001773,
+        "tempo": 0.0001773,
+        "visitados": 51,
+        "primeiros_nos": [
+          "tt0028274",
+          "tt0029412",
+          "tt0028210",
+          "tt0027333",
+          "tt0028014",
+          "tt0029094",
+          "tt0029369",
+          "tt0022947",
+          "tt0027375",
+          "tt0021729"
+        ],
+        "tempo_total_cli_s": 8.2041595,
+        "tempo_total_cli": 8.2041595,
+        "origem": "cli"
+      }
+    ],
+    "dijkstra": [
+      {
+        "source": "tt0012313",
+        "target": "tt0003599",
+        "sem_caminho": true,
+        "custo_total": null,
+        "tamanho_caminho": 0,
+        "caminho": [],
+        "tempo_s": 0.286702
+      },
+      {
+        "source": "tt0012313",
+        "target": "tt0012314",
+        "sem_caminho": false,
+        "custo_total": 0.045455,
+        "tamanho_caminho": 2,
+        "caminho": [
+          "tt0012313",
+          "tt0012314"
+        ],
+        "tempo_s": 0.0
+      },
+      {
+        "source": "tt0012313",
+        "target": "tt0007627",
+        "sem_caminho": false,
+        "custo_total": 2.535714,
+        "tamanho_caminho": 13,
+        "caminho": [
+          "tt0012313",
+          "tt0016481",
+          "tt0019391",
+          "tt0021416",
+          "tt0024665",
+          "tt0023496",
+          "tt0021971",
+          "tt0023864",
+          "tt0028684",
+          "tt0028573"
+        ],
+        "tempo_s": 0.287628
+      },
+      {
+        "source": "tt0007627",
+        "target": "tt0029092",
+        "sem_caminho": false,
+        "custo_total": 4.014322,
+        "tamanho_caminho": 23,
+        "caminho": [
+          "tt0007627",
+          "tt0008613",
+          "tt0029835",
+          "tt0028573",
+          "tt0028684",
+          "tt0028605",
+          "tt0027803",
+          "tt0023207",
+          "tt0022454",
+          "tt0021342"
+        ],
+        "tempo_s": 0.279992
+      },
+      {
+        "source": "tt0012313",
+        "target": "tt0022240",
+        "sem_caminho": false,
+        "custo_total": 1.076191,
+        "tamanho_caminho": 7,
+        "caminho": [
+          "tt0012313",
+          "tt0010821",
+          "tt0010596",
+          "tt0011676",
+          "tt0025329",
+          "tt0023410",
+          "tt0022240"
+        ],
+        "tempo_s": 0.068
+      }
+    ],
+    "bellman_ford": [
+      {
+        "dataset": "data/dataset_parte2/imdb_bellman_ford.csv",
+        "source": "tt0012313",
+        "ciclo_negativo": false,
+        "distancias": {
+          "omitido_por_tamanho": true,
+          "n_vertices": 3378,
+          "limite_relatorio_vertices": 3000,
+          "distancias_amostra": {
+            "tt0000502": null,
+            "tt0000630": null,
+            "tt0000679": null,
+            "tt0000842": null,
+            "tt0000846": null,
+            "tt0000850": null,
+            "tt0000859": null,
+            "tt0000867": null,
+            "tt0000868": null,
+            "tt0000869": null,
+            "tt0000879": null,
+            "tt0000886": null,
+            "tt0000941": null,
+            "tt0000959": null,
+            "tt0000984": null,
+            "tt0001007": null,
+            "tt0001010": null,
+            "tt0001028": null,
+            "tt0001043": null,
+            "tt0001051": null,
+            "tt0001069": null,
+            "tt0001080": null,
+            "tt0001081": null,
+            "tt0001082": null,
+            "tt0001112": null,
+            "tt0001113": null,
+            "tt0001115": null,
+            "tt0001116": null,
+            "tt0001122": null,
+            "tt0001142": null,
+            "tt0001175": null,
+            "tt0001184": null,
+            "tt0001203": null,
+            "tt0001240": null,
+            "tt0001247": null,
+            "tt0001277": null,
+            "tt0001285": null,
+            "tt0001364": null,
+            "tt0001366": null,
+            "tt0001379": null
+          }
+        },
+        "tempo_s": 0.0006995
+      }
+    ]
+  }
 }
