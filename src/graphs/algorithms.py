@@ -124,3 +124,55 @@ def dfs(graph, start):
                     stack.append(neighbor)
 
     return order
+
+
+# DFS com cores (branco/cinza/preto) para grafo dirigido — classificacao de arestas e ciclo.
+_BRANCO, _CINZA, _PRETO = 0, 1, 2
+
+
+def dfs_classificacao_dirigido(graph, start):
+    """
+    DFS a partir de `start` apenas na componente alcancavel (por arestas de saida).
+
+    Retorna:
+        ordem_pre: ordem de primeira descoberta (pre-order)
+        tem_ciclo: True se existir aresta de retorno (back) no trecho visitado
+        arestas: lista de (u, v, tipo) com tipo em tree, back, forward, cross
+
+    Regra para aresta (u,v) com v ja PRETO: forward se entrada[u] < entrada[v], senao cross.
+    """
+    if start not in graph.adj:
+        return [], False, []
+
+    entrada: dict[str, int] = {}
+    estado: dict[str, int] = {}
+    relogio = [0]
+    ordem_pre: list[str] = []
+    arestas: list[tuple[str, str, str]] = []
+    tem_ciclo = False
+
+    def visitar(u: str) -> None:
+        nonlocal tem_ciclo
+        estado[u] = _CINZA
+        relogio[0] += 1
+        entrada[u] = relogio[0]
+        ordem_pre.append(u)
+
+        for v, _ in graph.neighbors(u):
+            cor_v = estado.get(v, _BRANCO)
+            if cor_v == _BRANCO:
+                arestas.append((u, v, "tree"))
+                visitar(v)
+            elif cor_v == _CINZA:
+                arestas.append((u, v, "back"))
+                tem_ciclo = True
+            else:
+                if entrada[u] < entrada[v]:
+                    arestas.append((u, v, "forward"))
+                else:
+                    arestas.append((u, v, "cross"))
+
+        estado[u] = _PRETO
+
+    visitar(start)
+    return ordem_pre, tem_ciclo, arestas

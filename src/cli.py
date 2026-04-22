@@ -58,7 +58,11 @@ def _gravar_report_bellman_ford(report_path: Path, execucoes: list[dict]):
         report = {}
 
     _limpar_estrutura_relatorio(report)
-    report["bellman_ford"] = execucoes
+    # Substitui por `dataset` (path) para acumular IMDb + validacao sem apagar corridas anteriores.
+    existente = report.get("bellman_ford") or []
+    chaves_novas = {e.get("dataset") for e in execucoes if e.get("dataset")}
+    mantidos = [e for e in existente if e.get("dataset") not in chaves_novas]
+    report["bellman_ford"] = mantidos + list(execucoes)
     _gravar_report_json(report_path, report)
 
 
@@ -268,6 +272,31 @@ def _tempo_segundos_do_item_busca(item: dict) -> float:
     return 0.0
 
 
+def _deduplicar_bfs_dfs_por_fonte(itens: list[dict]) -> list[dict]:
+    """Uma entrada por `source`: mantem a mais completa (mais campos), ordem da 1.a ocorrencia."""
+
+    melhor: dict[str, dict] = {}
+    ordem: list[str] = []
+    for item in itens:
+        src = item.get("source")
+        if not src:
+            continue
+        copia = dict(item)
+        if src not in melhor:
+            ordem.append(src)
+            melhor[src] = copia
+        elif len(copia) >= len(melhor[src]):
+            melhor[src] = copia
+    return [melhor[s] for s in ordem if s in melhor]
+
+
+def _normalizar_campos_tempo_busca(itens: list[dict]) -> None:
+    for it in itens:
+        ts = _tempo_segundos_do_item_busca(it)
+        it["tempo_s"] = round(ts, 9)
+        it.setdefault("tempo", it["tempo_s"])
+
+
 def _sincronizar_benchmark(report: dict) -> None:
     meta = {
         "unidade_tempo": "s",
@@ -359,9 +388,33 @@ def _sincronizar_benchmark(report: dict) -> None:
     }
 
 
+def _espelhar_tempo_execucao(report: dict) -> None:
+    """Garante `tempo_execucao` alinhado a `tempo_s` ou `tempo` em dicts do report."""
+
+    def walk(obj):
+        if isinstance(obj, dict):
+            if obj.get("tempo_execucao") is None:
+                if obj.get("tempo_s") is not None:
+                    obj["tempo_execucao"] = obj["tempo_s"]
+                elif obj.get("tempo") is not None:
+                    obj["tempo_execucao"] = obj["tempo"]
+            for v in obj.values():
+                walk(v)
+        elif isinstance(obj, list):
+            for item in obj:
+                walk(item)
+
+    walk(report)
+
+
 def _gravar_report_json(report_path: Path, report: dict) -> None:
     _limpar_estrutura_relatorio(report)
+    report["bfs"] = _deduplicar_bfs_dfs_por_fonte(report.get("bfs", []))
+    report["dfs"] = _deduplicar_bfs_dfs_por_fonte(report.get("dfs", []))
+    _normalizar_campos_tempo_busca(report["bfs"])
+    _normalizar_campos_tempo_busca(report["dfs"])
     _sincronizar_benchmark(report)
+    _espelhar_tempo_execucao(report)
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n",
@@ -700,6 +753,8 @@ def main():
                 "nome": dataset_path.name,
                 "|V|": n_v,
                 "|E|": n_e,
+                "num_vertices": n_v,
+                "num_arestas": n_e,
                 "tipo": "nao-direcionado",
                 "ponderado": True,
                 "grau": {

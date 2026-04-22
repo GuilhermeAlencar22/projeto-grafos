@@ -3,6 +3,8 @@
     "nome": "imdb_edges.csv",
     "|V|": 17662,
     "|E|": 200000,
+    "num_vertices": 17662,
+    "num_arestas": 200000,
     "tipo": "nao-direcionado",
     "ponderado": true,
     "grau": {
@@ -247,10 +249,6 @@
   "bfs": [
     {
       "source": "tt0012313",
-      "tempo": 0.08503603935241699
-    },
-    {
-      "source": "tt0012313",
       "tempo_s": 0.0970133,
       "tempo": 0.0970133,
       "visitados": 17117,
@@ -267,7 +265,8 @@
         "tt0010309"
       ],
       "tempo_total_cli_s": 10.9414583,
-      "tempo_total_cli": 10.9414583
+      "tempo_total_cli": 10.9414583,
+      "tempo_execucao": 0.0970133
     },
     {
       "source": "tt0000630",
@@ -279,7 +278,8 @@
         "tt0003489"
       ],
       "tempo_total_cli_s": 9.93962,
-      "tempo_total_cli": 9.93962
+      "tempo_total_cli": 9.93962,
+      "tempo_execucao": 3.56e-05
     },
     {
       "source": "tt0028274",
@@ -299,14 +299,53 @@
         "tt0028014"
       ],
       "tempo_total_cli_s": 7.8291754,
-      "tempo_total_cli": 7.8291754
+      "tempo_total_cli": 7.8291754,
+      "tempo_execucao": 0.0001399
+    },
+    {
+      "source": "tt0002605",
+      "tempo_s": 0.0931327,
+      "tempo": 0.0931327,
+      "visitados": 17117,
+      "primeiros_nos": [
+        "tt0002605",
+        "tt0029163",
+        "tt0029354",
+        "tt0019648",
+        "tt0019736",
+        "tt0008883",
+        "tt0009800",
+        "tt0026567",
+        "tt0027199",
+        "tt0005062"
+      ],
+      "tempo_total_cli_s": 9.7972477,
+      "tempo_total_cli": 9.7972477,
+      "tempo_execucao": 0.0931327
+    },
+    {
+      "source": "tt0000147",
+      "tempo_s": 0.1029917,
+      "tempo": 0.1029917,
+      "visitados": 17117,
+      "primeiros_nos": [
+        "tt0000147",
+        "tt0020949",
+        "tt0011603",
+        "tt0003730",
+        "tt0012927",
+        "tt0003116",
+        "tt0010460",
+        "tt0020466",
+        "tt0022114",
+        "tt0022892"
+      ],
+      "tempo_total_cli_s": 9.9334237,
+      "tempo_total_cli": 9.9334237,
+      "tempo_execucao": 0.1029917
     }
   ],
   "dfs": [
-    {
-      "source": "tt0012313",
-      "tempo": 0.130326509475708
-    },
     {
       "source": "tt0012313",
       "tempo_s": 0.1247061,
@@ -325,7 +364,8 @@
         "tt0002628"
       ],
       "tempo_total_cli_s": 8.0970763,
-      "tempo_total_cli": 8.0970763
+      "tempo_total_cli": 8.0970763,
+      "tempo_execucao": 0.1247061
     },
     {
       "source": "tt0000630",
@@ -337,7 +377,8 @@
         "tt0003489"
       ],
       "tempo_total_cli_s": 7.704935,
-      "tempo_total_cli": 7.704935
+      "tempo_total_cli": 7.704935,
+      "tempo_execucao": 1.19e-05
     },
     {
       "source": "tt0028274",
@@ -357,15 +398,58 @@
         "tt0021729"
       ],
       "tempo_total_cli_s": 8.2041595,
-      "tempo_total_cli": 8.2041595
+      "tempo_total_cli": 8.2041595,
+      "tempo_execucao": 0.0001773
+    },
+    {
+      "source": "tt0002605",
+      "tempo_s": 0.1680592,
+      "tempo": 0.1680592,
+      "visitados": 17117,
+      "primeiros_nos": [
+        "tt0002605",
+        "tt0020356",
+        "tt0018698",
+        "tt0017468",
+        "tt0016646",
+        "tt0017509",
+        "tt0016409",
+        "tt0020145",
+        "tt0019213",
+        "tt0024223"
+      ],
+      "tempo_total_cli_s": 10.5856827,
+      "tempo_total_cli": 10.5856827,
+      "tempo_execucao": 0.1680592
+    },
+    {
+      "source": "tt0000147",
+      "tempo_s": 0.181572,
+      "tempo": 0.181572,
+      "visitados": 17117,
+      "primeiros_nos": [
+        "tt0000147",
+        "tt0010460",
+        "tt0003116",
+        "tt0012927",
+        "tt0005335",
+        "tt0003668",
+        "tt0006895",
+        "tt0013339",
+        "tt0002461",
+        "tt0005763"
+      ],
+      "tempo_total_cli_s": 9.5668833,
+      "tempo_total_cli": 9.5668833,
+      "tempo_execucao": 0.181572
     }
   ],
   "tres_fontes": {
     "descricao": "bfs e dfs com ate tres ids como fonte",
     "fontes_utilizadas": [
       "tt0012313",
-      "tt0000630",
-      "tt0028274"
+      "tt0002605",
+      "tt0000147"
     ],
     "por_fonte": [
       {
@@ -396,7 +480,8 @@
             "tt0015175",
             "tt0023436"
           ],
-          "tempo_s": 0.141567
+          "tempo_s": 0.1170403,
+          "tempo_execucao": 0.1170403
         },
         "dfs": {
           "source": "tt0012313",
@@ -419,93 +504,124 @@
             "tt0020993",
             "tt0019586"
           ],
-          "tempo_s": 0.204732
+          "tempo_s": 0.1514146,
+          "tempo_execucao": 0.1514146
         }
       },
       {
-        "source": "tt0000630",
+        "source": "tt0002605",
         "componente": {
-          "tamanho": 2,
-          "ciclo": false
-        },
-        "bfs": {
-          "source": "tt0000630",
-          "visitados": 2,
-          "camadas": 1,
-          "tamanho_componente_alcancada": 2,
-          "amostra_ordem": [
-            "tt0000630",
-            "tt0003489"
-          ],
-          "tempo_s": 0.001019
-        },
-        "dfs": {
-          "source": "tt0000630",
-          "visitados": 2,
-          "ciclo_na_componente": false,
-          "amostra_ordem": [
-            "tt0000630",
-            "tt0003489"
-          ],
-          "tempo_s": 0.0
-        }
-      },
-      {
-        "source": "tt0028274",
-        "componente": {
-          "tamanho": 51,
+          "tamanho": 17117,
           "ciclo": true
         },
         "bfs": {
-          "source": "tt0028274",
-          "visitados": 51,
-          "camadas": 3,
-          "tamanho_componente_alcancada": 51,
+          "source": "tt0002605",
+          "visitados": 17117,
+          "camadas": 13,
+          "tamanho_componente_alcancada": 17117,
           "amostra_ordem": [
-            "tt0028274",
-            "tt0029351",
-            "tt0028082",
-            "tt0025000",
-            "tt0026284",
-            "tt0027971",
-            "tt0028085",
-            "tt0029088",
-            "tt0027600",
-            "tt0028014",
-            "tt0028210",
-            "tt0029412",
-            "tt0027245",
-            "tt0023972",
-            "tt0025476"
+            "tt0002605",
+            "tt0029163",
+            "tt0029354",
+            "tt0019648",
+            "tt0019736",
+            "tt0008883",
+            "tt0009800",
+            "tt0026567",
+            "tt0027199",
+            "tt0005062",
+            "tt0005979",
+            "tt0024047",
+            "tt0029288",
+            "tt0019137",
+            "tt0019458"
           ],
-          "tempo_s": 0.0
+          "tempo_s": 0.1308373,
+          "tempo_execucao": 0.1308373
         },
         "dfs": {
-          "source": "tt0028274",
-          "visitados": 51,
+          "source": "tt0002605",
+          "visitados": 17117,
           "ciclo_na_componente": true,
           "amostra_ordem": [
-            "tt0028274",
-            "tt0029412",
-            "tt0028210",
-            "tt0027333",
-            "tt0028014",
-            "tt0029094",
-            "tt0029369",
-            "tt0022947",
-            "tt0027375",
-            "tt0021729",
-            "tt0023972",
-            "tt0027257",
-            "tt0021009",
-            "tt0018858",
-            "tt0024345"
+            "tt0002605",
+            "tt0020356",
+            "tt0018698",
+            "tt0017468",
+            "tt0016646",
+            "tt0017509",
+            "tt0016409",
+            "tt0020145",
+            "tt0019213",
+            "tt0024223",
+            "tt0021946",
+            "tt0017484",
+            "tt0019432",
+            "tt0019512",
+            "tt0017746"
           ],
-          "tempo_s": 0.0
+          "tempo_s": 0.1627884,
+          "tempo_execucao": 0.1627884
+        }
+      },
+      {
+        "source": "tt0000147",
+        "componente": {
+          "tamanho": 17117,
+          "ciclo": true
+        },
+        "bfs": {
+          "source": "tt0000147",
+          "visitados": 17117,
+          "camadas": 15,
+          "tamanho_componente_alcancada": 17117,
+          "amostra_ordem": [
+            "tt0000147",
+            "tt0020949",
+            "tt0011603",
+            "tt0003730",
+            "tt0012927",
+            "tt0003116",
+            "tt0010460",
+            "tt0020466",
+            "tt0022114",
+            "tt0022892",
+            "tt0023562",
+            "tt0020925",
+            "tt0020973",
+            "tt0018379",
+            "tt0019429"
+          ],
+          "tempo_s": 0.1052888,
+          "tempo_execucao": 0.1052888
+        },
+        "dfs": {
+          "source": "tt0000147",
+          "visitados": 17117,
+          "ciclo_na_componente": true,
+          "amostra_ordem": [
+            "tt0000147",
+            "tt0010460",
+            "tt0003116",
+            "tt0012927",
+            "tt0005335",
+            "tt0003668",
+            "tt0006895",
+            "tt0013339",
+            "tt0002461",
+            "tt0005763",
+            "tt0007210",
+            "tt0006269",
+            "tt0005837",
+            "tt0005968",
+            "tt0005188"
+          ],
+          "tempo_s": 0.1340086,
+          "tempo_execucao": 0.1340086
         }
       }
     ],
-    "tempo_total_cli_s": 21.844655
+    "tempo_total_cli_s": 11.8563875
   },
   "dijkstra": [
     {
@@ -515,7 +631,8 @@
       "custo_total": null,
       "tamanho_caminho": 0,
       "caminho": [],
-      "tempo_s": 0.286702
+      "tempo_s": 0.2137532,
+      "tempo_execucao": 0.2137532
     },
     {
       "source": "tt0012313",
@@ -527,7 +644,8 @@
         "tt0012313",
         "tt0012314"
       ],
-      "tempo_s": 0.0
+      "tempo_s": 9.27e-05,
+      "tempo_execucao": 9.27e-05
     },
     {
       "source": "tt0012313",
@@ -547,7 +665,8 @@
         "tt0028684",
         "tt0028573"
       ],
-      "tempo_s": 0.287628
+      "tempo_s": 0.2127647,
+      "tempo_execucao": 0.2127647
     },
     {
       "source": "tt0007627",
@@ -567,7 +686,8 @@
         "tt0022454",
         "tt0021342"
       ],
-      "tempo_s": 0.279992
+      "tempo_s": 0.2183038,
+      "tempo_execucao": 0.2183038
     },
     {
       "source": "tt0012313",
@@ -584,7 +704,8 @@
         "tt0023410",
         "tt0022240"
       ],
-      "tempo_s": 0.068
+      "tempo_s": 0.0628712,
+      "tempo_execucao": 0.0628712
     }
   ],
   "bellman_ford": [
@@ -639,7 +760,29 @@
           "tt0001379": null
         }
       },
-      "tempo_s": 0.0006995
+      "tempo_s": 0.0005393,
+      "tempo_execucao": 0.0005393
+    },
+    {
+      "dataset": "data/dataset_parte2/testes/bf_validacao_sem_ciclo.csv",
+      "source": "s",
+      "ciclo_negativo": false,
+      "distancias": {
+        "a": 5.0,
+        "b": 2.0,
+        "c": 2.0,
+        "s": 0.0
+      },
+      "tempo_s": 1.52e-05,
+      "tempo_execucao": 1.52e-05
+    },
+    {
+      "dataset": "data/dataset_parte2/testes/bf_validacao_com_ciclo.csv",
+      "source": "a",
+      "ciclo_negativo": true,
+      "distancias": null,
+      "tempo_s": 1.5e-05,
+      "tempo_execucao": 1.5e-05
     }
   ],
   "benchmark": {
@@ -649,12 +792,6 @@
       "versao_esquema": 1
     },
     "bfs": [
-      {
-        "source": "tt0012313",
-        "tempo": 0.08503603935241699,
-        "tempo_s": 0.085036039,
-        "origem": "cli"
-      },
       {
         "source": "tt0012313",
         "tempo_s": 0.0970133,
@@ -674,6 +811,7 @@
         ],
         "tempo_total_cli_s": 10.9414583,
         "tempo_total_cli": 10.9414583,
+        "tempo_execucao": 0.0970133,
         "origem": "cli"
       },
       {
@@ -687,6 +825,7 @@
         ],
         "tempo_total_cli_s": 9.93962,
         "tempo_total_cli": 9.93962,
+        "tempo_execucao": 3.56e-05,
         "origem": "cli"
       },
       {
@@ -708,16 +847,55 @@
         ],
         "tempo_total_cli_s": 7.8291754,
         "tempo_total_cli": 7.8291754,
+        "tempo_execucao": 0.0001399,
+        "origem": "cli"
+      },
+      {
+        "source": "tt0002605",
+        "tempo_s": 0.0931327,
+        "tempo": 0.0931327,
+        "visitados": 17117,
+        "primeiros_nos": [
+          "tt0002605",
+          "tt0029163",
+          "tt0029354",
+          "tt0019648",
+          "tt0019736",
+          "tt0008883",
+          "tt0009800",
+          "tt0026567",
+          "tt0027199",
+          "tt0005062"
+        ],
+        "tempo_total_cli_s": 9.7972477,
+        "tempo_total_cli": 9.7972477,
+        "tempo_execucao": 0.0931327,
+        "origem": "cli"
+      },
+      {
+        "source": "tt0000147",
+        "tempo_s": 0.1029917,
+        "tempo": 0.1029917,
+        "visitados": 17117,
+        "primeiros_nos": [
+          "tt0000147",
+          "tt0020949",
+          "tt0011603",
+          "tt0003730",
+          "tt0012927",
+          "tt0003116",
+          "tt0010460",
+          "tt0020466",
+          "tt0022114",
+          "tt0022892"
+        ],
+        "tempo_total_cli_s": 9.9334237,
+        "tempo_total_cli": 9.9334237,
+        "tempo_execucao": 0.1029917,
         "origem": "cli"
       }
     ],
     "dfs": [
-      {
-        "source": "tt0012313",
-        "tempo": 0.130326509475708,
-        "tempo_s": 0.130326509,
-        "origem": "cli"
-      },
       {
         "source": "tt0012313",
         "tempo_s": 0.1247061,
@@ -737,6 +915,7 @@
         ],
         "tempo_total_cli_s": 8.0970763,
         "tempo_total_cli": 8.0970763,
+        "tempo_execucao": 0.1247061,
         "origem": "cli"
       },
       {
@@ -750,6 +929,7 @@
         ],
         "tempo_total_cli_s": 7.704935,
         "tempo_total_cli": 7.704935,
+        "tempo_execucao": 1.19e-05,
         "origem": "cli"
       },
       {
@@ -771,6 +951,51 @@
         ],
         "tempo_total_cli_s": 8.2041595,
         "tempo_total_cli": 8.2041595,
+        "tempo_execucao": 0.0001773,
+        "origem": "cli"
+      },
+      {
+        "source": "tt0002605",
+        "tempo_s": 0.1680592,
+        "tempo": 0.1680592,
+        "visitados": 17117,
+        "primeiros_nos": [
+          "tt0002605",
+          "tt0020356",
+          "tt0018698",
+          "tt0017468",
+          "tt0016646",
+          "tt0017509",
+          "tt0016409",
+          "tt0020145",
+          "tt0019213",
+          "tt0024223"
+        ],
+        "tempo_total_cli_s": 10.5856827,
+        "tempo_total_cli": 10.5856827,
+        "tempo_execucao": 0.1680592,
+        "origem": "cli"
+      },
+      {
+        "source": "tt0000147",
+        "tempo_s": 0.181572,
+        "tempo": 0.181572,
+        "visitados": 17117,
+        "primeiros_nos": [
+          "tt0000147",
+          "tt0010460",
+          "tt0003116",
+          "tt0012927",
+          "tt0005335",
+          "tt0003668",
+          "tt0006895",
+          "tt0013339",
+          "tt0002461",
+          "tt0005763"
+        ],
+        "tempo_total_cli_s": 9.5668833,
+        "tempo_total_cli": 9.5668833,
+        "tempo_execucao": 0.181572,
         "origem": "cli"
       }
     ],
@@ -782,7 +1007,8 @@
         "custo_total": null,
         "tamanho_caminho": 0,
         "caminho": [],
-        "tempo_s": 0.286702
+        "tempo_s": 0.2137532,
+        "tempo_execucao": 0.2137532
       },
       {
         "source": "tt0012313",
@@ -794,7 +1020,8 @@
           "tt0012313",
           "tt0012314"
         ],
-        "tempo_s": 0.0
+        "tempo_s": 9.27e-05,
+        "tempo_execucao": 9.27e-05
       },
       {
         "source": "tt0012313",
@@ -814,7 +1041,8 @@
           "tt0028684",
           "tt0028573"
         ],
-        "tempo_s": 0.287628
+        "tempo_s": 0.2127647,
+        "tempo_execucao": 0.2127647
       },
       {
         "source": "tt0007627",
@@ -834,7 +1062,8 @@
           "tt0022454",
           "tt0021342"
         ],
-        "tempo_s": 0.279992
+        "tempo_s": 0.2183038,
+        "tempo_execucao": 0.2183038
       },
       {
         "source": "tt0012313",
@@ -851,7 +1080,8 @@
           "tt0023410",
           "tt0022240"
         ],
-        "tempo_s": 0.068
+        "tempo_s": 0.0628712,
+        "tempo_execucao": 0.0628712
       }
     ],
     "bellman_ford": [
@@ -906,7 +1136,29 @@
             "tt0001379": null
           }
         },
-        "tempo_s": 0.0006995
+        "tempo_s": 0.0005393,
+        "tempo_execucao": 0.0005393
+      },
+      {
+        "dataset": "data/dataset_parte2/testes/bf_validacao_sem_ciclo.csv",
+        "source": "s",
+        "ciclo_negativo": false,
+        "distancias": {
+          "a": 5.0,
+          "b": 2.0,
+          "c": 2.0,
+          "s": 0.0
+        },
+        "tempo_s": 1.52e-05,
+        "tempo_execucao": 1.52e-05
+      },
+      {
+        "dataset": "data/dataset_parte2/testes/bf_validacao_com_ciclo.csv",
+        "source": "a",
+        "ciclo_negativo": true,
+        "distancias": null,
+        "tempo_s": 1.5e-05,
+        "tempo_execucao": 1.5e-05
       }
     ]
   }
