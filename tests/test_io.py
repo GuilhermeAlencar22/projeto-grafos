@@ -1,4 +1,4 @@
-"""Loader `load_edge_csv_graph` usado na Parte 2 (CSV temporario)."""
+"""loader load_edge_csv_graph na parte 2 (csv temporario)."""
 
 from __future__ import annotations
 

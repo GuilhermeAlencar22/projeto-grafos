@@ -1,9 +1,4 @@
-"""DFS: ordem (grafo nao orientado na CLI); ciclo e classificacao de arestas (dirigido).
-
-Requisito do enunciado: deteccao de ciclo e classificacao tree/back/forward/cross.
-Isso usa `dfs_classificacao_dirigido` (grafo com `add_directed_edge`).
-`dfs()` simples mantem compatibilidade com o restante do projeto.
-"""
+"""testes de dfs simples e de dfs_classificacao_dirigido em grafos pequenos."""
 
 from __future__ import annotations
 

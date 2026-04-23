@@ -13,7 +13,7 @@ def load_imdb_primary_title_map(path: Path | str) -> dict[str, str]:
             cols = {(x or "").strip() for x in reader.fieldnames if x}
             req = {"tconst", "primaryTitle"}
             if not req <= cols:
-                raise ValueError(f"CSV deve conter colunas {req}; tem {cols}")
+                raise ValueError(f"csv precisa das colunas {req}; veio {cols}")
         for row in reader:
             tc = (row.get("tconst") or "").strip()
             if not tc:

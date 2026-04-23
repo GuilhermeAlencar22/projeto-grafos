@@ -9,7 +9,7 @@ def _validar_pesos_nao_negativos(graph):
         for v, w in graph.neighbors(u):
             if w < 0:
                 raise ValueError(
-                    f"Peso negativo nao permitido para Dijkstra: ({u}, {v}) = {w}"
+                    f"dijkstra: peso negativo nao permitido ({u}, {v}) w={w}"
                 )
 
 
@@ -35,7 +35,7 @@ def dijkstra(graph, start, target):
         for v, w in graph.neighbors(u):
             if w < 0:
                 raise ValueError(
-                    f"Peso negativo nao permitido para Dijkstra: ({u}, {v}) = {w}"
+                    f"dijkstra: peso negativo nao permitido ({u}, {v}) w={w}"
                 )
             nd = d + w
             if nd < dist.get(v, INF):
@@ -57,7 +57,7 @@ def dijkstra(graph, start, target):
 
 def bellman_ford(graph, start):
     if start not in graph.adj:
-        raise ValueError(f"No inicial inexistente no grafo: {start}")
+        raise ValueError(f"no inicial inexistente no grafo: {start}")
 
     nodes = graph.get_nodes()
     n = len(nodes)
@@ -126,21 +126,12 @@ def dfs(graph, start):
     return order
 
 
-# DFS com cores (branco/cinza/preto) para grafo dirigido — classificacao de arestas e ciclo.
+# dfs com branco/cinza/preto (digrafo): tree/back/forward/cross e ciclo pela aresta back
 _BRANCO, _CINZA, _PRETO = 0, 1, 2
 
 
 def dfs_classificacao_dirigido(graph, start):
-    """
-    DFS a partir de `start` apenas na componente alcancavel (por arestas de saida).
-
-    Retorna:
-        ordem_pre: ordem de primeira descoberta (pre-order)
-        tem_ciclo: True se existir aresta de retorno (back) no trecho visitado
-        arestas: lista de (u, v, tipo) com tipo em tree, back, forward, cross
-
-    Regra para aresta (u,v) com v ja PRETO: forward se entrada[u] < entrada[v], senao cross.
-    """
+    """dfs no digrafo desde start; devolve ordem, se tem ciclo e lista de arestas por tipo."""
     if start not in graph.adj:
         return [], False, []
 

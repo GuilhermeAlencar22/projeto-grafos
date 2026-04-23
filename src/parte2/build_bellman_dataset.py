@@ -1,10 +1,6 @@
 """monta imdb_bellman_ford.csv ligando filmes por diretor em comum e pela nota."""
 
-
-
 from __future__ import annotations
-
-
 
 import argparse
 
@@ -18,21 +14,13 @@ from itertools import combinations
 
 from pathlib import Path
 
-
-
 VALID_DIRECTOR_CATEGORY = "director"
-
-
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 PROJECT_ROOT = SCRIPT_DIR.parent.parent
 
 DEFAULT_OUTPUT = PROJECT_ROOT / "data/dataset_parte2/imdb_bellman_ford.csv"
-
-
-
-
 
 def _open_text(path: Path):
 
@@ -43,10 +31,6 @@ def _open_text(path: Path):
         return gzip.open(raw, "rt", encoding="utf-8", newline="")
 
     return open(raw, "r", encoding="utf-8", newline="")
-
-
-
-
 
 def load_movie_tconsts(path: Path) -> set[str]:
 
@@ -69,10 +53,6 @@ def load_movie_tconsts(path: Path) -> set[str]:
                 out.add(tconst)
 
     return out
-
-
-
-
 
 def load_ratings(path: Path) -> dict[str, float]:
 
@@ -99,10 +79,6 @@ def load_ratings(path: Path) -> dict[str, float]:
                 continue
 
     return out
-
-
-
-
 
 def load_title_directors(
     path: Path,
@@ -168,10 +144,6 @@ def load_title_directors(
 
     return title_to_directors
 
-
-
-
-
 def count_distinct_directors(title_to_directors: dict[str, set[str]]) -> int:
 
     unicos: set[str] = set()
@@ -181,10 +153,6 @@ def count_distinct_directors(title_to_directors: dict[str, set[str]]) -> int:
         unicos.update(diretores)
 
     return len(unicos)
-
-
-
-
 
 def build_pair_common_directors(
 
@@ -199,8 +167,6 @@ def build_pair_common_directors(
         for diretor in diretores:
 
             director_to_titles[diretor].add(title)
-
-
 
     pair_counts: Counter[tuple[str, str]] = Counter()
 
@@ -217,10 +183,6 @@ def build_pair_common_directors(
             pair_counts[(a, b)] += 1
 
     return pair_counts
-
-
-
-
 
 def build_directed_edges(
 
@@ -268,10 +230,6 @@ def build_directed_edges(
 
     return edges
 
-
-
-
-
 def write_csv(output_path: Path, edges: dict[tuple[str, str], float]) -> int:
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -293,10 +251,6 @@ def write_csv(output_path: Path, edges: dict[tuple[str, str], float]) -> int:
             count += 1
 
     return count
-
-
-
-
 
 def main() -> None:
 
@@ -430,15 +384,11 @@ def main() -> None:
 
         raise SystemExit("ERRO: --max-directors nao pode ser negativo.")
 
-
-
     print("Carregando ratings...")
 
     ratings = load_ratings(args.ratings)
 
     n_titulos_com_rating_na_base = len(ratings)
-
-
 
     valid = set(ratings.keys())
 
@@ -453,8 +403,6 @@ def main() -> None:
         ratings = {t: ratings[t] for t in valid if t in ratings}
 
         print(f"   Titulos com rating apos filtro basics: {len(ratings)}")
-
-
 
     print("Carregando diretores (principals, category=director)...")
 
@@ -471,15 +419,11 @@ def main() -> None:
 
     print(f"   Titulos com rating e pelo menos um diretor: {len(title_to_directors)}")
 
-
-
     print("Contando pares com diretores em comum (titulos deduplicados por diretor)...")
 
     pair_counts = build_pair_common_directors(title_to_directors)
 
     print(f"   Pares candidatos: {len(pair_counts)}")
-
-
 
     print("Gerando arcos dirigidos do menor rating para o maior rating...")
 
@@ -497,15 +441,11 @@ def main() -> None:
 
     n_arcos = write_csv(args.output, edges)
 
-
-
     n_diretores = count_distinct_directors(title_to_directors)
 
     n_filmes_com_rating_usados = len(title_to_directors)
 
     caminho_absoluto = str(out_path.resolve())
-
-
 
     print()
 
@@ -521,12 +461,7 @@ def main() -> None:
 
     print(f"  Arquivo salvo (caminho absoluto): {caminho_absoluto}")
 
-
-
-
-
 if __name__ == "__main__":
 
     main()
-
 

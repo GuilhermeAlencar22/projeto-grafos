@@ -29,10 +29,6 @@ class Graph:
     def get_nodes(self):
         return list(self.adj.keys())
 
-    def show_graph(self):
-        for node in self.adj:
-            print(node, "->", self.adj[node])
-
 
 def print_degree_sample_stats(graph, sample_size=10):
     nodes = graph.get_nodes()
@@ -42,7 +38,7 @@ def print_degree_sample_stats(graph, sample_size=10):
 
     k = min(sample_size, len(nodes))
     sample = random.sample(nodes, k=k)
-    print(f"[graus] amostra aleatória ({k} nós):")
+    print(f"[graus] amostra aleatoria ({k} nos):")
     for n in sample:
         d = len(graph.neighbors(n))
         print(f"  {n}: grau {d}")
@@ -50,5 +46,5 @@ def print_degree_sample_stats(graph, sample_size=10):
     max_node = max(nodes, key=lambda n: len(graph.neighbors(n)))
     max_deg = len(graph.neighbors(max_node))
     avg = sum(len(graph.neighbors(n)) for n in nodes) / len(nodes)
-    print(f"[graus] maior grau: nó {max_node} (grau {max_deg})")
-    print(f"[graus] grau médio: {avg:.4f}")
+    print(f"[graus] maior grau: no {max_node} (grau {max_deg})")
+    print(f"[graus] grau medio: {avg:.4f}")

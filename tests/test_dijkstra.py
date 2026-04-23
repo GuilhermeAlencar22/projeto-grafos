@@ -1,4 +1,4 @@
-"""Dijkstra: menor custo/caminho com pesos >= 0; peso negativo deve falhar."""
+"""dijkstra: custo/caminho com peso >= 0; peso negativo tem que falhar."""
 
 from __future__ import annotations
 
@@ -31,5 +31,5 @@ def test_dijkstra_rejeita_peso_negativo(fn):
     g = Graph()
     g.add_edge("A", "B", -1.0)
 
-    with pytest.raises(ValueError, match="Peso negativo"):
+    with pytest.raises(ValueError, match="peso negativo"):
         fn(g)

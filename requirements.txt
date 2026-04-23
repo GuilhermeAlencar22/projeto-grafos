@@ -1,5 +1,5 @@
 pandas
 matplotlib
+pytest
 plotly
 pyvis
-pytest
