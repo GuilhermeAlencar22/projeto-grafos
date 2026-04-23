@@ -1,4 +1,4 @@
-"""monta imdb_edges.csv cruzando elenco, genero e notas dos arquivos do imdb."""
+"""monta imdb_edges.csv cruzando elenco e genero (similaridade e peso) a partir dos tsv imdb."""
 
 import argparse
 import csv
@@ -45,22 +45,6 @@ def load_titles(path: Path, max_titles: int | None = None) -> dict[str, set[str]
     return title_to_genres
 
 
-def load_ratings(path: Path, selected_titles: set[str]) -> dict[str, float]:
-    _ensure_gzip(path)
-    ratings: dict[str, float] = {}
-    with gzip.open(path, "rt", encoding="utf-8", newline="") as fh:
-        reader = csv.DictReader(fh, delimiter="\t")
-        for row in reader:
-            tconst = row["tconst"]
-            if tconst not in selected_titles:
-                continue
-            try:
-                ratings[tconst] = float(row["averageRating"])
-            except (TypeError, ValueError):
-                continue
-    return ratings
-
-
 def load_title_actors(path: Path, selected_titles: set[str]) -> dict[str, set[str]]:
     _ensure_gzip(path)
     title_to_actors: dict[str, set[str]] = defaultdict(set)
@@ -102,7 +86,6 @@ def write_edges_csv(
     output_path: Path,
     pair_counts: Counter[tuple[str, str]],
     title_to_genres: dict[str, set[str]],
-    ratings: dict[str, float],
     max_edges: int | None = None,
 ) -> int:
     items = sorted(pair_counts.items(), key=lambda item: item[1], reverse=True)
@@ -119,11 +102,8 @@ def write_edges_csv(
                 "source",
                 "target",
                 "actors_common",
-                "genres_common",
                 "similaridade",
-                "rating_media",
                 "peso",
-                "peso_bf",
             ]
         )
 
@@ -133,21 +113,15 @@ def write_edges_csv(
             if similaridade <= 0:
                 continue
 
-            rating_media = (ratings.get(source, 0.0) + ratings.get(target, 0.0)) / 2.0
-            bonus_nota = 0.4 if rating_media >= 8.0 else 0.0
             peso = 1.0 / similaridade
-            peso_bf = peso - bonus_nota
 
             writer.writerow(
                 [
                     source,
                     target,
                     actors_common,
-                    genres_common,
                     round(similaridade, 4),
-                    round(rating_media, 4),
                     round(peso, 6),
-                    round(peso_bf, 6),
                 ]
             )
             written += 1
@@ -161,7 +135,6 @@ def main() -> None:
     )
     parser.add_argument("--basics", required=True, help="Caminho para title.basics.tsv.gz")
     parser.add_argument("--principals", required=True, help="Caminho para title.principals.tsv.gz")
-    parser.add_argument("--ratings", required=True, help="Caminho para title.ratings.tsv.gz")
     parser.add_argument(
         "--output",
         default="data/dataset_parte2/imdb_edges.csv",
@@ -183,29 +156,23 @@ def main() -> None:
 
     basics_path = Path(args.basics)
     principals_path = Path(args.principals)
-    ratings_path = Path(args.ratings)
     output_path = Path(args.output)
 
-    print("1/4 Carregando titulos...")
+    print("1/3 Carregando titulos...")
     title_to_genres = load_titles(basics_path, max_titles=args.max_titles)
     selected_titles = set(title_to_genres.keys())
     print(f"Titulos selecionados: {len(selected_titles)}")
 
-    print("2/4 Carregando notas...")
-    ratings = load_ratings(ratings_path, selected_titles)
-    print(f"Titulos com nota: {len(ratings)}")
-
-    print("3/4 Carregando elenco...")
+    print("2/3 Carregando elenco...")
     title_to_actors = load_title_actors(principals_path, selected_titles)
     print(f"Titulos com elenco: {len(title_to_actors)}")
 
-    print("4/4 Gerando arestas por ator em comum...")
+    print("3/3 Gerando arestas por ator em comum...")
     pair_counts = build_actor_overlap_edges(title_to_actors)
     written = write_edges_csv(
         output_path=output_path,
         pair_counts=pair_counts,
         title_to_genres=title_to_genres,
-        ratings=ratings,
         max_edges=args.max_edges,
     )
 
