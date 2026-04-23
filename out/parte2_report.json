@@ -710,7 +710,7 @@
   ],
   "bellman_ford": [
     {
-      "dataset": "data/dataset_parte2/testes/bf_validacao_sem_ciclo.csv",
+      "dataset": "data/dataset_parte2/artificiais_bellman_ford/bf_validacao_sem_ciclo.csv",
       "source": "s",
       "ciclo_negativo": false,
       "distancias": {
@@ -719,70 +719,16 @@
         "c": 2.0,
         "s": 0.0
       },
-      "tempo_s": 1.42e-05,
-      "tempo_execucao": 1.42e-05
+      "tempo_s": 1.61e-05,
+      "tempo_execucao": 1.61e-05
     },
     {
-      "dataset": "data/dataset_parte2/testes/bf_validacao_com_ciclo.csv",
+      "dataset": "data/dataset_parte2/artificiais_bellman_ford/bf_validacao_com_ciclo.csv",
       "source": "a",
       "ciclo_negativo": true,
       "distancias": null,
-      "tempo_s": 9.2e-06,
-      "tempo_execucao": 9.2e-06
-    },
-    {
-      "dataset": "data/dataset_parte2/imdb_bellman_ford.csv",
-      "source": "tt0012313",
-      "ciclo_negativo": false,
-      "distancias": {
-        "omitido_por_tamanho": true,
-        "n_vertices": 3378,
-        "limite_relatorio_vertices": 3000,
-        "distancias_amostra": {
-          "tt0000502": null,
-          "tt0000630": null,
-          "tt0000679": null,
-          "tt0000842": null,
-          "tt0000846": null,
-          "tt0000850": null,
-          "tt0000859": null,
-          "tt0000867": null,
-          "tt0000868": null,
-          "tt0000869": null,
-          "tt0000879": null,
-          "tt0000886": null,
-          "tt0000941": null,
-          "tt0000959": null,
-          "tt0000984": null,
-          "tt0001007": null,
-          "tt0001010": null,
-          "tt0001028": null,
-          "tt0001043": null,
-          "tt0001051": null,
-          "tt0001069": null,
-          "tt0001080": null,
-          "tt0001081": null,
-          "tt0001082": null,
-          "tt0001112": null,
-          "tt0001113": null,
-          "tt0001115": null,
-          "tt0001116": null,
-          "tt0001122": null,
-          "tt0001142": null,
-          "tt0001175": null,
-          "tt0001184": null,
-          "tt0001203": null,
-          "tt0001240": null,
-          "tt0001247": null,
-          "tt0001277": null,
-          "tt0001285": null,
-          "tt0001364": null,
-          "tt0001366": null,
-          "tt0001379": null
-        }
-      },
-      "tempo_s": 0.0004364,
-      "tempo_execucao": 0.0004364
+      "tempo_s": 9.3e-06,
+      "tempo_execucao": 9.3e-06
     }
   ],
   "benchmark": {
@@ -1086,7 +1032,7 @@
     ],
     "bellman_ford": [
       {
-        "dataset": "data/dataset_parte2/testes/bf_validacao_sem_ciclo.csv",
+        "dataset": "data/dataset_parte2/artificiais_bellman_ford/bf_validacao_sem_ciclo.csv",
         "source": "s",
         "ciclo_negativo": false,
         "distancias": {
@@ -1095,70 +1041,16 @@
           "c": 2.0,
           "s": 0.0
         },
-        "tempo_s": 1.42e-05,
-        "tempo_execucao": 1.42e-05
+        "tempo_s": 1.61e-05,
+        "tempo_execucao": 1.61e-05
       },
       {
-        "dataset": "data/dataset_parte2/testes/bf_validacao_com_ciclo.csv",
+        "dataset": "data/dataset_parte2/artificiais_bellman_ford/bf_validacao_com_ciclo.csv",
         "source": "a",
         "ciclo_negativo": true,
         "distancias": null,
-        "tempo_s": 9.2e-06,
-        "tempo_execucao": 9.2e-06
-      },
-      {
-        "dataset": "data/dataset_parte2/imdb_bellman_ford.csv",
-        "source": "tt0012313",
-        "ciclo_negativo": false,
-        "distancias": {
-          "omitido_por_tamanho": true,
-          "n_vertices": 3378,
-          "limite_relatorio_vertices": 3000,
-          "distancias_amostra": {
-            "tt0000502": null,
-            "tt0000630": null,
-            "tt0000679": null,
-            "tt0000842": null,
-            "tt0000846": null,
-            "tt0000850": null,
-            "tt0000859": null,
-            "tt0000867": null,
-            "tt0000868": null,
-            "tt0000869": null,
-            "tt0000879": null,
-            "tt0000886": null,
-            "tt0000941": null,
-            "tt0000959": null,
-            "tt0000984": null,
-            "tt0001007": null,
-            "tt0001010": null,
-            "tt0001028": null,
-            "tt0001043": null,
-            "tt0001051": null,
-            "tt0001069": null,
-            "tt0001080": null,
-            "tt0001081": null,
-            "tt0001082": null,
-            "tt0001112": null,
-            "tt0001113": null,
-            "tt0001115": null,
-            "tt0001116": null,
-            "tt0001122": null,
-            "tt0001142": null,
-            "tt0001175": null,
-            "tt0001184": null,
-            "tt0001203": null,
-            "tt0001240": null,
-            "tt0001247": null,
-            "tt0001277": null,
-            "tt0001285": null,
-            "tt0001364": null,
-            "tt0001366": null,
-            "tt0001379": null
-          }
-        },
-        "tempo_s": 0.0004364,
-        "tempo_execucao": 0.0004364
+        "tempo_s": 9.3e-06,
+        "tempo_execucao": 9.3e-06
       }
     ]
   }
