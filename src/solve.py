@@ -1,7 +1,6 @@
-"""entrada simples parte 2: varias chamadas ao cli e um json de relatorio.
+"""solve parte 2: encadeia varias execucoes do cli num so report json.
 
-importa executar_cli em sequencia pra nao duplicar load/grafo/algos.
-flags completas continuam no cli.py.
+importa executar_cli em sequencia; flags completas ficam no cli.
 """
 
 from __future__ import annotations
@@ -22,14 +21,13 @@ def _setup_path() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "roda em sequencia os algs da parte 2 no csv padrao e junta em "
-            "out/parte2_report.json (igual varias linhas cli --alg ...)."
+            "roda algs parte 2 no csv padrao; saida out/parte2_report.json."
         )
     )
     parser.add_argument(
         "--dataset",
         default=str(ROOT / "data" / "dataset_parte2" / "imdb_edges.csv"),
-        help="csv de arestas imdb (nao-dirigido pra check/bfs/dfs/etc.).",
+        help="csv imdb nao-dirigido (check, bfs, dfs, etc.).",
     )
     parser.add_argument(
         "--rapido",
@@ -39,7 +37,7 @@ def main() -> None:
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="repassa pro cli (debug do loader).",
+        help="repassa debug pro cli.",
     )
     args_cli = parser.parse_args()
 
@@ -67,7 +65,7 @@ def main() -> None:
         print(f"\n[solve] === {nome_alg} ===\n")
         cli_mod.executar_cli(run_args, projeto_root)
 
-    print(f"\n[solve] relatorio: {cli_mod.DEFAULT_REPORT_PATH}\n")
+    print(f"\n[solve] report: {cli_mod.DEFAULT_REPORT_PATH}\n")
 
 
 if __name__ == "__main__":

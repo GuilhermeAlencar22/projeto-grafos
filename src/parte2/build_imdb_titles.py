@@ -101,11 +101,6 @@ def main() -> None:
         help="CSV de arestas (default: data/dataset_parte2/imdb_edges.csv)",
     )
     parser.add_argument(
-        "--bellman",
-        default=str(root / "data/dataset_parte2/imdb_bellman_ford.csv"),
-        help="CSV Bellman-Ford (default: data/dataset_parte2/imdb_bellman_ford.csv)",
-    )
-    parser.add_argument(
         "--output",
         default=str(root / "data/dataset_parte2/imdb_titles.csv"),
         help="Saída (default: data/dataset_parte2/imdb_titles.csv)",
@@ -114,7 +109,6 @@ def main() -> None:
 
     basics_path = Path(args.basics).resolve()
     edges_path = Path(args.edges).resolve()
-    bellman_path = Path(args.bellman).resolve()
     output_path = Path(args.output).resolve()
 
     if not basics_path.exists():
@@ -123,8 +117,8 @@ def main() -> None:
             "Baixe title.basics.tsv.gz do IMDb para essa pasta ou passe --basics CAMINHO."
         )
 
-    needed = collect_tconsts([edges_path, bellman_path])
-    print(f"IDs distintos (edges + bellman): {len(needed)}")
+    needed = collect_tconsts([edges_path])
+    print(f"IDs distintos (edges): {len(needed)}")
 
     print(f"Lendo {basics_path.name}...")
     found = fetch_primary_titles_from_basics(basics_path, needed)

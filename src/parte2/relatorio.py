@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-# chaves fixas do json do relatorio (menos string solta repetida).
+# chaves fixas do report (menos string solta).
 CHAVE_BFS = "bfs"
 CHAVE_DFS = "dfs"
 CHAVE_DIJKSTRA = "dijkstra"
@@ -17,12 +17,12 @@ CHAVE_DATASET = "dataset"
 # caminho padrao: out/parte2_report.json na raiz (parents[2] a partir de src/parte2/).
 DEFAULT_REPORT_PATH = Path(__file__).resolve().parents[2] / "out" / "parte2_report.json"
 
-# acima disso, bellman no json vira so amostra (imdb grande).
+# acima disso bellman no json vira so amostra.
 BELLMAN_FULL_REPORT_MAX_VERTICES = 3000
 
 
 def _carregar_report(report_path: Path) -> dict:
-    """le do disco ou {} se nao existir / json invalido."""
+    """le disco ou {} se faltar arquivo / json ruim."""
     if not report_path.exists():
         return {}
     try:
@@ -70,7 +70,7 @@ def tempo_segundos_do_item_busca(item: dict) -> float:
 
 
 def deduplicar_bfs_dfs_por_fonte(itens: list[dict]) -> list[dict]:
-    """uma linha por source; fica quem tem mais campo."""
+    """uma linha por source; fica o dict mais completo."""
 
     melhor: dict[str, dict] = {}
     ordem: list[str] = []
@@ -97,7 +97,7 @@ def normalizar_campos_tempo_busca(itens: list[dict]) -> None:
 def _montar_benchmark_busca_por_fonte(
     report: dict, lista_key: str, inner_key: str
 ) -> list[dict]:
-    """lista pra benchmark bfs/dfs: top-level + bloco tres_fontes."""
+    """lista p benchmark bfs/dfs (cli + tres_fontes)."""
     bloco_fontes = report.get(CHAVE_TRES_FONTES) or {}
     bench: list[dict] = []
     seen: set[str] = set()
@@ -165,7 +165,7 @@ def sincronizar_benchmark(report: dict) -> None:
 
 
 def espelhar_tempo_execucao(report: dict) -> None:
-    """espelha tempo_s ou tempo em tempo_execucao no dict."""
+    """copia tempo_s/tempo pra tempo_execucao onde faltar."""
 
     def walk(obj):
         if isinstance(obj, dict):
@@ -199,14 +199,14 @@ def gravar_report_json(report_path: Path, report: dict) -> None:
 
 
 def _salvar_report(report_path: Path, report: dict) -> None:
-    """dedup + benchmark + grava (alias de gravar_report_json)."""
+    """alias: dedup, benchmark, grava."""
     gravar_report_json(report_path, report)
 
 
 def gravar_report_bellman_ford(report_path: Path, execucoes: list[dict]) -> None:
     report = _carregar_report(report_path)
     limpar_estrutura_relatorio(report)
-    # merge por path de dataset; nao apaga outras entradas
+    # merge por path de dataset; mantem outras linhas
     existente = report.get(CHAVE_BELLMAN_FORD) or []
     chaves_novas = {e.get("dataset") for e in execucoes if e.get("dataset")}
     mantidos = [e for e in existente if e.get("dataset") not in chaves_novas]
@@ -249,7 +249,7 @@ def registrar_execucao_busca(
     limpar_estrutura_relatorio(report)
     chave = algoritmo.lower()
     if chave not in (CHAVE_BFS, CHAVE_DFS):
-        raise ValueError(f"so bfs/dfs no report, veio: {algoritmo}")
+        raise ValueError(f"so bfs/dfs no report; veio {algoritmo}")
 
     ts = round(float(tempo), 9)
     entrada: dict = {

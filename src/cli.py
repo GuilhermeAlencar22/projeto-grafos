@@ -1,4 +1,4 @@
-"""cli tecnica: imdb + json da parte 2."""
+"""cli parte 2: imdb + report json."""
 
 import argparse
 import time
@@ -28,82 +28,23 @@ from parte2.relatorio import (
 )
 
 DEFAULT_IMDB_DATASET = "data/dataset_parte2/imdb_edges.csv"
-DEFAULT_BELLMAN_IMDB_DATASET = "data/dataset_parte2/imdb_bellman_ford.csv"
 DEFAULT_CHECK_SOURCE = "tt0012313"
 DEFAULT_TRES_FONTES = "tt0012313,tt0002605,tt0000147"
-
-
-def _default_fonte_bellman(dataset_path: Path) -> str:
-    nome = dataset_path.name.lower()
-    if nome.startswith("bf_validacao_sem"):
-        return "s"
-    if nome.startswith("bf_validacao_com"):
-        return "a"
-    return DEFAULT_CHECK_SOURCE
 
 
 def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
     report_path = DEFAULT_REPORT_PATH
     imdb_edges_path = (projeto_root / DEFAULT_IMDB_DATASET).resolve()
-    bellman_csv_path = (projeto_root / DEFAULT_BELLMAN_IMDB_DATASET).resolve()
+    bf_dir = projeto_root / "data/dataset_parte2/artificiais_bellman_ford"
     bf_padrao = [
-        (
-            projeto_root / "data/dataset_parte2/testes/bf_validacao_sem_ciclo.csv",
-            "s",
-        ),
-        (
-            projeto_root / "data/dataset_parte2/testes/bf_validacao_com_ciclo.csv",
-            "a",
-        ),
+        (bf_dir / "bf_validacao_sem_ciclo.csv", "s"),
+        (bf_dir / "bf_validacao_com_ciclo.csv", "a"),
     ]
-
+    runs = bf_padrao
     dataset_arg = Path(args.dataset).resolve()
-
-    if getattr(args, "bellman_demo", False):
-        if dataset_arg != imdb_edges_path:
-            print(
-                "[cli] aviso: --bellman-demo ignora --dataset e usa so os csv em testes/."
-            )
-        print(
-            "[cli] bellman-ford: csvs bf_validacao_sem_ciclo e bf_validacao_com_ciclo."
-        )
-        runs = bf_padrao
-    elif dataset_arg != imdb_edges_path:
-        fonte = args.source or _default_fonte_bellman(dataset_arg)
-        runs = [(dataset_arg, fonte)]
-        if dataset_arg.resolve() == bellman_csv_path.resolve():
-            print(
-                "[cli] bellman-ford: imdb_bellman_ford.csv "
-                "(diretores em comum, pesos por rating); "
-                f"fonte={fonte}"
-            )
-        else:
-            print(
-                f"[cli] bellman-ford: csv escolhido ({dataset_arg.name}); "
-                f"fonte={fonte}"
-            )
-    elif bellman_csv_path.exists():
-        fonte = args.source or DEFAULT_CHECK_SOURCE
-        runs = [(bellman_csv_path, fonte)]
-        print(
-            "[cli] bellman-ford: "
-            f"{DEFAULT_BELLMAN_IMDB_DATASET} "
-            "(diretores em comum + rating); "
-            f"fonte={fonte}"
-        )
-    else:
-        print(
-            "[cli] AVISO: "
-            f"{DEFAULT_BELLMAN_IMDB_DATASET} nao encontrado. "
-            "gera com: python src/parte2/build_bellman_dataset.py "
-            "--principals <title.principals.tsv.gz> --ratings <title.ratings.tsv.gz> "
-            "[--basics <title.basics.tsv.gz>] [--max-edges N]"
-        )
-        print(
-            "[cli] bellman-ford: cai nos csv de teste em testes/ "
-            "(imdb_bellman_ford.csv nao encontrado)."
-        )
-        runs = bf_padrao
+    if dataset_arg != imdb_edges_path:
+        print("[cli] bellman ignora --dataset; so bf_* em artificiais_bellman_ford/.")
+    print("[cli] bellman: bf_validacao_sem_ciclo + bf_validacao_com_ciclo.")
 
     registros: list[dict] = []
     t0_total = time.perf_counter()
@@ -121,7 +62,7 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
                 gbf.add_directed_edge(u, v, w)
 
         if src not in gbf.adj:
-            raise ValueError(f"no fonte invalido neste grafo: {src}")
+            raise ValueError(f"fonte invalida no grafo: {src}")
 
         t0 = time.perf_counter()
         ciclo_neg, dist = bellman_ford(gbf, src)
@@ -148,7 +89,7 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
 
     gravar_report_bellman_ford(report_path, registros)
 
-    print("\n=== bellman-ford ===")
+    print("\n=== bellman ===")
     for r in registros:
         print(f"  {r['dataset']}  source={r['source']}")
         print(
@@ -156,21 +97,19 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
             f"tempo_s={r['tempo_s']}"
         )
         if r["ciclo_negativo"]:
-            print(
-                "    distancias omitidas (ciclo negativo alcancavel a partir da fonte)."
-            )
+            print("    sem distancias (ciclo negativo a partir da fonte).")
         elif isinstance(r["distancias"], dict) and r["distancias"].get(
             "omitido_por_tamanho"
         ):
             print(
-                "    distancias: resumo no report (grafo grande; "
-                f"n_vertices={r['distancias'].get('n_vertices')})."
+                "    distancias: resumo no report "
+                f"(n_vertices={r['distancias'].get('n_vertices')})."
             )
         else:
             print(f"    distancias: {r['distancias']}")
     print(f"  report: {report_path}")
     print(f"  tempo total cli: {time.perf_counter() - t0_total:.6f}s")
-    print("=== fim bellman-ford ===\n")
+    print("=== fim bellman ===\n")
 
 
 def _metricas_grafo(g2: Graph):
@@ -259,7 +198,7 @@ def _pares_variados_dijkstra_padrao(graph: Graph) -> list[tuple[str, str]]:
     comps = _enumerar_componentes(graph)
     comps.sort(key=len, reverse=True)
     if not comps or not comps[0]:
-        raise ValueError("grafo vazio.")
+        raise ValueError("grafo vazio")
     giant = comps[0]
     hub = giant[0]
 
@@ -330,7 +269,7 @@ def _pares_variados_dijkstra_padrao(graph: Graph) -> list[tuple[str, str]]:
                         break
 
     if len(out) < 5:
-        raise ValueError("nao da pra montar 5 pares distintos pro dijkstra aqui.")
+        raise ValueError("nao da pra montar 5 pares distintos pro dijkstra")
     return out[:5]
 
 
@@ -344,16 +283,14 @@ def _pares_dijkstra_do_cli(graph: Graph, raw: str | None) -> list[tuple[str, str
             bits = [x.strip() for x in parte.split(",")]
             if len(bits) != 2:
                 raise ValueError(
-                    'cada trecho: "origem,destino" separado por ; em --dijkstra-pares'
+                    'cada trecho: "origem,destino" separado por ; (--dijkstra-pares)'
                 )
             s, t = bits[0], bits[1]
             if s not in graph.adj or t not in graph.adj:
-                raise ValueError(f"no inexistente no grafo: {s} ou {t}")
+                raise ValueError(f"vertice fora do grafo: {s} ou {t}")
             out.append((s, t))
         if len(out) < 5:
-            raise ValueError(
-                "passa pelo menos 5 pares em --dijkstra-pares (separados por ;)"
-            )
+            raise ValueError("minimo 5 pares em --dijkstra-pares (separados por ;)")
         return out
     return _pares_variados_dijkstra_padrao(graph)
 
@@ -365,11 +302,9 @@ def _build_parser() -> argparse.ArgumentParser:
         "--alg",
         help=(
             "check, bfs, dfs, tres_fontes, dijkstra, bellman_ford. "
-            "bellman_ford: csv dirigido (diretores em comum e rating), "
-            f"padrao {DEFAULT_BELLMAN_IMDB_DATASET}; "
-            f"--source em ids imdb (sem --source: {DEFAULT_CHECK_SOURCE}). "
-            "com dataset padrao imdb_edges.csv usa o csv bellman se existir; senao os "
-            "bf_* em testes/. --bellman-demo forca so os bf_*."
+            "bellman: so bf_* em artificiais_bellman_ford/; --dataset ignorado. "
+            "--bellman-demo opcional. demais: imdb_edges; --source tt... "
+            f"(default {DEFAULT_CHECK_SOURCE})."
         ),
     )
     parser.add_argument("--source")
@@ -377,32 +312,26 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="ativa logs do loader e estatisticas de grau.",
+        help="logs do loader + stats de grau.",
     )
     parser.add_argument(
         "--tres-fontes",
         default=DEFAULT_TRES_FONTES,
         dest="tres_fontes",
-        help=(
-            "ate 3 ids imdb separados por virgula "
-            f"(padrao: {DEFAULT_TRES_FONTES})."
-        ),
+        help=(f"ate 3 ids imdb separados por virgula (default {DEFAULT_TRES_FONTES})."),
     )
     parser.add_argument(
         "--dijkstra-pares",
         default=None,
         help=(
-            'pelo menos 5 pares "origem,destino" separados por ; '
-            "(ex.: tt1,tt2;tt3,tt4;...). padrao: 5 pares escolhidos no grafo."
+            'minimo 5 pares "origem,destino" separados por ; '
+            "senao o cli escolhe 5 pares no grafo."
         ),
     )
     parser.add_argument(
         "--bellman-demo",
         action="store_true",
-        help=(
-            "so com --alg bellman_ford: usa so os bf_* em testes/, "
-            "sem imdb_bellman_ford.csv."
-        ),
+        help="opcional com bellman_ford; --dataset nao afeta o bellman.",
     )
     return parser
 
@@ -410,7 +339,7 @@ def _build_parser() -> argparse.ArgumentParser:
 def _executar_check(
     g2: Graph, args: argparse.Namespace, t0_total: float, dataset_path: Path
 ) -> None:
-    # --- CHECK: metricas do dataset + amostra BFS/DFS no terminal (sem registrar BFS/DFS no JSON) ---
+    # check: metricas + amostra bfs/dfs no terminal (nao grava bfs/dfs no json)
     fonte = args.source or DEFAULT_CHECK_SOURCE
     n_v, n_e, grau_medio, no_max, grau_max = _metricas_grafo(g2)
     graus = [len(g2.neighbors(n)) for n in g2.get_nodes()]
@@ -438,7 +367,7 @@ def _executar_check(
     }
     atualizar_report_dataset(DEFAULT_REPORT_PATH, dataset_info)
 
-    print("\n=== check (resumo) ===")
+    print("\n=== check ===")
     print(f"  |V| = {n_v}    |E| = {n_e}")
     print(f"  grau medio: {grau_medio:.4f}")
     print(f"  maior grau: {no_max} (grau {grau_max})")
@@ -463,21 +392,21 @@ def _executar_check(
     )
 
     print(f"  tempo total: {time.perf_counter() - t0_total:.4f}s")
-    print(f"  report dataset: {DEFAULT_REPORT_PATH}")
-    print("=== fim CHECK ===\n")
+    print(f"  report: {DEFAULT_REPORT_PATH}")
+    print("=== fim check ===\n")
 
 
 def _executar_bfs(g2: Graph, args: argparse.Namespace, t0_total: float) -> None:
-    # --- BFS: uma fonte + registro no relatorio ---
+    # bfs: uma fonte + registro no report
     fonte_exec = args.source or DEFAULT_CHECK_SOURCE
     inicio = time.perf_counter()
     resultado, niveis = bfs(g2, fonte_exec)
     fim = time.perf_counter()
     tempo_bfs = fim - inicio
 
-    print("bfs executado com sucesso")
+    print("bfs ok")
     primeiros = resultado[:10]
-    print("primeiros 10 nos visitados e nivel:")
+    print("primeiros 10 nos (nivel):")
     for n in primeiros:
         print(f"  {n}  (nivel {niveis[n]})")
     print("total visitados:", len(resultado))
@@ -493,18 +422,18 @@ def _executar_bfs(g2: Graph, args: argparse.Namespace, t0_total: float) -> None:
         primeiros_nos=resultado[:10],
         tempo_total_cli=tempo_cli,
     )
-    print(f"execucao registrada em: {DEFAULT_REPORT_PATH}")
+    print(f"gravado em: {DEFAULT_REPORT_PATH}")
 
 
 def _executar_dfs(g2: Graph, args: argparse.Namespace, t0_total: float) -> None:
-    # --- DFS: uma fonte + registro no relatorio ---
+    # dfs: uma fonte + registro no report
     fonte_exec = args.source or DEFAULT_CHECK_SOURCE
     inicio = time.perf_counter()
     resultado = dfs(g2, fonte_exec)
     fim = time.perf_counter()
     tempo_dfs = fim - inicio
 
-    print("dfs executado com sucesso")
+    print("dfs ok")
     print("total visitados:", len(resultado))
     print("tempo dfs:", tempo_dfs)
     tempo_cli = time.perf_counter() - t0_total
@@ -518,11 +447,11 @@ def _executar_dfs(g2: Graph, args: argparse.Namespace, t0_total: float) -> None:
         primeiros_nos=resultado[:10],
         tempo_total_cli=tempo_cli,
     )
-    print(f"execucao registrada em: {DEFAULT_REPORT_PATH}")
+    print(f"gravado em: {DEFAULT_REPORT_PATH}")
 
 
 def _executar_tres_fontes(g2: Graph, args: argparse.Namespace, t0_total: float) -> None:
-    # --- TRES_FONTES: BFS/DFS por ate tres fontes + bloco tres_fontes no JSON ---
+    # tres_fontes: bfs/dfs ate tres fontes + bloco no json
     fontes = _tres_fontes_no_grafo(g2, args.tres_fontes)
     por_fonte = []
     for s in fontes:
@@ -566,14 +495,14 @@ def _executar_tres_fontes(g2: Graph, args: argparse.Namespace, t0_total: float) 
 
     tempo_cli = time.perf_counter() - t0_total
     payload_tres_fontes = {
-        "descricao": "bfs e dfs com ate tres ids como fonte",
+        "descricao": "bfs/dfs ate tres fontes",
         "fontes_utilizadas": fontes,
         "por_fonte": por_fonte,
         "tempo_total_cli_s": round(float(tempo_cli), 9),
     }
     gravar_bloco_tres_fontes(DEFAULT_REPORT_PATH, payload_tres_fontes)
 
-    print("\n=== bfs/dfs (tres fontes) ===")
+    print("\n=== tres fontes ===")
     for bloco in por_fonte:
         print(f"  fonte {bloco['source']}:")
         print(
@@ -595,7 +524,7 @@ def _executar_tres_fontes(g2: Graph, args: argparse.Namespace, t0_total: float) 
 
 
 def _executar_dijkstra(g2: Graph, args: argparse.Namespace) -> None:
-    # --- DIJKSTRA: varios pares + gravacao no relatorio ---
+    # dijkstra: varios pares + report
     validar_pesos_para_dijkstra(g2)
     pares = _pares_dijkstra_do_cli(g2, args.dijkstra_pares)
     registros = []
@@ -641,15 +570,15 @@ def _executar_dijkstra(g2: Graph, args: argparse.Namespace) -> None:
                 f"tempo={r['tempo_s']}s"
             )
     print(f"  report: {DEFAULT_REPORT_PATH}")
-    print("=== fim DIJKSTRA ===\n")
+    print("=== fim dijkstra ===\n")
 
 
 def executar_cli(args: argparse.Namespace, projeto_root: Path | None = None) -> None:
-    """mesmo fluxo que main() depois do parse."""
+    """mesmo fluxo que main depois do parse."""
     if projeto_root is None:
         projeto_root = Path(__file__).resolve().parents[1]
 
-    # --- BELLMAN-FORD: fluxo separado (dataset dirigido); logica intacta em _cli_bellman_ford ---
+    # bellman: fluxo separado em _cli_bellman_ford
     if args.alg == "BELLMAN_FORD":
         _cli_bellman_ford(args, projeto_root)
         return
@@ -657,20 +586,16 @@ def executar_cli(args: argparse.Namespace, projeto_root: Path | None = None) -> 
     if not args.dataset:
         return
 
-    # --- Carrega grafo nao dirigido a partir do CSV (CHECK, BFS, DFS, ...) ---
+    # grafo nao-dirigido a partir do csv (check, bfs, dfs, ...)
     t0_total = time.perf_counter()
     dataset_path = Path(args.dataset).resolve()
     if dataset_path.suffix.lower() != ".csv":
-        raise ValueError(
-            "precisa ser csv de arestas imdb (ex.: data/dataset_parte2/imdb_edges.csv)."
-        )
+        raise ValueError("precisa ser csv de arestas (ex. imdb_edges.csv).")
     weight_col = args.weight_col
     if args.alg == "DIJKSTRA":
         weight_col = "peso"
         if args.weight_col != "peso":
-            print(
-                "[cli] DIJKSTRA: usa obrigatoriamente a coluna 'peso' (pesos nao negativos)."
-            )
+            print("[cli] dijkstra: forca coluna peso (>=0).")
 
     print(f"[cli] dataset: {dataset_path}")
     print(f"[cli] coluna de peso: {weight_col}")
