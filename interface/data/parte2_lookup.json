@@ -1,0 +1,824 @@
+{
+  "meta": {
+    "descricao": "lookup leve para enriquecer a interface da parte 2",
+    "movies_total": 92,
+    "edges_total": 24,
+    "observacao": "atores aparecem como contagem em comum; nomes exigem name.basics.tsv.gz"
+  },
+  "movies": {
+    "tt0000147": {
+      "titulo": "The Corbett-Fitzsimmons Fight",
+      "ano": "1897",
+      "generos": "Documentary,News,Sport",
+      "nota": "5.3",
+      "diretores": "nm0714557"
+    },
+    "tt0000630": {
+      "titulo": "Hamlet",
+      "ano": "1908",
+      "generos": "Drama",
+      "nota": "3.2",
+      "diretores": "nm0143333"
+    },
+    "tt0002461": {
+      "titulo": "The Life and Death of King Richard III",
+      "ano": "1912",
+      "generos": "Drama",
+      "nota": "5.7",
+      "diretores": ""
+    },
+    "tt0002605": {
+      "titulo": "The Adventures of Kathlyn",
+      "ano": "1913",
+      "generos": "Adventure",
+      "nota": "5.4",
+      "diretores": "nm0334918"
+    },
+    "tt0002628": {
+      "titulo": "Der Andere",
+      "ano": "1913",
+      "generos": "Drama,Thriller",
+      "nota": "5.3",
+      "diretores": "nm0533048"
+    },
+    "tt0003116": {
+      "titulo": "The Man from the Golden West",
+      "ano": "1913",
+      "generos": "Adventure,Crime,Drama",
+      "nota": "",
+      "diretores": ""
+    },
+    "tt0003431": {
+      "titulo": "Die Tangokönigin",
+      "ano": "1913",
+      "generos": "",
+      "nota": "5.8",
+      "diretores": "nm0533048"
+    },
+    "tt0003599": {
+      "titulo": "The Adventures of Buffalo Bill",
+      "ano": "1917",
+      "generos": "Documentary,Drama,Western",
+      "nota": "6.4",
+      "diretores": ""
+    },
+    "tt0003668": {
+      "titulo": "Beating Back",
+      "ano": "1914",
+      "generos": "Adventure,Biography,Drama",
+      "nota": "5.7",
+      "diretores": "nm0281621"
+    },
+    "tt0003730": {
+      "titulo": "The Burglar and the Lady",
+      "ano": "1914",
+      "generos": "Crime,Drama",
+      "nota": "",
+      "diretores": "nm0085133"
+    },
+    "tt0005062": {
+      "titulo": "The Carpet from Bagdad",
+      "ano": "1915",
+      "generos": "Adventure",
+      "nota": "4.7",
+      "diretores": "nm0132324"
+    },
+    "tt0005335": {
+      "titulo": "The Flying Twins",
+      "ano": "1915",
+      "generos": "Drama",
+      "nota": "8.3",
+      "diretores": "nm0367556"
+    },
+    "tt0005763": {
+      "titulo": "Money",
+      "ano": "1915",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0443857"
+    },
+    "tt0005979": {
+      "titulo": "The Rosary",
+      "ano": "1915",
+      "generos": "Drama,Mystery,Romance",
+      "nota": "6.4",
+      "diretores": "nm0132324"
+    },
+    "tt0006269": {
+      "titulo": "When a Woman Loves",
+      "ano": "1915",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": ""
+    },
+    "tt0006895": {
+      "titulo": "King Lear",
+      "ano": "1916",
+      "generos": "Drama",
+      "nota": "5.4",
+      "diretores": "nm0911959"
+    },
+    "tt0007210": {
+      "titulo": "The Price of Happiness",
+      "ano": "1916",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0492742"
+    },
+    "tt0007627": {
+      "titulo": "Alma de sacrificio",
+      "ano": "1917",
+      "generos": "Drama,Romance",
+      "nota": "",
+      "diretores": "nm0181942"
+    },
+    "tt0007983": {
+      "titulo": "Fear",
+      "ano": "1917",
+      "generos": "Horror",
+      "nota": "6.1",
+      "diretores": "nm0927468"
+    },
+    "tt0008613": {
+      "titulo": "La soñadora",
+      "ano": "1917",
+      "generos": "Romance",
+      "nota": "",
+      "diretores": "nm0037060|nm0741082"
+    },
+    "tt0008883": {
+      "titulo": "Beware of Strangers",
+      "ano": "1917",
+      "generos": "Crime,Drama",
+      "nota": "",
+      "diretores": "nm0132324"
+    },
+    "tt0009800": {
+      "titulo": "Who Shall Take My Life?",
+      "ano": "1917",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0132324"
+    },
+    "tt0010309": {
+      "titulo": "Die Japanerin",
+      "ano": "1919",
+      "generos": "Crime,Mystery",
+      "nota": "",
+      "diretores": "nm0243295"
+    },
+    "tt0010460": {
+      "titulo": "The Midnight Man",
+      "ano": "1919",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0395023"
+    },
+    "tt0010596": {
+      "titulo": "Prostitution",
+      "ano": "1919",
+      "generos": "Drama",
+      "nota": "4.8",
+      "diretores": "nm0652650"
+    },
+    "tt0010821": {
+      "titulo": "Eerie Tales",
+      "ano": "1919",
+      "generos": "Fantasy,Horror,Mystery",
+      "nota": "6.4",
+      "diretores": "nm0652650"
+    },
+    "tt0011217": {
+      "titulo": "Journey into the Night",
+      "ano": "1921",
+      "generos": "Drama",
+      "nota": "6.2",
+      "diretores": "nm0003638"
+    },
+    "tt0011220": {
+      "titulo": "Das Geheimnis von Bombay",
+      "ano": "1921",
+      "generos": "Adventure,Drama",
+      "nota": "",
+      "diretores": "nm0392747"
+    },
+    "tt0011524": {
+      "titulo": "Die Nächte des Cornelis Brouwer",
+      "ano": "1921",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0115649|nm0915270"
+    },
+    "tt0011603": {
+      "titulo": "The Prince of Avenue A",
+      "ano": "1920",
+      "generos": "Drama",
+      "nota": "3.2",
+      "diretores": "nm0000406"
+    },
+    "tt0011664": {
+      "titulo": "Der Schädel der Pharaonentochter",
+      "ano": "1920",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0866112"
+    },
+    "tt0011676": {
+      "titulo": "Desire",
+      "ano": "1920",
+      "generos": "Drama,Romance",
+      "nota": "7.0",
+      "diretores": "nm0003638"
+    },
+    "tt0012313": {
+      "titulo": "Mysteries of India, Part II: Above All Law",
+      "ano": "1921",
+      "generos": "Adventure,Fantasy",
+      "nota": "6.7",
+      "diretores": "nm0562004"
+    },
+    "tt0012314": {
+      "titulo": "Mysteries of India, Part I: Truth",
+      "ano": "1921",
+      "generos": "Adventure,Fantasy",
+      "nota": "6.7",
+      "diretores": "nm0562004"
+    },
+    "tt0012386": {
+      "titulo": "Die Liebschaften des Hektor Dalmore",
+      "ano": "1921",
+      "generos": "",
+      "nota": "7.2",
+      "diretores": "nm0652650"
+    },
+    "tt0012494": {
+      "titulo": "Destiny",
+      "ano": "1921",
+      "generos": "Drama,Fantasy,Horror",
+      "nota": "7.6",
+      "diretores": "nm0000485"
+    },
+    "tt0012927": {
+      "titulo": "The Beauty Shop",
+      "ano": "1922",
+      "generos": "Comedy",
+      "nota": "",
+      "diretores": "nm0226992"
+    },
+    "tt0013086": {
+      "titulo": "Dr. Mabuse, the Gambler",
+      "ano": "1922",
+      "generos": "Crime,Mystery,Thriller",
+      "nota": "7.8",
+      "diretores": "nm0000485"
+    },
+    "tt0013339": {
+      "titulo": "A Lover's Oath",
+      "ano": "1925",
+      "generos": "Fantasy,Romance",
+      "nota": "6.3",
+      "diretores": "nm0247315"
+    },
+    "tt0014092": {
+      "titulo": "Glanz gegen Glück",
+      "ano": "1923",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0873715"
+    },
+    "tt0016127": {
+      "titulo": "The Mountain Eagle",
+      "ano": "1926",
+      "generos": "Romance,Thriller",
+      "nota": "",
+      "diretores": "nm0000033"
+    },
+    "tt0016409": {
+      "titulo": "The Swan",
+      "ano": "1925",
+      "generos": "Comedy,Romance",
+      "nota": "6.1",
+      "diretores": "nm0118266"
+    },
+    "tt0016481": {
+      "titulo": "Variety",
+      "ano": "1925",
+      "generos": "Crime,Drama,Romance",
+      "nota": "7.4",
+      "diretores": "nm0243295"
+    },
+    "tt0016646": {
+      "titulo": "Beverly of Graustark",
+      "ano": "1926",
+      "generos": "Comedy,Romance",
+      "nota": "6.7",
+      "diretores": "nm0291548"
+    },
+    "tt0017468": {
+      "titulo": "Thrilling Youth",
+      "ano": "1926",
+      "generos": "Comedy",
+      "nota": "",
+      "diretores": "nm0428177"
+    },
+    "tt0017484": {
+      "titulo": "A Trip to Chinatown",
+      "ano": "1926",
+      "generos": "Comedy",
+      "nota": "",
+      "diretores": "nm0449789"
+    },
+    "tt0017509": {
+      "titulo": "Valencia",
+      "ano": "1926",
+      "generos": "Drama,Romance",
+      "nota": "",
+      "diretores": "nm0118266"
+    },
+    "tt0018698": {
+      "titulo": "The Big Hop",
+      "ano": "1928",
+      "generos": "Drama,Western",
+      "nota": "5.6",
+      "diretores": "nm0395023"
+    },
+    "tt0019213": {
+      "titulo": "A Night of Mystery",
+      "ano": "1928",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0578985"
+    },
+    "tt0019391": {
+      "titulo": "Sins of the Fathers",
+      "ano": "1928",
+      "generos": "Drama",
+      "nota": "6.5",
+      "diretores": "nm0003490"
+    },
+    "tt0019536": {
+      "titulo": "Vivre",
+      "ano": "1929",
+      "generos": "Crime",
+      "nota": "",
+      "diretores": "nm0099230"
+    },
+    "tt0019648": {
+      "titulo": "The Arizona Kid",
+      "ano": "1929",
+      "generos": "Drama,Western",
+      "nota": "",
+      "diretores": "nm0139356"
+    },
+    "tt0019736": {
+      "titulo": "Bullets and Justice",
+      "ano": "1929",
+      "generos": "Drama,Western",
+      "nota": "",
+      "diretores": ""
+    },
+    "tt0020145": {
+      "titulo": "Marquis Preferred",
+      "ano": "1929",
+      "generos": "Comedy",
+      "nota": "",
+      "diretores": "nm0878338"
+    },
+    "tt0020356": {
+      "titulo": "Sailor's Holiday",
+      "ano": "1929",
+      "generos": "Comedy",
+      "nota": "5.8",
+      "diretores": "nm0628345"
+    },
+    "tt0020466": {
+      "titulo": "Sunny Side Up",
+      "ano": "1929",
+      "generos": "Comedy,Musical",
+      "nota": "6.5",
+      "diretores": "nm0124877"
+    },
+    "tt0020925": {
+      "titulo": "Her Golden Calf",
+      "ano": "1930",
+      "generos": "Comedy,Musical,Romance",
+      "nota": "7.1",
+      "diretores": "nm0916224"
+    },
+    "tt0020949": {
+      "titulo": "Happy Days",
+      "ano": "1929",
+      "generos": "Comedy,Musical,Romance",
+      "nota": "5.5",
+      "diretores": "nm0831577"
+    },
+    "tt0021342": {
+      "titulo": "Scotland Yard",
+      "ano": "1930",
+      "generos": "Crime,Drama,Romance",
+      "nota": "5.4",
+      "diretores": "nm0397678"
+    },
+    "tt0021416": {
+      "titulo": "The Squealer",
+      "ano": "1930",
+      "generos": "Action,Crime,Drama",
+      "nota": "",
+      "diretores": "nm0113693"
+    },
+    "tt0021946": {
+      "titulo": "Heartbreak",
+      "ano": "1931",
+      "generos": "Drama,Romance,War",
+      "nota": "7.6",
+      "diretores": "nm0921288"
+    },
+    "tt0021971": {
+      "titulo": "La gran jornada",
+      "ano": "1931",
+      "generos": "Drama,Western",
+      "nota": "",
+      "diretores": "nm0397227|nm0909825|nm9549402"
+    },
+    "tt0022114": {
+      "titulo": "The Man Who Came Back",
+      "ano": "1931",
+      "generos": "Drama",
+      "nota": "5.2",
+      "diretores": "nm0909825"
+    },
+    "tt0022240": {
+      "titulo": "The Outsider",
+      "ano": "1931",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0480046"
+    },
+    "tt0022345": {
+      "titulo": "Schachmatt",
+      "ano": "1931",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0038291"
+    },
+    "tt0022454": {
+      "titulo": "Svengali",
+      "ano": "1931",
+      "generos": "Drama,Horror,Romance",
+      "nota": "6.8",
+      "diretores": "nm0562845"
+    },
+    "tt0022543": {
+      "titulo": "Voruntersuchung",
+      "ano": "1931",
+      "generos": "Drama",
+      "nota": "6.4",
+      "diretores": "nm0802563"
+    },
+    "tt0022892": {
+      "titulo": "The First Year",
+      "ano": "1932",
+      "generos": "Comedy,Drama",
+      "nota": "6.3",
+      "diretores": "nm0397678"
+    },
+    "tt0023207": {
+      "titulo": "Hombres de mi vida",
+      "ano": "1932",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0037060|nm0783461"
+    },
+    "tt0023410": {
+      "titulo": "Rome Express",
+      "ano": "1932",
+      "generos": "Adventure,Crime,Drama",
+      "nota": "6.6",
+      "diretores": "nm0285962"
+    },
+    "tt0023496": {
+      "titulo": "South of the Rio Grande",
+      "ano": "1932",
+      "generos": "Drama,Western",
+      "nota": "5.8",
+      "diretores": "nm0385171"
+    },
+    "tt0023557": {
+      "titulo": "Teilnehmer antwortet nicht",
+      "ano": "1932",
+      "generos": "",
+      "nota": "5.8",
+      "diretores": "nm0142056|nm0815076"
+    },
+    "tt0023562": {
+      "titulo": "Tess of the Storm Country",
+      "ano": "1932",
+      "generos": "Crime,Drama,Mystery",
+      "nota": "6.8",
+      "diretores": "nm0763453"
+    },
+    "tt0023864": {
+      "titulo": "The Lark",
+      "ano": "1933",
+      "generos": "Drama,Romance",
+      "nota": "",
+      "diretores": "nm0297414"
+    },
+    "tt0024047": {
+      "titulo": "Galloping Romeo",
+      "ano": "1933",
+      "generos": "Drama,Western",
+      "nota": "6.2",
+      "diretores": "nm0102908"
+    },
+    "tt0024202": {
+      "titulo": "Cadets",
+      "ano": "1931",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0414985"
+    },
+    "tt0024223": {
+      "titulo": "Kiss of Araby",
+      "ano": "1933",
+      "generos": "Adventure,War",
+      "nota": "5.4",
+      "diretores": "nm0005847"
+    },
+    "tt0024457": {
+      "titulo": "Polizeiakte 909",
+      "ano": "1933",
+      "generos": "Crime",
+      "nota": "5.2",
+      "diretores": "nm0927468"
+    },
+    "tt0024665": {
+      "titulo": "The Thrill Hunter",
+      "ano": "1933",
+      "generos": "Action,Adventure,Comedy",
+      "nota": "6.2",
+      "diretores": "nm0782707"
+    },
+    "tt0025329": {
+      "titulo": "Power",
+      "ano": "1934",
+      "generos": "Drama,History,Romance",
+      "nota": "6.4",
+      "diretores": "nm0578985"
+    },
+    "tt0026461": {
+      "titulo": "The Saint and Her Fool",
+      "ano": "1935",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0003904|nm0220131|nm0652392"
+    },
+    "tt0026567": {
+      "titulo": "Kid Courageous",
+      "ano": "1935",
+      "generos": "Drama,Western",
+      "nota": "6.5",
+      "diretores": "nm0102908"
+    },
+    "tt0027199": {
+      "titulo": "Western Justice",
+      "ano": "1934",
+      "generos": "Drama,Western",
+      "nota": "5.9",
+      "diretores": "nm0102908"
+    },
+    "tt0027803": {
+      "titulo": "Irma la mala",
+      "ano": "1936",
+      "generos": "Action,Drama",
+      "nota": "5.6",
+      "diretores": "nm0786470"
+    },
+    "tt0028274": {
+      "titulo": "Tredowata",
+      "ano": "1936",
+      "generos": "Drama,Romance",
+      "nota": "6.3",
+      "diretores": "nm0306599"
+    },
+    "tt0028573": {
+      "titulo": "Rebel Souls",
+      "ano": "1937",
+      "generos": "Adventure,Drama,Western",
+      "nota": "6.0",
+      "diretores": "nm0302143"
+    },
+    "tt0028605": {
+      "titulo": "Beneath the Sky of Mexico",
+      "ano": "1937",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0297414"
+    },
+    "tt0028684": {
+      "titulo": "Song of the Soul",
+      "ano": "1938",
+      "generos": "Comedy,Drama,Musical",
+      "nota": "",
+      "diretores": "nm0882190"
+    },
+    "tt0029092": {
+      "titulo": "The Logger's Bride",
+      "ano": "1937",
+      "generos": "Drama,Romance",
+      "nota": "5.9",
+      "diretores": "nm0882795"
+    },
+    "tt0029163": {
+      "titulo": "Lost Ranch",
+      "ano": "1937",
+      "generos": "Drama,Music,Western",
+      "nota": "5.6",
+      "diretores": "nm0441947"
+    },
+    "tt0029354": {
+      "titulo": "Orphan of the Pecos",
+      "ano": "1937",
+      "generos": "Drama,Western",
+      "nota": "6.2",
+      "diretores": "nm0441947"
+    },
+    "tt0029835": {
+      "titulo": "Abnegación",
+      "ano": "1938",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0691947"
+    }
+  },
+  "edges": {
+    "tt0012313|tt0012314": {
+      "source": "tt0012313",
+      "target": "tt0012314",
+      "actors_common": 10,
+      "similaridade": 22.0,
+      "peso": 0.045455
+    },
+    "tt0028605|tt0028684": {
+      "source": "tt0028605",
+      "target": "tt0028684",
+      "actors_common": 5,
+      "similaridade": 11.0,
+      "peso": 0.090909
+    },
+    "tt0010821|tt0012313": {
+      "source": "tt0010821",
+      "target": "tt0012313",
+      "actors_common": 3,
+      "similaridade": 7.0,
+      "peso": 0.142857
+    },
+    "tt0010596|tt0010821": {
+      "source": "tt0010596",
+      "target": "tt0010821",
+      "actors_common": 3,
+      "similaridade": 6.0,
+      "peso": 0.166667
+    },
+    "tt0021342|tt0022454": {
+      "source": "tt0021342",
+      "target": "tt0022454",
+      "actors_common": 3,
+      "similaridade": 8.0,
+      "peso": 0.125
+    },
+    "tt0019391|tt0021416": {
+      "source": "tt0019391",
+      "target": "tt0021416",
+      "actors_common": 3,
+      "similaridade": 7.0,
+      "peso": 0.142857
+    },
+    "tt0021416|tt0024665": {
+      "source": "tt0021416",
+      "target": "tt0024665",
+      "actors_common": 3,
+      "similaridade": 7.0,
+      "peso": 0.142857
+    },
+    "tt0022454|tt0023207": {
+      "source": "tt0022454",
+      "target": "tt0023207",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2
+    },
+    "tt0021971|tt0023496": {
+      "source": "tt0021971",
+      "target": "tt0023496",
+      "actors_common": 2,
+      "similaridade": 6.0,
+      "peso": 0.166667
+    },
+    "tt0010596|tt0011676": {
+      "source": "tt0010596",
+      "target": "tt0011676",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2
+    },
+    "tt0011676|tt0025329": {
+      "source": "tt0011676",
+      "target": "tt0025329",
+      "actors_common": 2,
+      "similaridade": 6.0,
+      "peso": 0.166667
+    },
+    "tt0023410|tt0025329": {
+      "source": "tt0023410",
+      "target": "tt0025329",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2
+    },
+    "tt0007627|tt0008613": {
+      "source": "tt0007627",
+      "target": "tt0008613",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2
+    },
+    "tt0008613|tt0029835": {
+      "source": "tt0008613",
+      "target": "tt0029835",
+      "actors_common": 2,
+      "similaridade": 4.0,
+      "peso": 0.25
+    },
+    "tt0023496|tt0024665": {
+      "source": "tt0023496",
+      "target": "tt0024665",
+      "actors_common": 2,
+      "similaridade": 4.0,
+      "peso": 0.25
+    },
+    "tt0012313|tt0016481": {
+      "source": "tt0012313",
+      "target": "tt0016481",
+      "actors_common": 2,
+      "similaridade": 4.0,
+      "peso": 0.25
+    },
+    "tt0028573|tt0029835": {
+      "source": "tt0028573",
+      "target": "tt0029835",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2
+    },
+    "tt0027803|tt0028605": {
+      "source": "tt0027803",
+      "target": "tt0028605",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2
+    },
+    "tt0022240|tt0023410": {
+      "source": "tt0022240",
+      "target": "tt0023410",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2
+    },
+    "tt0021971|tt0023864": {
+      "source": "tt0021971",
+      "target": "tt0023864",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2
+    },
+    "tt0023207|tt0027803": {
+      "source": "tt0023207",
+      "target": "tt0027803",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2
+    },
+    "tt0023864|tt0028684": {
+      "source": "tt0023864",
+      "target": "tt0028684",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2
+    },
+    "tt0028573|tt0028684": {
+      "source": "tt0028573",
+      "target": "tt0028684",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2
+    },
+    "tt0016481|tt0019391": {
+      "source": "tt0016481",
+      "target": "tt0019391",
+      "actors_common": 1,
+      "similaridade": 3.0,
+      "peso": 0.333333
+    }
+  }
+}

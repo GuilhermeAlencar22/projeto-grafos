@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>parte 2 | imdb e algoritmos de grafos</title>
+    <link rel="stylesheet" href="lib/vis-9.1.2/vis-network.css">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">IMDb</span>
+        <div>
+          <span class="eyebrow">parte 2</span>
+          <h1>teoria dos grafos</h1>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="is-active" href="#inicio" data-view="inicio">inicio</a>
+        <a href="#grafos" data-view="grafos">grafos</a>
+        <a href="#algoritmos" data-view="algoritmos">algoritmos</a>
+        <a href="#graficos" data-view="graficos">graficos</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero view-panel is-active" id="inicio" data-view-panel="inicio">
+        <div class="hero-copy">
+          <p class="eyebrow hero-topic">imdb | filmes | atores</p>
+          <h2>filmes viram nos. atores criam conexoes.</h2>
+          <p>
+            aqui o imdb deixa de ser catalogo e vira rede: cada conexao conta
+            quem dividiu cena, genero, peso e similaridade.
+          </p>
+          <div class="project-brief">
+            <article>
+              <span>dataset maior</span>
+              <strong>parte 2 sem malha aerea</strong>
+              <p>filmes do imdb conectados por atores em comum, com pesos e similaridade para comparar algoritmos.</p>
+            </article>
+            <article>
+              <span>entrega tecnica</span>
+              <strong>4 algoritmos rodados</strong>
+              <p>bfs, dfs, dijkstra e bellman-ford aparecem com corretude, desempenho e resultados consolidados.</p>
+            </article>
+          </div>
+          <div class="hero-tags">
+            <span>bfs / dfs</span>
+            <span>dijkstra</span>
+            <span>bellman-ford</span>
+            <span>benchmark</span>
+          </div>
+          <aside class="cinema-note">
+            <span>nota de bastidor</span>
+            <strong>o diretor chama de escolha artistica.</strong>
+            <em>o grafo chama de conexao repetida.</em>
+          </aside>
+          <div class="hero-actions">
+            <button type="button" data-view="grafos">explorar grafo</button>
+            <button type="button" data-view="algoritmos">algoritmos e resultados</button>
+            <button type="button" data-view="graficos">abrir graficos</button>
+          </div>
+        </div>
+        <div class="metric-grid" id="dataset-metrics">
+          <article class="metric-card">
+            <span>vertices</span>
+            <strong data-field="num_vertices">--</strong>
+          </article>
+          <article class="metric-card">
+            <span>arestas</span>
+            <strong data-field="num_arestas">--</strong>
+          </article>
+          <article class="metric-card">
+            <span>grau medio</span>
+            <strong data-field="grau_medio">--</strong>
+          </article>
+          <article class="metric-card">
+            <span>ilhas</span>
+            <strong data-field="componentes_conexas">--</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel-section view-panel" id="grafos" data-view-panel="grafos">
+        <div class="section-heading">
+          <p class="eyebrow">visualizacao interativa</p>
+          <h2>o grafo e o centro da parte 2</h2>
+          <p>
+            o grafo completo alimenta metricas e algoritmos. na tela, usamos
+            subgrafos escolhidos para enxergar caminho, forca de conexao e
+            estrutura sem transformar o navegador em vitima.
+          </p>
+        </div>
+
+        <div class="graph-shell">
+          <aside class="graph-controls">
+            <div class="panel-kicker">controle da cena</div>
+            <label for="graph-mode">modo do grafo</label>
+            <select id="graph-mode">
+              <option value="top">top conexoes</option>
+              <option value="dijkstra">caminho dijkstra</option>
+              <option value="bfs">vizinhanca bfs</option>
+              <option value="similaridade">maior similaridade</option>
+            </select>
+
+            <label for="graph-search">buscar no</label>
+            <div class="search-row">
+              <input id="graph-search" type="search" placeholder="ex: tt0012313">
+              <button id="search-btn" type="button">buscar</button>
+            </div>
+
+            <button id="reset-graph-btn" type="button">limpar destaque</button>
+
+            <div class="legend">
+              <strong>legenda</strong>
+              <span><i class="legend-dot origin"></i>origem</span>
+              <span><i class="legend-dot target"></i>destino</span>
+              <span><i class="legend-line"></i>aresta destacada</span>
+            </div>
+          </aside>
+
+          <div class="graph-area">
+            <div id="network"></div>
+            <div class="graph-placeholder" id="graph-placeholder">
+              <span class="loader-ring"></span>
+              <strong>subgrafo em preparacao</strong>
+              <p>na proxima etapa, este palco recebe nos, arestas, cliques e detalhes de conexao.</p>
+            </div>
+          </div>
+
+          <aside class="details-panel" id="details-panel">
+            <p class="eyebrow">detalhes</p>
+            <h3>clique no rastro certo</h3>
+            <p>
+              aqui entram titulo, genero, atores em comum, similaridade e peso.
+              nada de tooltip preguicoso fazendo cosplay de analise.
+            </p>
+            <div class="detail-empty">
+              <span>no</span>
+              <span>aresta</span>
+              <span>caminho</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panel-section view-panel" id="algoritmos" data-view-panel="algoritmos">
+        <div class="section-heading">
+          <p class="eyebrow">algoritmos e resultados</p>
+          <h2>execucoes da parte 2</h2>
+          <p>
+            aqui ficam juntos os algoritmos usados, os caminhos encontrados,
+            as buscas, o bellman-ford e os tempos de execucao.
+          </p>
+        </div>
+        <div class="algorithm-grid" id="algorithm-grid"></div>
+        <div class="results-heading">
+          <p class="eyebrow">resultados das execucoes</p>
+          <h3>o que os algoritmos devolveram</h3>
+        </div>
+        <div class="results-summary" id="results-summary"></div>
+        <div class="results-grid" id="results-grid"></div>
+      </section>
+
+      <section class="panel-section view-panel" id="graficos" data-view-panel="graficos">
+        <div class="section-heading">
+          <p class="eyebrow">graficos</p>
+          <h2>evidencias visuais</h2>
+          <p>clique em qualquer grafico para ver a imagem inteira na tela.</p>
+        </div>
+        <div class="viz-grid" id="viz-grid"></div>
+      </section>
+    </main>
+
+    <div class="image-modal" id="viz-modal" aria-hidden="true" role="dialog" aria-label="grafico ampliado">
+      <div class="image-modal-backdrop" data-close-modal></div>
+      <section class="image-modal-panel">
+        <header>
+          <div>
+            <p class="eyebrow">grafico ampliado</p>
+            <h2 id="modal-title">grafico</h2>
+          </div>
+          <button class="modal-close" type="button" data-close-modal>fechar</button>
+        </header>
+        <img id="modal-image" src="" alt="">
+        <p id="modal-caption"></p>
+      </section>
+    </div>
+
+    <script src="lib/vis-9.1.2/vis-network.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
