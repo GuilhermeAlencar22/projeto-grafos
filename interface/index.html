@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>parte 2 | imdb e algoritmos de grafos</title>
     <link rel="stylesheet" href="lib/vis-9.1.2/vis-network.css">
-    <link rel="stylesheet" href="styles.css?v=16">
+    <link rel="stylesheet" href="styles.css?v=21">
   </head>
   <body>
     <header class="topbar">
@@ -87,7 +87,7 @@
               <option value="top">top conexoes</option>
               <option value="bfs">bfs - camadas</option>
               <option value="dfs">dfs - percurso</option>
-              <option value="dijkstra">dijkstra - menor caminho</option>
+              <option value="dijkstra">dijkstra - maior rota visual</option>
               <option value="bellman-ford">bellman-ford - pesos negativos</option>
             </select>
 
@@ -95,6 +95,17 @@
             <div class="search-row">
               <input id="graph-search" type="search" placeholder="ex: tt0012313">
               <button id="search-btn" type="button">buscar</button>
+            </div>
+
+            <div class="route-tool">
+              <span class="route-tool-title">filme x filme</span>
+              <input id="route-source" type="search" placeholder="origem tt0012313">
+              <input id="route-target" type="search" placeholder="destino tt0022240">
+              <select id="route-algorithm">
+                <option value="dijkstra">dijkstra</option>
+                <option value="dfs">profundidade</option>
+              </select>
+              <button id="route-run-btn" type="button">calcular rota</button>
             </div>
 
             <button id="reset-graph-btn" type="button">limpar destaque</button>
@@ -179,6 +190,6 @@
     </div>
 
     <script src="lib/vis-9.1.2/vis-network.min.js"></script>
-    <script src="app.js?v=18"></script>
+    <script src="app.js?v=35"></script>
   </body>
 </html>

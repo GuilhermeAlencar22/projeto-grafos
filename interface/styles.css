@@ -445,6 +445,11 @@ input {
   color: var(--text);
 }
 
+input.search-miss {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px rgba(255, 77, 77, 0.18);
+}
+
 select:focus,
 input:focus,
 button:focus-visible,
@@ -477,6 +482,22 @@ button:active {
   display: grid;
   grid-template-columns: 1fr 86px;
   gap: 8px;
+}
+
+.route-tool {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(245, 197, 24, 0.18);
+  border-radius: 8px;
+}
+
+.route-tool-title {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .legend {
@@ -528,14 +549,10 @@ button:active {
 
 .graph-area {
   position: relative;
-  min-height: calc(100vh - 178px);
+  height: calc(100vh - 178px);
+  min-height: 620px;
   overflow: hidden;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at center, rgba(245, 197, 24, 0.12), transparent 320px),
-    #070707;
-  background-size: 34px 34px, 34px 34px, auto, auto;
+  background: #070707;
   border: 1px solid var(--yellow-line);
   border-radius: 8px;
   box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.55), var(--shadow);
@@ -545,12 +562,14 @@ button:active {
   position: fixed;
   inset: 0;
   z-index: 60;
+  height: 100vh;
   min-height: 100vh;
   border: 0;
   border-radius: 0;
 }
 
 .graph-area.is-fullscreen #network {
+  height: 100vh;
   min-height: 100vh;
 }
 
@@ -580,7 +599,12 @@ button:active {
 #network {
   width: 100%;
   height: 100%;
-  min-height: calc(100vh - 178px);
+  min-height: 100%;
+  cursor: grab;
+}
+
+#network:active {
+  cursor: grabbing;
 }
 
 .graph-placeholder {
@@ -595,6 +619,10 @@ button:active {
   color: var(--muted);
   text-align: center;
   line-height: 1.5;
+}
+
+.graph-placeholder[hidden] {
+  display: none;
 }
 
 .graph-placeholder strong {

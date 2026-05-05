@@ -1,9 +1,11 @@
 {
   "meta": {
     "descricao": "lookup leve para enriquecer a interface da parte 2",
-    "movies_total": 92,
-    "edges_total": 24,
-    "observacao": "atores aparecem como contagem em comum; nomes exigem name.basics.tsv.gz"
+    "movies_total": 197,
+    "edges_total": 103,
+    "observacao": "nomes dos atores exigem name.basics.tsv.gz; sem ele, a interface mostra ids nconst",
+    "actors_common_ids": "ids nconst extraidos de title.principals.tsv.gz para as arestas do lookup",
+    "amostra": "arestas fortes do imdb_edges.csv + caminhos usados nos resultados da interface"
   },
   "movies": {
     "tt0000147": {
@@ -19,6 +21,27 @@
       "generos": "Drama",
       "nota": "3.2",
       "diretores": "nm0143333"
+    },
+    "tt0001115": {
+      "titulo": "Ansigttyven I",
+      "ano": "1910",
+      "generos": "Crime",
+      "nota": "3.9",
+      "diretores": "nm0375839"
+    },
+    "tt0001116": {
+      "titulo": "Ansigttyven II",
+      "ano": "1910",
+      "generos": "",
+      "nota": "3.9",
+      "diretores": "nm0375839"
+    },
+    "tt0001790": {
+      "titulo": "Les Misérables, Part 1: Jean Valjean",
+      "ano": "1913",
+      "generos": "Drama",
+      "nota": "6.0",
+      "diretores": "nm0135052"
     },
     "tt0002461": {
       "titulo": "The Life and Death of King Richard III",
@@ -41,12 +64,40 @@
       "nota": "5.3",
       "diretores": "nm0533048"
     },
+    "tt0002844": {
+      "titulo": "Fantômas: In the Shadow of the Guillotine",
+      "ano": "1913",
+      "generos": "Crime,Drama",
+      "nota": "6.9",
+      "diretores": "nm0275421"
+    },
+    "tt0003037": {
+      "titulo": "Fantomas: The Man in Black",
+      "ano": "1913",
+      "generos": "Crime,Drama",
+      "nota": "6.9",
+      "diretores": "nm0275421"
+    },
     "tt0003116": {
       "titulo": "The Man from the Golden West",
       "ano": "1913",
       "generos": "Adventure,Crime,Drama",
       "nota": "",
       "diretores": ""
+    },
+    "tt0003159": {
+      "titulo": "Les Misérables, Part 2: Fantine",
+      "ano": "1913",
+      "generos": "Drama",
+      "nota": "5.7",
+      "diretores": "nm0135052"
+    },
+    "tt0003165": {
+      "titulo": "Fantômas: The Dead Man Who Killed",
+      "ano": "1913",
+      "generos": "Crime,Drama,Mystery",
+      "nota": "6.9",
+      "diretores": "nm0275421"
     },
     "tt0003431": {
       "titulo": "Die Tangokönigin",
@@ -76,12 +127,68 @@
       "nota": "",
       "diretores": "nm0085133"
     },
+    "tt0003886": {
+      "titulo": "Enoch Arden",
+      "ano": "1914",
+      "generos": "Drama",
+      "nota": "6.3",
+      "diretores": "nm0621797"
+    },
+    "tt0003930": {
+      "titulo": "Fantomas: The Mysterious Finger Print",
+      "ano": "1914",
+      "generos": "Crime,Drama",
+      "nota": "6.8",
+      "diretores": "nm0275421"
+    },
+    "tt0003988": {
+      "titulo": "The Fortune Hunter",
+      "ano": "1914",
+      "generos": "Comedy",
+      "nota": "",
+      "diretores": "nm0641967"
+    },
+    "tt0004155": {
+      "titulo": "The Indian Wars",
+      "ano": "1914",
+      "generos": "Biography,Drama,History",
+      "nota": "7.0",
+      "diretores": "nm0206619|nm0923603"
+    },
+    "tt0004223": {
+      "titulo": "The Life of General Villa",
+      "ano": "1914",
+      "generos": "Action,Adventure,Biography",
+      "nota": "6.2",
+      "diretores": "nm0127511"
+    },
+    "tt0004740": {
+      "titulo": "The Typhoon",
+      "ano": "1914",
+      "generos": "Drama",
+      "nota": "5.2",
+      "diretores": "nm0054977"
+    },
+    "tt0004838": {
+      "titulo": "The Wrath of the Gods",
+      "ano": "1914",
+      "generos": "Drama,Romance",
+      "nota": "5.8",
+      "diretores": "nm0054977"
+    },
     "tt0005062": {
       "titulo": "The Carpet from Bagdad",
       "ano": "1915",
       "generos": "Adventure",
       "nota": "4.7",
       "diretores": "nm0132324"
+    },
+    "tt0005183": {
+      "titulo": "De cuarenta para arriba",
+      "ano": "1918",
+      "generos": "Comedy",
+      "nota": "",
+      "diretores": "nm0736464"
     },
     "tt0005335": {
       "titulo": "The Flying Twins",
@@ -90,12 +197,33 @@
       "nota": "8.3",
       "diretores": "nm0367556"
     },
+    "tt0005633": {
+      "titulo": "The Little Minister",
+      "ano": "1915",
+      "generos": "Drama,Romance",
+      "nota": "",
+      "diretores": "nm0621797"
+    },
     "tt0005763": {
       "titulo": "Money",
       "ano": "1915",
       "generos": "Drama",
       "nota": "",
       "diretores": "nm0443857"
+    },
+    "tt0005853": {
+      "titulo": "The Outlaw's Revenge",
+      "ano": "1915",
+      "generos": "Biography,Drama",
+      "nota": "4.4",
+      "diretores": "nm0127511"
+    },
+    "tt0005900": {
+      "titulo": "The Pitfall",
+      "ano": "1915",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0395023"
     },
     "tt0005979": {
       "titulo": "The Rosary",
@@ -104,12 +232,47 @@
       "nota": "6.4",
       "diretores": "nm0132324"
     },
+    "tt0006063": {
+      "titulo": "The Social Pirates",
+      "ano": "1916",
+      "generos": "Action,Adventure",
+      "nota": "4.2",
+      "diretores": "nm0395023"
+    },
+    "tt0006087": {
+      "titulo": "The Sporting Duchess",
+      "ano": "1915",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0641967"
+    },
+    "tt0006097": {
+      "titulo": "Stingaree",
+      "ano": "1915",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0395023"
+    },
     "tt0006269": {
       "titulo": "When a Woman Loves",
       "ano": "1915",
       "generos": "Drama",
       "nota": "",
       "diretores": ""
+    },
+    "tt0006420": {
+      "titulo": "El beso fatal",
+      "ano": "1916",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0736464"
+    },
+    "tt0006585": {
+      "titulo": "Deuda pagada",
+      "ano": "1916",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0736464"
     },
     "tt0006895": {
       "titulo": "King Lear",
@@ -118,12 +281,47 @@
       "nota": "5.4",
       "diretores": "nm0911959"
     },
+    "tt0007009": {
+      "titulo": "Majoor Frans",
+      "ano": "1916",
+      "generos": "",
+      "nota": "5.1",
+      "diretores": "nm0082914"
+    },
+    "tt0007032": {
+      "titulo": "La mano",
+      "ano": "1916",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0736464"
+    },
     "tt0007210": {
       "titulo": "The Price of Happiness",
       "ano": "1916",
       "generos": "Drama",
       "nota": "",
       "diretores": "nm0492742"
+    },
+    "tt0007383": {
+      "titulo": "The Spider and the Fly",
+      "ano": "1916",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0250053"
+    },
+    "tt0007570": {
+      "titulo": "A Wife's Sacrifice",
+      "ano": "1916",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0250053"
+    },
+    "tt0007617": {
+      "titulo": "Aladdin and the Wonderful Lamp",
+      "ano": "1917",
+      "generos": "Fantasy",
+      "nota": "5.2",
+      "diretores": "nm0291387|nm0291548"
     },
     "tt0007627": {
       "titulo": "Alma de sacrificio",
@@ -132,12 +330,75 @@
       "nota": "",
       "diretores": "nm0181942"
     },
+    "tt0007666": {
+      "titulo": "Bab's Burglar",
+      "ano": "1917",
+      "generos": "Comedy,Romance",
+      "nota": "",
+      "diretores": "nm0205986"
+    },
+    "tt0007667": {
+      "titulo": "Bab's Diary",
+      "ano": "1917",
+      "generos": "Comedy,Romance",
+      "nota": "",
+      "diretores": "nm0205986"
+    },
+    "tt0007668": {
+      "titulo": "Bab's Matinee Idol",
+      "ano": "1917",
+      "generos": "Comedy,Romance",
+      "nota": "",
+      "diretores": "nm0205986"
+    },
+    "tt0007895": {
+      "titulo": "Envy",
+      "ano": "1917",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0725893"
+    },
+    "tt0007974": {
+      "titulo": "The Frame-Up",
+      "ano": "1917",
+      "generos": "Comedy,Drama",
+      "nota": "",
+      "diretores": "nm0806143"
+    },
     "tt0007983": {
       "titulo": "Fear",
       "ano": "1917",
       "generos": "Horror",
       "nota": "6.1",
       "diretores": "nm0927468"
+    },
+    "tt0007992": {
+      "titulo": "Het geheim van Delft",
+      "ano": "1917",
+      "generos": "Drama",
+      "nota": "6.6",
+      "diretores": "nm0082914"
+    },
+    "tt0008284": {
+      "titulo": "Mefisto",
+      "ano": "1917",
+      "generos": "Thriller",
+      "nota": "",
+      "diretores": "nm0168503"
+    },
+    "tt0008470": {
+      "titulo": "El protegido de Satán",
+      "ano": "1917",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0168503"
+    },
+    "tt0008560": {
+      "titulo": "Seven Deadly Sins",
+      "ano": "1917",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0551375|nm0725893"
     },
     "tt0008613": {
       "titulo": "La soñadora",
@@ -146,12 +407,89 @@
       "nota": "",
       "diretores": "nm0037060|nm0741082"
     },
+    "tt0008654": {
+      "titulo": "El talismán",
+      "ano": "1917",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0736464"
+    },
+    "tt0008656": {
+      "titulo": "Tangled Lives",
+      "ano": "1917",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0250053"
+    },
+    "tt0008687": {
+      "titulo": "Tom Sawyer",
+      "ano": "1917",
+      "generos": "Adventure,Comedy,Drama",
+      "nota": "6.1",
+      "diretores": "nm0853336"
+    },
     "tt0008883": {
       "titulo": "Beware of Strangers",
       "ano": "1917",
       "generos": "Crime,Drama",
       "nota": "",
       "diretores": "nm0132324"
+    },
+    "tt0008970": {
+      "titulo": "Codicia",
+      "ano": "1918",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0168503"
+    },
+    "tt0009055": {
+      "titulo": "Fan Fan",
+      "ano": "1918",
+      "generos": "Comedy,Drama",
+      "nota": "",
+      "diretores": "nm0291387|nm0291548"
+    },
+    "tt0009158": {
+      "titulo": "Henriette Jacoby",
+      "ano": "1918",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0652650"
+    },
+    "tt0009209": {
+      "titulo": "Huck and Tom",
+      "ano": "1918",
+      "generos": "Comedy,Drama",
+      "nota": "7.0",
+      "diretores": "nm0853336"
+    },
+    "tt0009238": {
+      "titulo": "Jettchen Gebert's Story",
+      "ano": "1918",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0652650"
+    },
+    "tt0009253": {
+      "titulo": "Keimendes Leben, Teil 1",
+      "ano": "1918",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0414985"
+    },
+    "tt0009414": {
+      "titulo": "Las máscaras negras",
+      "ano": "1918",
+      "generos": "",
+      "nota": "5.0",
+      "diretores": "nm0168503"
+    },
+    "tt0009547": {
+      "titulo": "El rey de la serranía",
+      "ano": "1918",
+      "generos": "Adventure",
+      "nota": "6.8",
+      "diretores": "nm0889772"
     },
     "tt0009800": {
       "titulo": "Who Shall Take My Life?",
@@ -160,12 +498,47 @@
       "nota": "",
       "diretores": "nm0132324"
     },
+    "tt0009883": {
+      "titulo": "Los arlequines de seda y oro",
+      "ano": "1919",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0063413"
+    },
+    "tt0010041": {
+      "titulo": "The Ghost Lady",
+      "ano": "1919",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0168503|nm0813682"
+    },
+    "tt0010176": {
+      "titulo": "La gitana blanca",
+      "ano": "1919",
+      "generos": "",
+      "nota": "5.2",
+      "diretores": "nm0063413"
+    },
+    "tt0010189": {
+      "titulo": "The Great Gamble",
+      "ano": "1919",
+      "generos": "Mystery",
+      "nota": "5.8",
+      "diretores": "nm0325448"
+    },
     "tt0010309": {
       "titulo": "Die Japanerin",
       "ano": "1919",
       "generos": "Crime,Mystery",
       "nota": "",
       "diretores": "nm0243295"
+    },
+    "tt0010326": {
+      "titulo": "Keimendes Leben, Teil 2",
+      "ano": "1919",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0414985"
     },
     "tt0010460": {
       "titulo": "The Midnight Man",
@@ -174,6 +547,13 @@
       "nota": "",
       "diretores": "nm0395023"
     },
+    "tt0010536": {
+      "titulo": "The Other",
+      "ano": "1919",
+      "generos": "Horror",
+      "nota": "5.7",
+      "diretores": "nm0168503|nm0952499"
+    },
     "tt0010596": {
       "titulo": "Prostitution",
       "ano": "1919",
@@ -181,12 +561,47 @@
       "nota": "4.8",
       "diretores": "nm0652650"
     },
+    "tt0010634": {
+      "titulo": "La rivincita di Maciste",
+      "ano": "1921",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0096705"
+    },
+    "tt0010726": {
+      "titulo": "The Spiders - Episode 1: The Golden Sea",
+      "ano": "1919",
+      "generos": "Adventure,Drama,Western",
+      "nota": "6.5",
+      "diretores": "nm0000485"
+    },
     "tt0010821": {
       "titulo": "Eerie Tales",
       "ano": "1919",
       "generos": "Fantasy,Horror,Mystery",
       "nota": "6.4",
       "diretores": "nm0652650"
+    },
+    "tt0011105": {
+      "titulo": "Democracy: The Vision Restored",
+      "ano": "1920",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0631438"
+    },
+    "tt0011133": {
+      "titulo": "Drag Harlan",
+      "ano": "1920",
+      "generos": "Action,Drama,Romance",
+      "nota": "6.7",
+      "diretores": "nm0250053"
+    },
+    "tt0011195": {
+      "titulo": "Der Fluch der Menschheit - 1. Die Tochter der Arbeit",
+      "ano": "1920",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0251456"
     },
     "tt0011217": {
       "titulo": "Journey into the Night",
@@ -201,6 +616,13 @@
       "generos": "Adventure,Drama",
       "nota": "",
       "diretores": "nm0392747"
+    },
+    "tt0011424": {
+      "titulo": "Maciste salvato dalle acque",
+      "ano": "1921",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0096705"
     },
     "tt0011524": {
       "titulo": "Die Nächte des Cornelis Brouwer",
@@ -223,12 +645,40 @@
       "nota": "",
       "diretores": "nm0866112"
     },
+    "tt0011670": {
+      "titulo": "The Scuttlers",
+      "ano": "1920",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0250053"
+    },
     "tt0011676": {
       "titulo": "Desire",
       "ano": "1920",
       "generos": "Drama,Romance",
       "nota": "7.0",
       "diretores": "nm0003638"
+    },
+    "tt0011723": {
+      "titulo": "The Spiders - Episode 2: The Diamond Ship",
+      "ano": "1920",
+      "generos": "Adventure",
+      "nota": "6.1",
+      "diretores": "nm0000485"
+    },
+    "tt0012276": {
+      "titulo": "High Gear Jeffrey",
+      "ano": "1923",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0806143"
+    },
+    "tt0012291": {
+      "titulo": "Home Talent",
+      "ano": "1921",
+      "generos": "Comedy",
+      "nota": "",
+      "diretores": "nm0007856|nm0784407"
     },
     "tt0012313": {
       "titulo": "Mysteries of India, Part II: Above All Law",
@@ -258,6 +708,27 @@
       "nota": "7.6",
       "diretores": "nm0000485"
     },
+    "tt0012701": {
+      "titulo": "A Small Town Idol",
+      "ano": "1921",
+      "generos": "Action,Comedy,Romance",
+      "nota": "6.4",
+      "diretores": "nm0448915"
+    },
+    "tt0012715": {
+      "titulo": "The Soul of Man",
+      "ano": "1921",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0631438"
+    },
+    "tt0012740": {
+      "titulo": "Daughter of the Night",
+      "ano": "1920",
+      "generos": "Drama",
+      "nota": "5.3",
+      "diretores": "nm0251456"
+    },
     "tt0012927": {
       "titulo": "The Beauty Shop",
       "ano": "1922",
@@ -286,12 +757,47 @@
       "nota": "",
       "diretores": "nm0873715"
     },
+    "tt0014148": {
+      "titulo": "In Search of a Thrill",
+      "ano": "1923",
+      "generos": "Drama",
+      "nota": "",
+      "diretores": "nm0002177"
+    },
+    "tt0014880": {
+      "titulo": "The Fatal Plunge",
+      "ano": "1924",
+      "generos": "Action,Drama",
+      "nota": "",
+      "diretores": "nm0398464"
+    },
+    "tt0015174": {
+      "titulo": "Die Nibelungen: Kriemhild's Revenge",
+      "ano": "1924",
+      "generos": "Adventure,Drama,Fantasy",
+      "nota": "7.9",
+      "diretores": "nm0000485"
+    },
+    "tt0015175": {
+      "titulo": "Die Nibelungen: Siegfried",
+      "ano": "1924",
+      "generos": "Adventure,Drama,Fantasy",
+      "nota": "8.1",
+      "diretores": "nm0000485"
+    },
     "tt0016127": {
       "titulo": "The Mountain Eagle",
       "ano": "1926",
       "generos": "Romance,Thriller",
       "nota": "",
       "diretores": "nm0000033"
+    },
+    "tt0016324": {
+      "titulo": "The Scrappin' Kid",
+      "ano": "1926",
+      "generos": "Action,Adventure,Drama",
+      "nota": "3.6",
+      "diretores": "nm0807742"
     },
     "tt0016409": {
       "titulo": "The Swan",
@@ -314,6 +820,13 @@
       "nota": "6.7",
       "diretores": "nm0291548"
     },
+    "tt0017452": {
+      "titulo": "The Terror",
+      "ano": "1926",
+      "generos": "Drama,Western",
+      "nota": "",
+      "diretores": "nm0807742"
+    },
     "tt0017468": {
       "titulo": "Thrilling Youth",
       "ano": "1926",
@@ -335,6 +848,27 @@
       "nota": "",
       "diretores": "nm0118266"
     },
+    "tt0018025": {
+      "titulo": "In Search of a Thrill",
+      "ano": "1927",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0002177"
+    },
+    "tt0018225": {
+      "titulo": "One Glorious Scrap",
+      "ano": "1927",
+      "generos": "Drama,Western",
+      "nota": "",
+      "diretores": "nm0507150"
+    },
+    "tt0018653": {
+      "titulo": "The Arizona Cyclone",
+      "ano": "1928",
+      "generos": "Action,Comedy,Romance",
+      "nota": "",
+      "diretores": "nm0507150"
+    },
     "tt0018698": {
       "titulo": "The Big Hop",
       "ano": "1928",
@@ -349,12 +883,26 @@
       "nota": "",
       "diretores": "nm0578985"
     },
+    "tt0019383": {
+      "titulo": "Silent Sentinel",
+      "ano": "1929",
+      "generos": "Action,Crime,Drama",
+      "nota": "",
+      "diretores": "nm0416258"
+    },
     "tt0019391": {
       "titulo": "Sins of the Fathers",
       "ano": "1928",
       "generos": "Drama",
       "nota": "6.5",
       "diretores": "nm0003490"
+    },
+    "tt0019396": {
+      "titulo": "The Sky Rider",
+      "ano": "1928",
+      "generos": "Drama",
+      "nota": "5.3",
+      "diretores": "nm0416258"
     },
     "tt0019536": {
       "titulo": "Vivre",
@@ -377,6 +925,20 @@
       "nota": "",
       "diretores": ""
     },
+    "tt0019879": {
+      "titulo": "The Fighting Terror",
+      "ano": "1929",
+      "generos": "Drama,Western",
+      "nota": "2.3",
+      "diretores": "nm0569645"
+    },
+    "tt0020079": {
+      "titulo": "The Last Round-Up",
+      "ano": "1929",
+      "generos": "Drama,Western",
+      "nota": "6.2",
+      "diretores": "nm0569645"
+    },
     "tt0020145": {
       "titulo": "Marquis Preferred",
       "ano": "1929",
@@ -398,6 +960,13 @@
       "nota": "6.5",
       "diretores": "nm0124877"
     },
+    "tt0020795": {
+      "titulo": "Covered Wagon Trails",
+      "ano": "1930",
+      "generos": "Drama,Western",
+      "nota": "4.8",
+      "diretores": "nm0569645"
+    },
     "tt0020925": {
       "titulo": "Her Golden Calf",
       "ano": "1930",
@@ -412,6 +981,27 @@
       "nota": "5.5",
       "diretores": "nm0831577"
     },
+    "tt0021168": {
+      "titulo": "The Mystery of the Yellow Room",
+      "ano": "1930",
+      "generos": "Crime,Mystery",
+      "nota": "6.3",
+      "diretores": "nm0478303"
+    },
+    "tt0021195": {
+      "titulo": "O'Malley Rides Alone",
+      "ano": "1930",
+      "generos": "Drama,Western",
+      "nota": "",
+      "diretores": "nm0569645"
+    },
+    "tt0021234": {
+      "titulo": "Le parfum de la dame en noir",
+      "ano": "1931",
+      "generos": "Crime,Drama",
+      "nota": "6.4",
+      "diretores": "nm0478303"
+    },
     "tt0021342": {
       "titulo": "Scotland Yard",
       "ano": "1930",
@@ -425,6 +1015,13 @@
       "generos": "Action,Crime,Drama",
       "nota": "",
       "diretores": "nm0113693"
+    },
+    "tt0021880": {
+      "titulo": "Flying Lariats",
+      "ano": "1931",
+      "generos": "Action,Adventure,Drama",
+      "nota": "5.4",
+      "diretores": "nm0416258|nm0456634"
     },
     "tt0021946": {
       "titulo": "Heartbreak",
@@ -447,6 +1044,13 @@
       "nota": "5.2",
       "diretores": "nm0909825"
     },
+    "tt0022222": {
+      "titulo": "Ombres des bas fonds",
+      "ano": "1931",
+      "generos": "",
+      "nota": "",
+      "diretores": "nm0682176"
+    },
     "tt0022240": {
       "titulo": "The Outsider",
       "ano": "1931",
@@ -454,12 +1058,26 @@
       "nota": "",
       "diretores": "nm0480046"
     },
+    "tt0022312": {
+      "titulo": "Riders of the Cactus",
+      "ano": "1931",
+      "generos": "Drama,Western",
+      "nota": "",
+      "diretores": "nm0456634"
+    },
     "tt0022345": {
       "titulo": "Schachmatt",
       "ano": "1931",
       "generos": "",
       "nota": "",
       "diretores": "nm0038291"
+    },
+    "tt0022346": {
+      "titulo": "Schatten der Unterwelt",
+      "ano": "1931",
+      "generos": "Action,Crime",
+      "nota": "7.4",
+      "diretores": "nm0682176"
     },
     "tt0022454": {
       "titulo": "Svengali",
@@ -552,6 +1170,13 @@
       "nota": "5.2",
       "diretores": "nm0927468"
     },
+    "tt0024488": {
+      "titulo": "Ranger's Code",
+      "ano": "1933",
+      "generos": "Drama,Western",
+      "nota": "",
+      "diretores": "nm0102908"
+    },
     "tt0024665": {
       "titulo": "The Thrill Hunter",
       "ano": "1933",
@@ -565,6 +1190,20 @@
       "generos": "Drama,History,Romance",
       "nota": "6.4",
       "diretores": "nm0578985"
+    },
+    "tt0026052": {
+      "titulo": "Alias John Law",
+      "ano": "1935",
+      "generos": "Drama,Western",
+      "nota": "5.8",
+      "diretores": "nm0102908"
+    },
+    "tt0026354": {
+      "titulo": "Fighting Pioneers",
+      "ano": "1935",
+      "generos": "Drama,Western",
+      "nota": "5.6",
+      "diretores": "nm0292134"
     },
     "tt0026461": {
       "titulo": "The Saint and Her Fool",
@@ -580,12 +1219,33 @@
       "nota": "6.5",
       "diretores": "nm0102908"
     },
+    "tt0026785": {
+      "titulo": "No Man's Range",
+      "ano": "1935",
+      "generos": "Drama,Western",
+      "nota": "6.3",
+      "diretores": "nm0102908"
+    },
     "tt0027199": {
       "titulo": "Western Justice",
       "ano": "1934",
       "generos": "Drama,Western",
       "nota": "5.9",
       "diretores": "nm0102908"
+    },
+    "tt0027326": {
+      "titulo": "Back to Nature",
+      "ano": "1936",
+      "generos": "Comedy",
+      "nota": "5.4",
+      "diretores": "nm0864006"
+    },
+    "tt0027567": {
+      "titulo": "Educating Father",
+      "ano": "1936",
+      "generos": "Comedy",
+      "nota": "5.9",
+      "diretores": "nm0864006"
     },
     "tt0027803": {
       "titulo": "Irma la mala",
@@ -594,12 +1254,47 @@
       "nota": "5.6",
       "diretores": "nm0786470"
     },
+    "tt0028101": {
+      "titulo": "The Phantom of the Range",
+      "ano": "1936",
+      "generos": "Drama,Western",
+      "nota": "6.4",
+      "diretores": "nm0384616"
+    },
+    "tt0028188": {
+      "titulo": "Rip Roarin' Buckaroo",
+      "ano": "1936",
+      "generos": "Drama,Western",
+      "nota": "5.5",
+      "diretores": "nm0384616"
+    },
+    "tt0028213": {
+      "titulo": "Saddle Aces",
+      "ano": "1935",
+      "generos": "Drama,Western",
+      "nota": "5.1",
+      "diretores": "nm0292134"
+    },
+    "tt0028232": {
+      "titulo": "Secret Patrol",
+      "ano": "1936",
+      "generos": "Drama,Western",
+      "nota": "5.2",
+      "diretores": "nm0783461"
+    },
     "tt0028274": {
       "titulo": "Tredowata",
       "ano": "1936",
       "generos": "Drama,Romance",
       "nota": "6.3",
       "diretores": "nm0306599"
+    },
+    "tt0028306": {
+      "titulo": "Stampede",
+      "ano": "1936",
+      "generos": "Drama,Western",
+      "nota": "6.4",
+      "diretores": "nm0066247"
     },
     "tt0028573": {
       "titulo": "Rebel Souls",
@@ -615,12 +1310,47 @@
       "nota": "",
       "diretores": "nm0297414"
     },
+    "tt0028627": {
+      "titulo": "Big Business",
+      "ano": "1937",
+      "generos": "Adventure,Comedy",
+      "nota": "5.6",
+      "diretores": "nm0833965"
+    },
+    "tt0028655": {
+      "titulo": "The Jones Family in Borrowing Trouble",
+      "ano": "1937",
+      "generos": "Adventure,Comedy,Drama",
+      "nota": "5.9",
+      "diretores": "nm0833965"
+    },
     "tt0028684": {
       "titulo": "Song of the Soul",
       "ano": "1938",
       "generos": "Comedy,Drama,Musical",
       "nota": "",
       "diretores": "nm0882190"
+    },
+    "tt0029023": {
+      "titulo": "Hot Water",
+      "ano": "1937",
+      "generos": "Adventure,Comedy,Crime",
+      "nota": "4.8",
+      "diretores": "nm0833965"
+    },
+    "tt0029073": {
+      "titulo": "Learn from Experience, Part I",
+      "ano": "1937",
+      "generos": "Drama,Romance",
+      "nota": "6.8",
+      "diretores": "nm0621540"
+    },
+    "tt0029074": {
+      "titulo": "Learn from Experience, Part II",
+      "ano": "1937",
+      "generos": "Drama,Romance",
+      "nota": "6.5",
+      "diretores": "nm0621540"
     },
     "tt0029092": {
       "titulo": "The Logger's Bride",
@@ -635,6 +1365,13 @@
       "generos": "Drama,Music,Western",
       "nota": "5.6",
       "diretores": "nm0441947"
+    },
+    "tt0029332": {
+      "titulo": "Off to the Races",
+      "ano": "1937",
+      "generos": "Comedy,Drama,Romance",
+      "nota": "6.2",
+      "diretores": "nm0833965"
     },
     "tt0029354": {
       "titulo": "Orphan of the Pecos",
@@ -652,173 +1389,1614 @@
     }
   },
   "edges": {
-    "tt0012313|tt0012314": {
-      "source": "tt0012313",
-      "target": "tt0012314",
-      "actors_common": 10,
-      "similaridade": 22.0,
-      "peso": 0.045455
+    "tt0001115|tt0001116": {
+      "source": "tt0001115",
+      "target": "tt0001116",
+      "actors_common": 9,
+      "similaridade": 18.0,
+      "peso": 0.055556,
+      "actors_common_ids": [
+        "nm0064953",
+        "nm0085066",
+        "nm0169878",
+        "nm0299757",
+        "nm0306604",
+        "nm0539049",
+        "nm0627140",
+        "nm0630641",
+        "nm0736379"
+      ]
     },
-    "tt0028605|tt0028684": {
-      "source": "tt0028605",
-      "target": "tt0028684",
-      "actors_common": 5,
-      "similaridade": 11.0,
-      "peso": 0.090909
+    "tt0001790|tt0003159": {
+      "source": "tt0001790",
+      "target": "tt0003159",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0029671",
+        "nm0296344",
+        "nm0336414",
+        "nm0470307",
+        "nm0592965",
+        "nm0617041",
+        "nm0893346",
+        "nm0959921"
+      ]
     },
-    "tt0010821|tt0012313": {
-      "source": "tt0010821",
-      "target": "tt0012313",
-      "actors_common": 3,
-      "similaridade": 7.0,
-      "peso": 0.142857
+    "tt0002844|tt0003165": {
+      "source": "tt0002844",
+      "target": "tt0003165",
+      "actors_common": 7,
+      "similaridade": 16.0,
+      "peso": 0.0625,
+      "actors_common_ids": [
+        "nm0107631",
+        "nm0137288",
+        "nm0264491",
+        "nm0525283",
+        "nm0577476",
+        "nm0622772",
+        "nm1207319"
+      ]
     },
-    "tt0010596|tt0010821": {
-      "source": "tt0010596",
-      "target": "tt0010821",
-      "actors_common": 3,
-      "similaridade": 6.0,
-      "peso": 0.166667
+    "tt0002844|tt0003930": {
+      "source": "tt0002844",
+      "target": "tt0003930",
+      "actors_common": 7,
+      "similaridade": 16.0,
+      "peso": 0.0625,
+      "actors_common_ids": [
+        "nm0029301",
+        "nm0107631",
+        "nm0137288",
+        "nm0264491",
+        "nm0577476",
+        "nm0622772",
+        "nm1207319"
+      ]
     },
-    "tt0021342|tt0022454": {
-      "source": "tt0021342",
-      "target": "tt0022454",
-      "actors_common": 3,
-      "similaridade": 8.0,
-      "peso": 0.125
+    "tt0003037|tt0003930": {
+      "source": "tt0003037",
+      "target": "tt0003930",
+      "actors_common": 7,
+      "similaridade": 16.0,
+      "peso": 0.0625,
+      "actors_common_ids": [
+        "nm0029301",
+        "nm0107631",
+        "nm0137288",
+        "nm0264491",
+        "nm0577476",
+        "nm0605849",
+        "nm0622772"
+      ]
     },
-    "tt0019391|tt0021416": {
-      "source": "tt0019391",
-      "target": "tt0021416",
-      "actors_common": 3,
-      "similaridade": 7.0,
-      "peso": 0.142857
+    "tt0003599|tt0004155": {
+      "source": "tt0003599",
+      "target": "tt0004155",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0049905",
+        "nm0119998",
+        "nm0168621",
+        "nm0497523",
+        "nm0561309",
+        "nm0587205",
+        "nm0796427"
+      ]
     },
-    "tt0021416|tt0024665": {
-      "source": "tt0021416",
-      "target": "tt0024665",
-      "actors_common": 3,
-      "similaridade": 7.0,
-      "peso": 0.142857
+    "tt0003886|tt0005633": {
+      "source": "tt0003886",
+      "target": "tt0005633",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0185006",
+        "nm0204598",
+        "nm0247534",
+        "nm0668310",
+        "nm0728876",
+        "nm0779204",
+        "nm0926599"
+      ]
     },
-    "tt0022454|tt0023207": {
-      "source": "tt0022454",
-      "target": "tt0023207",
-      "actors_common": 2,
-      "similaridade": 5.0,
-      "peso": 0.2
+    "tt0003988|tt0006087": {
+      "source": "tt0003988",
+      "target": "tt0006087",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0104892",
+        "nm0108503",
+        "nm0117008",
+        "nm0165691",
+        "nm0197360",
+        "nm0817956",
+        "nm0930584"
+      ]
     },
-    "tt0021971|tt0023496": {
-      "source": "tt0021971",
-      "target": "tt0023496",
-      "actors_common": 2,
-      "similaridade": 6.0,
-      "peso": 0.166667
+    "tt0004223|tt0005853": {
+      "source": "tt0004223",
+      "target": "tt0005853",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0247083",
+        "nm0366008",
+        "nm0402475",
+        "nm0519227",
+        "nm0550615",
+        "nm0760216",
+        "nm0877548",
+        "nm0909825"
+      ]
     },
-    "tt0010596|tt0011676": {
-      "source": "tt0010596",
-      "target": "tt0011676",
-      "actors_common": 2,
-      "similaridade": 5.0,
-      "peso": 0.2
+    "tt0004740|tt0004838": {
+      "source": "tt0004740",
+      "target": "tt0004838",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0031834",
+        "nm0097648",
+        "nm0110755",
+        "nm0360514",
+        "nm0370564",
+        "nm0475706",
+        "nm0562197"
+      ]
     },
-    "tt0011676|tt0025329": {
-      "source": "tt0011676",
-      "target": "tt0025329",
-      "actors_common": 2,
-      "similaridade": 6.0,
-      "peso": 0.166667
+    "tt0005062|tt0005979": {
+      "source": "tt0005062",
+      "target": "tt0005979",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0078806",
+        "nm0163933",
+        "nm0165134",
+        "nm0403151",
+        "nm0519559",
+        "nm0643048",
+        "nm0931031"
+      ]
     },
-    "tt0023410|tt0025329": {
-      "source": "tt0023410",
-      "target": "tt0025329",
-      "actors_common": 2,
-      "similaridade": 5.0,
-      "peso": 0.2
+    "tt0005183|tt0006420": {
+      "source": "tt0005183",
+      "target": "tt0006420",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0093709",
+        "nm0216941",
+        "nm0239263",
+        "nm0260771",
+        "nm0604105",
+        "nm0739190",
+        "nm0957985"
+      ]
+    },
+    "tt0005900|tt0006097": {
+      "source": "tt0005900",
+      "target": "tt0006097",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0090204",
+        "nm0166958",
+        "nm0395023",
+        "nm0403636",
+        "nm0427342",
+        "nm0512796",
+        "nm0756814"
+      ]
+    },
+    "tt0006063|tt0006097": {
+      "source": "tt0006063",
+      "target": "tt0006097",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0090204",
+        "nm0166958",
+        "nm0403636",
+        "nm0427342",
+        "nm0456203",
+        "nm0512796",
+        "nm0756814"
+      ]
+    },
+    "tt0006585|tt0007032": {
+      "source": "tt0006585",
+      "target": "tt0007032",
+      "actors_common": 8,
+      "similaridade": 16.0,
+      "peso": 0.0625,
+      "actors_common_ids": [
+        "nm0093709",
+        "nm0239263",
+        "nm0312146",
+        "nm0328322",
+        "nm0604105",
+        "nm0728158",
+        "nm0957985",
+        "nm1230904"
+      ]
+    },
+    "tt0006585|tt0008654": {
+      "source": "tt0006585",
+      "target": "tt0008654",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0093709",
+        "nm0239263",
+        "nm0312146",
+        "nm0328322",
+        "nm0604105",
+        "nm0802814",
+        "nm0957985"
+      ]
+    },
+    "tt0006585|tt0009547": {
+      "source": "tt0006585",
+      "target": "tt0009547",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0093709",
+        "nm0239263",
+        "nm0328322",
+        "nm0603939",
+        "nm0802814",
+        "nm0957985",
+        "nm1230904"
+      ]
+    },
+    "tt0007009|tt0007992": {
+      "source": "tt0007009",
+      "target": "tt0007992",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0097670",
+        "nm0100477",
+        "nm0159654",
+        "nm0212098",
+        "nm0212326",
+        "nm0258855",
+        "nm0900856"
+      ]
+    },
+    "tt0007383|tt0007570": {
+      "source": "tt0007383",
+      "target": "tt0007570",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0088475",
+        "nm0358914",
+        "nm0392059",
+        "nm0502889",
+        "nm0544071",
+        "nm0589494",
+        "nm0926280"
+      ]
+    },
+    "tt0007383|tt0008656": {
+      "source": "tt0007383",
+      "target": "tt0008656",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0088475",
+        "nm0358914",
+        "nm0392059",
+        "nm0502889",
+        "nm0544071",
+        "nm0589494",
+        "nm0926280"
+      ]
+    },
+    "tt0007570|tt0008656": {
+      "source": "tt0007570",
+      "target": "tt0008656",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0088475",
+        "nm0358914",
+        "nm0392059",
+        "nm0502889",
+        "nm0544071",
+        "nm0589494",
+        "nm0722675",
+        "nm0926280"
+      ]
+    },
+    "tt0007617|tt0009055": {
+      "source": "tt0007617",
+      "target": "tt0009055",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0139333",
+        "nm0179247",
+        "nm0211329",
+        "nm0582209",
+        "nm0582211",
+        "nm0705379",
+        "nm0765125"
+      ]
     },
     "tt0007627|tt0008613": {
       "source": "tt0007627",
       "target": "tt0008613",
       "actors_common": 2,
       "similaridade": 5.0,
-      "peso": 0.2
+      "peso": 0.2,
+      "actors_common_ids": [
+        "nm0038102",
+        "nm0220230"
+      ]
+    },
+    "tt0007666|tt0007667": {
+      "source": "tt0007666",
+      "target": "tt0007667",
+      "actors_common": 9,
+      "similaridade": 20.0,
+      "peso": 0.05,
+      "actors_common_ids": [
+        "nm0001932",
+        "nm0057400",
+        "nm0164244",
+        "nm0177700",
+        "nm0338773",
+        "nm0521310",
+        "nm0604833",
+        "nm0641683",
+        "nm0643976"
+      ]
+    },
+    "tt0007666|tt0007668": {
+      "source": "tt0007666",
+      "target": "tt0007668",
+      "actors_common": 8,
+      "similaridade": 18.0,
+      "peso": 0.055556,
+      "actors_common_ids": [
+        "nm0057400",
+        "nm0164244",
+        "nm0338773",
+        "nm0385495",
+        "nm0521310",
+        "nm0604833",
+        "nm0641683",
+        "nm0643976"
+      ]
+    },
+    "tt0007667|tt0007668": {
+      "source": "tt0007667",
+      "target": "tt0007668",
+      "actors_common": 7,
+      "similaridade": 16.0,
+      "peso": 0.0625,
+      "actors_common_ids": [
+        "nm0057400",
+        "nm0164244",
+        "nm0338773",
+        "nm0521310",
+        "nm0604833",
+        "nm0641683",
+        "nm0643976"
+      ]
+    },
+    "tt0007895|tt0008560": {
+      "source": "tt0007895",
+      "target": "tt0008560",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0128954",
+        "nm0362815",
+        "nm0499548",
+        "nm0556953",
+        "nm0613778",
+        "nm0828485",
+        "nm0905629"
+      ]
+    },
+    "tt0007974|tt0012276": {
+      "source": "tt0007974",
+      "target": "tt0012276",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0082537",
+        "nm0123548",
+        "nm0164003",
+        "nm0272360",
+        "nm0628472",
+        "nm0751510",
+        "nm0911699"
+      ]
+    },
+    "tt0008284|tt0008470": {
+      "source": "tt0008284",
+      "target": "tt0008470",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0049367",
+        "nm0134528",
+        "nm0548164",
+        "nm0664196",
+        "nm0735761",
+        "nm0885343",
+        "nm0959331"
+      ]
+    },
+    "tt0008284|tt0008970": {
+      "source": "tt0008284",
+      "target": "tt0008970",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0049367",
+        "nm0134528",
+        "nm0548164",
+        "nm0664196",
+        "nm0735761",
+        "nm0885343",
+        "nm0959331"
+      ]
+    },
+    "tt0008470|tt0008970": {
+      "source": "tt0008470",
+      "target": "tt0008970",
+      "actors_common": 8,
+      "similaridade": 16.0,
+      "peso": 0.0625,
+      "actors_common_ids": [
+        "nm0049367",
+        "nm0134528",
+        "nm0548164",
+        "nm0664196",
+        "nm0702738",
+        "nm0735761",
+        "nm0885343",
+        "nm0959331"
+      ]
+    },
+    "tt0008470|tt0010041": {
+      "source": "tt0008470",
+      "target": "tt0010041",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0049367",
+        "nm0134528",
+        "nm0548164",
+        "nm0702738",
+        "nm0735761",
+        "nm0827206",
+        "nm0885343"
+      ]
     },
     "tt0008613|tt0029835": {
       "source": "tt0008613",
       "target": "tt0029835",
       "actors_common": 2,
       "similaridade": 4.0,
-      "peso": 0.25
+      "peso": 0.25,
+      "actors_common_ids": [
+        "nm0037060",
+        "nm0220230"
+      ]
     },
-    "tt0023496|tt0024665": {
-      "source": "tt0023496",
-      "target": "tt0024665",
+    "tt0008687|tt0009209": {
+      "source": "tt0008687",
+      "target": "tt0009209",
+      "actors_common": 8,
+      "similaridade": 18.0,
+      "peso": 0.055556,
+      "actors_common_ids": [
+        "nm0152362",
+        "nm0319532",
+        "nm0330217",
+        "nm0352383",
+        "nm0395576",
+        "nm0555519",
+        "nm0681927",
+        "nm0795025"
+      ]
+    },
+    "tt0008883|tt0009800": {
+      "source": "tt0008883",
+      "target": "tt0009800",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0078806",
+        "nm0116227",
+        "nm0185300",
+        "nm0264286",
+        "nm0277313",
+        "nm0519559",
+        "nm0764346"
+      ]
+    },
+    "tt0009158|tt0009238": {
+      "source": "tt0009158",
+      "target": "tt0009238",
+      "actors_common": 10,
+      "similaridade": 20.0,
+      "peso": 0.05,
+      "actors_common_ids": [
+        "nm0126617",
+        "nm0174925",
+        "nm0347520",
+        "nm0450602",
+        "nm0465899",
+        "nm0687223",
+        "nm0726413",
+        "nm0818609",
+        "nm0857350",
+        "nm0891998"
+      ]
+    },
+    "tt0009253|tt0010326": {
+      "source": "tt0009253",
+      "target": "tt0010326",
+      "actors_common": 9,
+      "similaridade": 18.0,
+      "peso": 0.055556,
+      "actors_common_ids": [
+        "nm0226087",
+        "nm0417837",
+        "nm0418131",
+        "nm0432721",
+        "nm0458635",
+        "nm0707765",
+        "nm0956661",
+        "nm1430158",
+        "nm1801409"
+      ]
+    },
+    "tt0009414|tt0010041": {
+      "source": "tt0009414",
+      "target": "tt0010041",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0049367",
+        "nm0134528",
+        "nm0548164",
+        "nm0702738",
+        "nm0735761",
+        "nm0745749",
+        "nm0827206"
+      ]
+    },
+    "tt0009883|tt0010176": {
+      "source": "tt0009883",
+      "target": "tt0010176",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0013653",
+        "nm0073307",
+        "nm0142777",
+        "nm0577922",
+        "nm0647274",
+        "nm0764455",
+        "nm8410570"
+      ]
+    },
+    "tt0010041|tt0010536": {
+      "source": "tt0010041",
+      "target": "tt0010536",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0049367",
+        "nm0134528",
+        "nm0162403",
+        "nm0548164",
+        "nm0702738",
+        "nm0827206",
+        "nm0885343"
+      ]
+    },
+    "tt0010189|tt0014880": {
+      "source": "tt0010189",
+      "target": "tt0014880",
+      "actors_common": 8,
+      "similaridade": 16.0,
+      "peso": 0.0625,
+      "actors_common_ids": [
+        "nm0146957",
+        "nm0177330",
+        "nm0404431",
+        "nm0478851",
+        "nm0527416",
+        "nm0602992",
+        "nm0624752",
+        "nm0861524"
+      ]
+    },
+    "tt0010596|tt0010821": {
+      "source": "tt0010596",
+      "target": "tt0010821",
+      "actors_common": 3,
+      "similaridade": 6.0,
+      "peso": 0.166667,
+      "actors_common_ids": [
+        "nm0073318",
+        "nm0778306",
+        "nm0891998"
+      ]
+    },
+    "tt0010596|tt0011676": {
+      "source": "tt0010596",
+      "target": "tt0011676",
       "actors_common": 2,
-      "similaridade": 4.0,
-      "peso": 0.25
+      "similaridade": 5.0,
+      "peso": 0.2,
+      "actors_common_ids": [
+        "nm0390566",
+        "nm0891998"
+      ]
+    },
+    "tt0010634|tt0011424": {
+      "source": "tt0010634",
+      "target": "tt0011424",
+      "actors_common": 9,
+      "similaridade": 18.0,
+      "peso": 0.055556,
+      "actors_common_ids": [
+        "nm0093785",
+        "nm0591622",
+        "nm0656034",
+        "nm0889527",
+        "nm0901591",
+        "nm1531374",
+        "nm1902581",
+        "nm1905493",
+        "nm1908028"
+      ]
+    },
+    "tt0010726|tt0011723": {
+      "source": "tt0010726",
+      "target": "tt0011723",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0212234",
+        "nm0313308",
+        "nm0478151",
+        "nm0560960",
+        "nm0604940",
+        "nm0649916",
+        "nm0667406"
+      ]
+    },
+    "tt0010821|tt0012313": {
+      "source": "tt0010821",
+      "target": "tt0012313",
+      "actors_common": 3,
+      "similaridade": 7.0,
+      "peso": 0.142857,
+      "actors_common_ids": [
+        "nm0313308",
+        "nm0324553",
+        "nm0891998"
+      ]
+    },
+    "tt0011105|tt0012715": {
+      "source": "tt0011105",
+      "target": "tt0012715",
+      "actors_common": 9,
+      "similaridade": 18.0,
+      "peso": 0.055556,
+      "actors_common_ids": [
+        "nm0042449",
+        "nm0113680",
+        "nm0212462",
+        "nm0319599",
+        "nm0360203",
+        "nm0631438",
+        "nm0694587",
+        "nm0840287",
+        "nm0851721"
+      ]
+    },
+    "tt0011133|tt0011670": {
+      "source": "tt0011133",
+      "target": "tt0011670",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0186079",
+        "nm0267912",
+        "nm0562197",
+        "nm0589596",
+        "nm0604813",
+        "nm0638566",
+        "nm0766828"
+      ]
+    },
+    "tt0011195|tt0012740": {
+      "source": "tt0011195",
+      "target": "tt0012740",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0000509",
+        "nm0083602",
+        "nm0372957",
+        "nm0435227",
+        "nm0621052",
+        "nm0664342",
+        "nm0675160",
+        "nm0774702"
+      ]
+    },
+    "tt0011676|tt0025329": {
+      "source": "tt0011676",
+      "target": "tt0025329",
+      "actors_common": 2,
+      "similaridade": 6.0,
+      "peso": 0.166667,
+      "actors_common_ids": [
+        "nm0333675",
+        "nm0891998"
+      ]
+    },
+    "tt0012291|tt0012701": {
+      "source": "tt0012291",
+      "target": "tt0012701",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0267638",
+        "nm0278006",
+        "nm0340806",
+        "nm0369793",
+        "nm0614879",
+        "nm0664527",
+        "nm0878035"
+      ]
+    },
+    "tt0012313|tt0012314": {
+      "source": "tt0012313",
+      "target": "tt0012314",
+      "actors_common": 10,
+      "similaridade": 22.0,
+      "peso": 0.045455,
+      "actors_common_ids": [
+        "nm0010494",
+        "nm0111047",
+        "nm0211048",
+        "nm0299761",
+        "nm0313308",
+        "nm0324553",
+        "nm0562069",
+        "nm0603803",
+        "nm0725332",
+        "nm0891998"
+      ]
     },
     "tt0012313|tt0016481": {
       "source": "tt0012313",
       "target": "tt0016481",
       "actors_common": 2,
       "similaridade": 4.0,
-      "peso": 0.25
+      "peso": 0.25,
+      "actors_common_ids": [
+        "nm0211048",
+        "nm0313308"
+      ]
     },
-    "tt0028573|tt0029835": {
-      "source": "tt0028573",
-      "target": "tt0029835",
-      "actors_common": 2,
-      "similaridade": 5.0,
-      "peso": 0.2
+    "tt0014148|tt0018025": {
+      "source": "tt0014148",
+      "target": "tt0018025",
+      "actors_common": 9,
+      "similaridade": 18.0,
+      "peso": 0.055556,
+      "actors_common_ids": [
+        "nm0062828",
+        "nm0199087",
+        "nm0255420",
+        "nm0768283",
+        "nm0769477",
+        "nm0857302",
+        "nm0885818",
+        "nm0925118",
+        "nm0932719"
+      ]
     },
-    "tt0027803|tt0028605": {
-      "source": "tt0027803",
-      "target": "tt0028605",
-      "actors_common": 2,
-      "similaridade": 5.0,
-      "peso": 0.2
+    "tt0015174|tt0015175": {
+      "source": "tt0015174",
+      "target": "tt0015175",
+      "actors_common": 8,
+      "similaridade": 19.0,
+      "peso": 0.052632,
+      "actors_common_ids": [
+        "nm0036459",
+        "nm0084430",
+        "nm0324553",
+        "nm0519765",
+        "nm0611052",
+        "nm0772300",
+        "nm0778159",
+        "nm0902253"
+      ]
     },
-    "tt0022240|tt0023410": {
-      "source": "tt0022240",
-      "target": "tt0023410",
-      "actors_common": 2,
-      "similaridade": 5.0,
-      "peso": 0.2
-    },
-    "tt0021971|tt0023864": {
-      "source": "tt0021971",
-      "target": "tt0023864",
-      "actors_common": 2,
-      "similaridade": 5.0,
-      "peso": 0.2
-    },
-    "tt0023207|tt0027803": {
-      "source": "tt0023207",
-      "target": "tt0027803",
-      "actors_common": 2,
-      "similaridade": 5.0,
-      "peso": 0.2
-    },
-    "tt0023864|tt0028684": {
-      "source": "tt0023864",
-      "target": "tt0028684",
-      "actors_common": 2,
-      "similaridade": 5.0,
-      "peso": 0.2
-    },
-    "tt0028573|tt0028684": {
-      "source": "tt0028573",
-      "target": "tt0028684",
-      "actors_common": 2,
-      "similaridade": 5.0,
-      "peso": 0.2
+    "tt0016324|tt0017452": {
+      "source": "tt0016324",
+      "target": "tt0017452",
+      "actors_common": 9,
+      "similaridade": 19.0,
+      "peso": 0.052632,
+      "actors_common_ids": [
+        "nm0010134",
+        "nm0026474",
+        "nm0068235",
+        "nm0167760",
+        "nm0175471",
+        "nm0214484",
+        "nm0376719",
+        "nm1268266",
+        "nm1292740"
+      ]
     },
     "tt0016481|tt0019391": {
       "source": "tt0016481",
       "target": "tt0019391",
       "actors_common": 1,
       "similaridade": 3.0,
-      "peso": 0.333333
+      "peso": 0.333333,
+      "actors_common_ids": [
+        "nm0417837"
+      ]
+    },
+    "tt0018225|tt0018653": {
+      "source": "tt0018225",
+      "target": "tt0018653",
+      "actors_common": 7,
+      "similaridade": 14.0,
+      "peso": 0.071429,
+      "actors_common_ids": [
+        "nm0179131",
+        "nm0294089",
+        "nm0391839",
+        "nm0401792",
+        "nm0478298",
+        "nm0560448",
+        "nm0839504"
+      ]
+    },
+    "tt0019383|tt0019396": {
+      "source": "tt0019383",
+      "target": "tt0019396",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0329420",
+        "nm0382141",
+        "nm0384420",
+        "nm0400611",
+        "nm0576055",
+        "nm0849803",
+        "nm1268262"
+      ]
+    },
+    "tt0019391|tt0021416": {
+      "source": "tt0019391",
+      "target": "tt0021416",
+      "actors_common": 3,
+      "similaridade": 7.0,
+      "peso": 0.142857,
+      "actors_common_ids": [
+        "nm0079490",
+        "nm0396768",
+        "nm0686032"
+      ]
+    },
+    "tt0019648|tt0019736": {
+      "source": "tt0019648",
+      "target": "tt0019736",
+      "actors_common": 7,
+      "similaridade": 16.0,
+      "peso": 0.0625,
+      "actors_common_ids": [
+        "nm0010134",
+        "nm0139356",
+        "nm0485269",
+        "nm0529036",
+        "nm0761807",
+        "nm1249589",
+        "nm1268266"
+      ]
+    },
+    "tt0019879|tt0020079": {
+      "source": "tt0019879",
+      "target": "tt0020079",
+      "actors_common": 8,
+      "similaridade": 18.0,
+      "peso": 0.055556,
+      "actors_common_ids": [
+        "nm0062869",
+        "nm0068235",
+        "nm0193793",
+        "nm0238106",
+        "nm0529036",
+        "nm0569645",
+        "nm0590023",
+        "nm0651627"
+      ]
+    },
+    "tt0020795|tt0021195": {
+      "source": "tt0020795",
+      "target": "tt0021195",
+      "actors_common": 9,
+      "similaridade": 20.0,
+      "peso": 0.05,
+      "actors_common_ids": [
+        "nm0047759",
+        "nm0109669",
+        "nm0118769",
+        "nm0162055",
+        "nm0193793",
+        "nm0529036",
+        "nm0569645",
+        "nm0613806",
+        "nm0651627"
+      ]
+    },
+    "tt0021168|tt0021234": {
+      "source": "tt0021168",
+      "target": "tt0021234",
+      "actors_common": 7,
+      "similaridade": 15.0,
+      "peso": 0.066667,
+      "actors_common_ids": [
+        "nm0067936",
+        "nm0240646",
+        "nm0449611",
+        "nm0468022",
+        "nm0869765",
+        "nm0885965",
+        "nm0895810"
+      ]
+    },
+    "tt0021342|tt0022454": {
+      "source": "tt0021342",
+      "target": "tt0022454",
+      "actors_common": 3,
+      "similaridade": 8.0,
+      "peso": 0.125,
+      "actors_common_ids": [
+        "nm0187981",
+        "nm0195077",
+        "nm0362815"
+      ]
+    },
+    "tt0021416|tt0024665": {
+      "source": "tt0021416",
+      "target": "tt0024665",
+      "actors_common": 3,
+      "similaridade": 7.0,
+      "peso": 0.142857,
+      "actors_common_ids": [
+        "nm0000252",
+        "nm0437304",
+        "nm0720885"
+      ]
+    },
+    "tt0021880|tt0022312": {
+      "source": "tt0021880",
+      "target": "tt0022312",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0026784",
+        "nm0059104",
+        "nm0103741",
+        "nm0161366",
+        "nm0217580",
+        "nm0907404",
+        "nm0933315",
+        "nm1533810"
+      ]
+    },
+    "tt0021971|tt0023496": {
+      "source": "tt0021971",
+      "target": "tt0023496",
+      "actors_common": 2,
+      "similaridade": 6.0,
+      "peso": 0.166667,
+      "actors_common_ids": [
+        "nm0507221",
+        "nm0828314"
+      ]
+    },
+    "tt0021971|tt0023864": {
+      "source": "tt0021971",
+      "target": "tt0023864",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2,
+      "actors_common_ids": [
+        "nm0346165",
+        "nm0898085"
+      ]
+    },
+    "tt0022222|tt0022346": {
+      "source": "tt0022222",
+      "target": "tt0022346",
+      "actors_common": 10,
+      "similaridade": 20.0,
+      "peso": 0.05,
+      "actors_common_ids": [
+        "nm0050830",
+        "nm0066844",
+        "nm0324501",
+        "nm0391487",
+        "nm0432721",
+        "nm0682176",
+        "nm0683828",
+        "nm0720979",
+        "nm0902607",
+        "nm0913188"
+      ]
+    },
+    "tt0022240|tt0023410": {
+      "source": "tt0022240",
+      "target": "tt0023410",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2,
+      "actors_common_ids": [
+        "nm0058039",
+        "nm0404484"
+      ]
+    },
+    "tt0022454|tt0023207": {
+      "source": "tt0022454",
+      "target": "tt0023207",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2,
+      "actors_common_ids": [
+        "nm0016422",
+        "nm0195077"
+      ]
+    },
+    "tt0023207|tt0027803": {
+      "source": "tt0023207",
+      "target": "tt0027803",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2,
+      "actors_common_ids": [
+        "nm0673023",
+        "nm0898107"
+      ]
+    },
+    "tt0023410|tt0025329": {
+      "source": "tt0023410",
+      "target": "tt0025329",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2,
+      "actors_common_ids": [
+        "nm0362567",
+        "nm0891998"
+      ]
+    },
+    "tt0023496|tt0024665": {
+      "source": "tt0023496",
+      "target": "tt0024665",
+      "actors_common": 2,
+      "similaridade": 4.0,
+      "peso": 0.25,
+      "actors_common_ids": [
+        "nm0427659",
+        "nm0783763"
+      ]
+    },
+    "tt0023864|tt0028684": {
+      "source": "tt0023864",
+      "target": "tt0028684",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2,
+      "actors_common_ids": [
+        "nm0292410",
+        "nm0738139"
+      ]
+    },
+    "tt0024047|tt0024488": {
+      "source": "tt0024047",
+      "target": "tt0024488",
+      "actors_common": 7,
+      "similaridade": 16.0,
+      "peso": 0.0625,
+      "actors_common_ids": [
+        "nm0010958",
+        "nm0050370",
+        "nm0103619",
+        "nm0371025",
+        "nm0384202",
+        "nm0824496",
+        "nm5107594"
+      ]
+    },
+    "tt0026052|tt0026785": {
+      "source": "tt0026052",
+      "target": "tt0026785",
+      "actors_common": 8,
+      "similaridade": 18.0,
+      "peso": 0.055556,
+      "actors_common_ids": [
+        "nm0064018",
+        "nm0164521",
+        "nm0175413",
+        "nm0245429",
+        "nm0301908",
+        "nm0734340",
+        "nm0824496",
+        "nm0931572"
+      ]
+    },
+    "tt0026354|tt0028213": {
+      "source": "tt0026354",
+      "target": "tt0028213",
+      "actors_common": 9,
+      "similaridade": 20.0,
+      "peso": 0.05,
+      "actors_common_ids": [
+        "nm0059104",
+        "nm0068471",
+        "nm0090008",
+        "nm0245429",
+        "nm0254502",
+        "nm0594290",
+        "nm0607108",
+        "nm0862086",
+        "nm0931572"
+      ]
+    },
+    "tt0026567|tt0027199": {
+      "source": "tt0026567",
+      "target": "tt0027199",
+      "actors_common": 7,
+      "similaridade": 16.0,
+      "peso": 0.0625,
+      "actors_common_ids": [
+        "nm0096154",
+        "nm0130841",
+        "nm0184704",
+        "nm0517425",
+        "nm0571186",
+        "nm0613806",
+        "nm0824496"
+      ]
+    },
+    "tt0027326|tt0027567": {
+      "source": "tt0027326",
+      "target": "tt0027567",
+      "actors_common": 9,
+      "similaridade": 19.0,
+      "peso": 0.052632,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0241831",
+        "nm0259638",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0027326|tt0028627": {
+      "source": "tt0027326",
+      "target": "tt0028627",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0027326|tt0028655": {
+      "source": "tt0027326",
+      "target": "tt0028655",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0027326|tt0029023": {
+      "source": "tt0027326",
+      "target": "tt0029023",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0027326|tt0029332": {
+      "source": "tt0027326",
+      "target": "tt0029332",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0027567|tt0028627": {
+      "source": "tt0027567",
+      "target": "tt0028627",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0027567|tt0028655": {
+      "source": "tt0027567",
+      "target": "tt0028655",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0027567|tt0029023": {
+      "source": "tt0027567",
+      "target": "tt0029023",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0027567|tt0029332": {
+      "source": "tt0027567",
+      "target": "tt0029332",
+      "actors_common": 8,
+      "similaridade": 17.0,
+      "peso": 0.058824,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0027803|tt0028605": {
+      "source": "tt0027803",
+      "target": "tt0028605",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2,
+      "actors_common_ids": [
+        "nm0181942",
+        "nm0954035"
+      ]
+    },
+    "tt0028101|tt0028188": {
+      "source": "tt0028101",
+      "target": "tt0028188",
+      "actors_common": 8,
+      "similaridade": 18.0,
+      "peso": 0.055556,
+      "actors_common_ids": [
+        "nm0011535",
+        "nm0169742",
+        "nm0186191",
+        "nm0254502",
+        "nm0454559",
+        "nm0547945",
+        "nm0852365",
+        "nm0878927"
+      ]
+    },
+    "tt0028232|tt0028306": {
+      "source": "tt0028232",
+      "target": "tt0028306",
+      "actors_common": 8,
+      "similaridade": 18.0,
+      "peso": 0.055556,
+      "actors_common_ids": [
+        "nm0059141",
+        "nm0378387",
+        "nm0385497",
+        "nm0449648",
+        "nm0569645",
+        "nm0569809",
+        "nm0589812",
+        "nm0823633"
+      ]
+    },
+    "tt0028573|tt0028684": {
+      "source": "tt0028573",
+      "target": "tt0028684",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2,
+      "actors_common_ids": [
+        "nm0543673",
+        "nm0856673"
+      ]
+    },
+    "tt0028573|tt0029835": {
+      "source": "tt0028573",
+      "target": "tt0029835",
+      "actors_common": 2,
+      "similaridade": 5.0,
+      "peso": 0.2,
+      "actors_common_ids": [
+        "nm0037060",
+        "nm0543673"
+      ]
+    },
+    "tt0028605|tt0028684": {
+      "source": "tt0028605",
+      "target": "tt0028684",
+      "actors_common": 5,
+      "similaridade": 11.0,
+      "peso": 0.090909,
+      "actors_common_ids": [
+        "nm0266066",
+        "nm0406657",
+        "nm0661038",
+        "nm0812929",
+        "nm0896413"
+      ]
+    },
+    "tt0028627|tt0028655": {
+      "source": "tt0028627",
+      "target": "tt0028655",
+      "actors_common": 9,
+      "similaridade": 20.0,
+      "peso": 0.05,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0322345",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0028627|tt0029023": {
+      "source": "tt0028627",
+      "target": "tt0029023",
+      "actors_common": 9,
+      "similaridade": 20.0,
+      "peso": 0.05,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0322345",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0028627|tt0029332": {
+      "source": "tt0028627",
+      "target": "tt0029332",
+      "actors_common": 9,
+      "similaridade": 19.0,
+      "peso": 0.052632,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0322345",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0028655|tt0029023": {
+      "source": "tt0028655",
+      "target": "tt0029023",
+      "actors_common": 9,
+      "similaridade": 20.0,
+      "peso": 0.05,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0322345",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0028655|tt0029332": {
+      "source": "tt0028655",
+      "target": "tt0029332",
+      "actors_common": 9,
+      "similaridade": 20.0,
+      "peso": 0.05,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0322345",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0029023|tt0029332": {
+      "source": "tt0029023",
+      "target": "tt0029332",
+      "actors_common": 9,
+      "similaridade": 19.0,
+      "peso": 0.052632,
+      "actors_common_ids": [
+        "nm0001981",
+        "nm0137947",
+        "nm0213047",
+        "nm0259638",
+        "nm0322345",
+        "nm0398006",
+        "nm0536743",
+        "nm0698985",
+        "nm0731095"
+      ]
+    },
+    "tt0029073|tt0029074": {
+      "source": "tt0029073",
+      "target": "tt0029074",
+      "actors_common": 10,
+      "similaridade": 22.0,
+      "peso": 0.045455,
+      "actors_common_ids": [
+        "nm0359226",
+        "nm0394696",
+        "nm0409960",
+        "nm0411703",
+        "nm0411761",
+        "nm0555475",
+        "nm0586223",
+        "nm0847031",
+        "nm0847511",
+        "nm1173416"
+      ]
+    },
+    "tt0029163|tt0029354": {
+      "source": "tt0029163",
+      "target": "tt0029354",
+      "actors_common": 9,
+      "similaridade": 20.0,
+      "peso": 0.05,
+      "actors_common_ids": [
+        "nm0066259",
+        "nm0117115",
+        "nm0520380",
+        "nm0551494",
+        "nm0571186",
+        "nm0852365",
+        "nm0878927",
+        "nm0924307",
+        "nm0931572"
+      ]
     }
   }
 }
