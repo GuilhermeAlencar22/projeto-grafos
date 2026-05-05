@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>parte 2 | imdb e algoritmos de grafos</title>
     <link rel="stylesheet" href="lib/vis-9.1.2/vis-network.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=16">
   </head>
   <body>
     <header class="topbar">
@@ -19,7 +19,7 @@
       <nav class="nav">
         <a class="is-active" href="#inicio" data-view="inicio">inicio</a>
         <a href="#grafos" data-view="grafos">grafos</a>
-        <a href="#algoritmos" data-view="algoritmos">algoritmos</a>
+        <a href="#resultados" data-view="resultados">resultados</a>
         <a href="#graficos" data-view="graficos">graficos</a>
       </nav>
     </header>
@@ -27,70 +27,55 @@
     <main>
       <section class="hero view-panel is-active" id="inicio" data-view-panel="inicio">
         <div class="hero-copy">
-          <p class="eyebrow hero-topic">imdb | filmes | atores</p>
-          <h2>filmes viram nos. atores criam conexoes.</h2>
-          <p>
-            aqui o imdb deixa de ser catalogo e vira rede: cada conexao conta
-            quem dividiu cena, genero, peso e similaridade.
-          </p>
-          <div class="project-brief">
-            <article>
-              <span>dataset maior</span>
-              <strong>parte 2 sem malha aerea</strong>
-              <p>filmes do imdb conectados por atores em comum, com pesos e similaridade para comparar algoritmos.</p>
+          <h2>filmes viram nos. atores e generos criam arestas.</h2>
+          <div class="hero-info-grid">
+            <article class="formula-card">
+              <span>regra de peso</span>
+              <strong>similaridade</strong>
+              <p>calculada por (2 x atores em comum) + generos em comum. o peso e invertido: peso = 1 / similaridade, entao conexoes mais fortes ficam mais baratas nos caminhos.</p>
             </article>
             <article>
-              <span>entrega tecnica</span>
-              <strong>4 algoritmos rodados</strong>
-              <p>bfs, dfs, dijkstra e bellman-ford aparecem com corretude, desempenho e resultados consolidados.</p>
+              <span>dataset imdb</span>
+              <strong>filtro de dados: tsvs grandes para csvs uteis (sem malha)</strong>
+              <p>dados filtrados de title.basics, title.principals e title.ratings. a partir deles foram gerados imdb_movies.csv e imdb_edges.csv.</p>
             </article>
-          </div>
-          <div class="hero-tags">
-            <span>bfs / dfs</span>
-            <span>dijkstra</span>
-            <span>bellman-ford</span>
-            <span>benchmark</span>
           </div>
           <aside class="cinema-note">
-            <span>nota de bastidor</span>
+            <span>rascunho - nota de bastidor</span>
             <strong>o diretor chama de escolha artistica.</strong>
             <em>o grafo chama de conexao repetida.</em>
           </aside>
           <div class="hero-actions">
             <button type="button" data-view="grafos">explorar grafo</button>
-            <button type="button" data-view="algoritmos">algoritmos e resultados</button>
+            <button type="button" data-view="resultados">ver resultados</button>
             <button type="button" data-view="graficos">abrir graficos</button>
           </div>
         </div>
-        <div class="metric-grid" id="dataset-metrics">
-          <article class="metric-card">
-            <span>vertices</span>
-            <strong data-field="num_vertices">--</strong>
-          </article>
-          <article class="metric-card">
-            <span>arestas</span>
-            <strong data-field="num_arestas">--</strong>
-          </article>
-          <article class="metric-card">
-            <span>grau medio</span>
-            <strong data-field="grau_medio">--</strong>
-          </article>
-          <article class="metric-card">
-            <span>ilhas</span>
-            <strong data-field="componentes_conexas">--</strong>
-          </article>
+        <div class="hero-side">
+          <div class="metric-grid" id="dataset-metrics">
+            <article class="metric-card">
+              <span>vertices</span>
+              <strong data-field="num_vertices">--</strong>
+            </article>
+            <article class="metric-card">
+              <span>arestas</span>
+              <strong data-field="num_arestas">--</strong>
+            </article>
+            <article class="metric-card">
+              <span>grau medio</span>
+              <strong data-field="grau_medio">--</strong>
+            </article>
+            <article class="metric-card">
+              <span>ilhas</span>
+              <strong data-field="componentes_conexas">--</strong>
+            </article>
+          </div>
         </div>
       </section>
 
       <section class="panel-section view-panel" id="grafos" data-view-panel="grafos">
         <div class="section-heading">
-          <p class="eyebrow">visualizacao interativa</p>
-          <h2>o grafo e o centro da parte 2</h2>
-          <p>
-            o grafo completo alimenta metricas e algoritmos. na tela, usamos
-            subgrafos escolhidos para enxergar caminho, forca de conexao e
-            estrutura sem transformar o navegador em vitima.
-          </p>
+          <h2>visualizacao interativa</h2>
         </div>
 
         <div class="graph-shell">
@@ -98,13 +83,15 @@
             <div class="panel-kicker">controle da cena</div>
             <label for="graph-mode">modo do grafo</label>
             <select id="graph-mode">
-              <option value="top">top conexoes</option>
-              <option value="dijkstra">caminho dijkstra</option>
-              <option value="bfs">vizinhanca bfs</option>
               <option value="similaridade">maior similaridade</option>
+              <option value="top">top conexoes</option>
+              <option value="bfs">bfs - camadas</option>
+              <option value="dfs">dfs - percurso</option>
+              <option value="dijkstra">dijkstra - menor caminho</option>
+              <option value="bellman-ford">bellman-ford - pesos negativos</option>
             </select>
 
-            <label for="graph-search">buscar no</label>
+            <label for="graph-search">buscar</label>
             <div class="search-row">
               <input id="graph-search" type="search" placeholder="ex: tt0012313">
               <button id="search-btn" type="button">buscar</button>
@@ -121,6 +108,7 @@
           </aside>
 
           <div class="graph-area">
+            <button class="graph-fullscreen-btn" id="graph-fullscreen-btn" type="button">maximizar</button>
             <div id="network"></div>
             <div class="graph-placeholder" id="graph-placeholder">
               <span class="loader-ring"></span>
@@ -130,42 +118,44 @@
           </div>
 
           <aside class="details-panel" id="details-panel">
-            <p class="eyebrow">detalhes</p>
-            <h3>clique no rastro certo</h3>
-            <p>
-              aqui entram titulo, genero, atores em comum, similaridade e peso.
-              nada de tooltip preguicoso fazendo cosplay de analise.
-            </p>
-            <div class="detail-empty">
-              <span>no</span>
-              <span>aresta</span>
-              <span>caminho</span>
-            </div>
+            <p class="eyebrow">selecao</p>
+            <h3>nenhum item selecionado</h3>
+            <p>ao clicar em um filme ou aresta, os dados aparecem aqui.</p>
+            <dl class="detail-list">
+              <div>
+                <dt>filme</dt>
+                <dd>--</dd>
+              </div>
+              <div>
+                <dt>conexao</dt>
+                <dd>--</dd>
+              </div>
+              <div>
+                <dt>similaridade</dt>
+                <dd>--</dd>
+              </div>
+              <div>
+                <dt>peso</dt>
+                <dd>--</dd>
+              </div>
+            </dl>
           </aside>
         </div>
       </section>
 
-      <section class="panel-section view-panel" id="algoritmos" data-view-panel="algoritmos">
-        <div class="section-heading">
-          <p class="eyebrow">algoritmos e resultados</p>
-          <h2>execucoes da parte 2</h2>
-          <p>
-            aqui ficam juntos os algoritmos usados, os caminhos encontrados,
-            as buscas, o bellman-ford e os tempos de execucao.
-          </p>
-        </div>
-        <div class="algorithm-grid" id="algorithm-grid"></div>
-        <div class="results-heading">
-          <p class="eyebrow">resultados das execucoes</p>
-          <h3>o que os algoritmos devolveram</h3>
+      <section class="panel-section view-panel" id="resultados" data-view-panel="resultados">
+        <div class="section-heading section-heading-resultados">
+          <h2>saidas</h2>
         </div>
         <div class="results-summary" id="results-summary"></div>
-        <div class="results-grid" id="results-grid"></div>
+        <div class="results-tech-split">
+          <div class="results-tech-json" id="raw-output-pane"></div>
+          <aside class="results-tech-bench" id="benchmark-output" aria-label="tempos medios por algoritmo"></aside>
+        </div>
       </section>
 
       <section class="panel-section view-panel" id="graficos" data-view-panel="graficos">
         <div class="section-heading">
-          <p class="eyebrow">graficos</p>
           <h2>evidencias visuais</h2>
           <p>clique em qualquer grafico para ver a imagem inteira na tela.</p>
         </div>
@@ -189,6 +179,6 @@
     </div>
 
     <script src="lib/vis-9.1.2/vis-network.min.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=18"></script>
   </body>
 </html>
