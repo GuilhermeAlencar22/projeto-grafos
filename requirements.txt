@@ -1,5 +1,8 @@
 pandas
+numpy
 matplotlib
 pytest
+
+# mantidos para compatibilidade com visualizacoes da parte 1 e merge final
 plotly
 pyvis

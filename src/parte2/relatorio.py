@@ -1,11 +1,10 @@
-"""le json da parte 2, merge e grava out/parte2_report.json."""
+"""atualiza out/parte2_report.json."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-# chaves fixas do report (menos string solta).
 CHAVE_BFS = "bfs"
 CHAVE_DFS = "dfs"
 CHAVE_DIJKSTRA = "dijkstra"
@@ -14,15 +13,12 @@ CHAVE_BENCHMARK = "benchmark"
 CHAVE_TRES_FONTES = "tres_fontes"
 CHAVE_DATASET = "dataset"
 
-# caminho padrao: out/parte2_report.json na raiz (parents[2] a partir de src/parte2/).
 DEFAULT_REPORT_PATH = Path(__file__).resolve().parents[2] / "out" / "parte2_report.json"
 
-# acima disso bellman no json vira so amostra.
 BELLMAN_FULL_REPORT_MAX_VERTICES = 3000
 
 
 def _carregar_report(report_path: Path) -> dict:
-    """le disco ou {} se faltar arquivo / json ruim."""
     if not report_path.exists():
         return {}
     try:
@@ -31,7 +27,7 @@ def _carregar_report(report_path: Path) -> dict:
         return {}
 
 
-def distancias_bellman_json(dist: dict[str, float]) -> dict[str, float | None]:
+def _distancias_bellman_json(dist: dict[str, float]) -> dict[str, float | None]:
     out: dict[str, float | None] = {}
     for k in sorted(dist.keys()):
         d = dist[k]
@@ -41,9 +37,9 @@ def distancias_bellman_json(dist: dict[str, float]) -> dict[str, float | None]:
 
 def distancias_bellman_pro_relatorio(dist: dict[str, float]) -> dict:
     if len(dist) <= BELLMAN_FULL_REPORT_MAX_VERTICES:
-        return distancias_bellman_json(dist)
+        return _distancias_bellman_json(dist)
     amostra_chaves = sorted(dist.keys())[:40]
-    amostra = distancias_bellman_json({k: dist[k] for k in amostra_chaves})
+    amostra = _distancias_bellman_json({k: dist[k] for k in amostra_chaves})
     return {
         "omitido_por_tamanho": True,
         "n_vertices": len(dist),
@@ -70,12 +66,10 @@ def tempo_segundos_do_item_busca(item: dict) -> float:
 
 
 def deduplicar_bfs_dfs_por_fonte(itens: list[dict]) -> list[dict]:
-    """uma linha por source; fica o dict mais completo."""
-
     melhor: dict[str, dict] = {}
     ordem: list[str] = []
     for item in itens:
-        src = item.get("source")
+        src = item.get("origem")
         if not src:
             continue
         copia = dict(item)
@@ -97,30 +91,30 @@ def normalizar_campos_tempo_busca(itens: list[dict]) -> None:
 def _montar_benchmark_busca_por_fonte(
     report: dict, lista_key: str, inner_key: str
 ) -> list[dict]:
-    """lista p benchmark bfs/dfs (cli + tres_fontes)."""
     bloco_fontes = report.get(CHAVE_TRES_FONTES) or {}
     bench: list[dict] = []
     seen: set[str] = set()
     for raw in report.get(lista_key, []):
         e = dict(raw)
+        src = e.get("origem")
         ts = tempo_segundos_do_item_busca(e)
         e["tempo_s"] = round(ts, 9)
         e.setdefault("tempo", e["tempo_s"])
-        e.setdefault("origem", "cli")
+        e.setdefault("fonte_registro", "cli")
         bench.append(e)
-        if e.get("source"):
-            seen.add(e["source"])
+        if src:
+            seen.add(src)
     for bloco in bloco_fontes.get("por_fonte", []):
-        src = bloco.get("source")
+        src = bloco.get("origem")
         if not src or src in seen:
             continue
         inner = bloco.get(inner_key) or {}
         bench.append(
             {
-                "source": src,
+                "origem": src,
                 "tempo_s": round(float(inner.get("tempo_s", 0)), 9),
                 "visitados": inner.get("visitados"),
-                "origem": "tres_fontes",
+                "fonte_registro": "tres_fontes",
             }
         )
         seen.add(src)
@@ -165,8 +159,6 @@ def sincronizar_benchmark(report: dict) -> None:
 
 
 def espelhar_tempo_execucao(report: dict) -> None:
-    """copia tempo_s/tempo pra tempo_execucao onde faltar."""
-
     def walk(obj):
         if isinstance(obj, dict):
             if obj.get("tempo_execucao") is None:
@@ -198,47 +190,41 @@ def gravar_report_json(report_path: Path, report: dict) -> None:
     )
 
 
-def _salvar_report(report_path: Path, report: dict) -> None:
-    """alias: dedup, benchmark, grava."""
-    gravar_report_json(report_path, report)
-
-
 def gravar_report_bellman_ford(report_path: Path, execucoes: list[dict]) -> None:
     report = _carregar_report(report_path)
     limpar_estrutura_relatorio(report)
-    # merge por path de dataset; mantem outras linhas
     existente = report.get(CHAVE_BELLMAN_FORD) or []
     chaves_novas = {e.get("dataset") for e in execucoes if e.get("dataset")}
     mantidos = [e for e in existente if e.get("dataset") not in chaves_novas]
     report[CHAVE_BELLMAN_FORD] = mantidos + list(execucoes)
-    _salvar_report(report_path, report)
+    gravar_report_json(report_path, report)
 
 
 def atualizar_report_dataset(report_path: Path, dataset_info: dict) -> None:
     report = _carregar_report(report_path)
     limpar_estrutura_relatorio(report)
     report[CHAVE_DATASET] = dataset_info
-    _salvar_report(report_path, report)
+    gravar_report_json(report_path, report)
 
 
 def gravar_report_dijkstra(report_path: Path, execucoes: list[dict]) -> None:
     report = _carregar_report(report_path)
     limpar_estrutura_relatorio(report)
     report[CHAVE_DIJKSTRA] = execucoes
-    _salvar_report(report_path, report)
+    gravar_report_json(report_path, report)
 
 
 def gravar_bloco_tres_fontes(report_path: Path, payload: dict) -> None:
     report = _carregar_report(report_path)
     limpar_estrutura_relatorio(report)
     report[CHAVE_TRES_FONTES] = payload
-    _salvar_report(report_path, report)
+    gravar_report_json(report_path, report)
 
 
 def registrar_execucao_busca(
     report_path: Path,
     algoritmo: str,
-    source: str,
+    origem: str,
     tempo: float,
     *,
     visitados: int | None = None,
@@ -253,7 +239,7 @@ def registrar_execucao_busca(
 
     ts = round(float(tempo), 9)
     entrada: dict = {
-        "source": str(source),
+        "origem": str(origem),
         "tempo_s": ts,
         "tempo": ts,
     }
@@ -267,4 +253,4 @@ def registrar_execucao_busca(
 
     report[chave].append(entrada)
 
-    _salvar_report(report_path, report)
+    gravar_report_json(report_path, report)

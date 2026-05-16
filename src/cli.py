@@ -1,21 +1,22 @@
 """cli parte 2: imdb + report json."""
 
 import argparse
+import csv
 import time
 from collections import Counter
 from pathlib import Path
 
-from graphs.algorithms import (
+from src.graphs.algorithms import (
     bellman_ford,
     bfs,
     dfs,
     dijkstra,
     validar_pesos_para_dijkstra,
 )
-from graphs.analysis import componente_alcancavel, componente_tem_ciclo
-from graphs.graph import Graph, print_degree_sample_stats
-from graphs.io import load_edge_csv_graph
-from parte2.relatorio import (
+from src.graphs.analysis import componente_alcancavel, componente_tem_ciclo
+from src.graphs.graph import Graph, print_degree_sample_stats
+from src.graphs.io import load_edge_csv_graph
+from src.parte2.relatorio import (
     CHAVE_BFS,
     CHAVE_DFS,
     DEFAULT_REPORT_PATH,
@@ -27,39 +28,46 @@ from parte2.relatorio import (
     registrar_execucao_busca,
 )
 
-DEFAULT_IMDB_DATASET = "data/dataset_parte2/imdb_edges.csv"
-DEFAULT_CHECK_SOURCE = "tt0012313"
-DEFAULT_TRES_FONTES = "tt0012313,tt0002605,tt0000147"
+DEFAULT_IMDB_DATASET = "data/dataset_parte2/Imdb_arestas.csv"
+DEFAULT_CHECK_SOURCE = "Jurassic Park"
+DEFAULT_TRES_FONTES = "Jurassic Park,Forrest Gump,Pulp Fiction"
+
+
+def _carregar_bellman_csv(path: Path) -> Graph:
+    graph = Graph()
+    with path.open(encoding="utf-8", newline="") as fh:
+        for row in csv.DictReader(fh):
+            origem = (row.get("origem") or "").strip()
+            destino = (row.get("destino") or "").strip()
+            if not origem or not destino:
+                continue
+            graph.add_directed_edge(origem, destino, float(row["peso"]))
+    return graph
 
 
 def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
     report_path = DEFAULT_REPORT_PATH
-    imdb_edges_path = (projeto_root / DEFAULT_IMDB_DATASET).resolve()
-    bf_dir = projeto_root / "data/dataset_parte2/artificiais_bellman_ford"
-    bf_padrao = [
-        (bf_dir / "bf_validacao_sem_ciclo.csv", "s"),
-        (bf_dir / "bf_validacao_com_ciclo.csv", "a"),
+    base = projeto_root / "data" / "dataset_parte2" / "artificiais_bellman_ford"
+    casos = [
+        (
+            base / "bf_validacao_sem_ciclo.csv",
+            "Z",
+        ),
+        (
+            base / "bf_validacao_com_ciclo.csv",
+            "a",
+        ),
     ]
-    runs = bf_padrao
-    dataset_arg = Path(args.dataset).resolve()
-    if dataset_arg != imdb_edges_path:
-        print("[cli] bellman ignora --dataset; so bf_* em artificiais_bellman_ford/.")
-    print("[cli] bellman: bf_validacao_sem_ciclo + bf_validacao_com_ciclo.")
+    print("[cli] bellman: casos artificiais via csv.")
 
     registros: list[dict] = []
     t0_total = time.perf_counter()
 
-    for caminho_csv, src in runs:
-        if not caminho_csv.exists():
-            raise FileNotFoundError(f"arquivo nao encontrado: {caminho_csv}")
+    for path_caso, src in casos:
+        if not path_caso.exists():
+            raise FileNotFoundError(f"csv bellman nao encontrado: {path_caso}")
 
-        dados = load_edge_csv_graph(
-            str(caminho_csv), weight_column="peso", directed=True
-        )
-        gbf = Graph()
-        for u in dados:
-            for v, w in dados[u]:
-                gbf.add_directed_edge(u, v, w)
+        gbf = _carregar_bellman_csv(path_caso)
 
         if src not in gbf.adj:
             raise ValueError(f"fonte invalida no grafo: {src}")
@@ -68,15 +76,9 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
         ciclo_neg, dist = bellman_ford(gbf, src)
         dt = time.perf_counter() - t0
 
-        try:
-            ds_rel = caminho_csv.relative_to(projeto_root)
-            ds_str = str(ds_rel).replace("\\", "/")
-        except ValueError:
-            ds_str = str(caminho_csv)
-
         linha: dict = {
-            "dataset": ds_str,
-            "source": src,
+            "dataset": str(path_caso.relative_to(projeto_root)),
+            "origem": src,
             "ciclo_negativo": ciclo_neg,
             "distancias": (
                 None
@@ -91,7 +93,7 @@ def _cli_bellman_ford(args: argparse.Namespace, projeto_root: Path):
 
     print("\n=== bellman ===")
     for r in registros:
-        print(f"  {r['dataset']}  source={r['source']}")
+        print(f"  {r['dataset']}  origem={r['origem']}")
         print(
             f"    ciclo_negativo={r['ciclo_negativo']}  "
             f"tempo_s={r['tempo_s']}"
@@ -302,8 +304,8 @@ def _build_parser() -> argparse.ArgumentParser:
         "--alg",
         help=(
             "check, bfs, dfs, tres_fontes, dijkstra, bellman_ford. "
-            "bellman: so bf_* em artificiais_bellman_ford/; --dataset ignorado. "
-            "--bellman-demo opcional. demais: imdb_edges; --source tt... "
+            "bellman: casos artificiais via csv; --dataset ignorado. "
+            "--bellman-demo opcional. demais: Imdb_arestas; --source nome do filme "
             f"(default {DEFAULT_CHECK_SOURCE})."
         ),
     )
@@ -318,7 +320,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--tres-fontes",
         default=DEFAULT_TRES_FONTES,
         dest="tres_fontes",
-        help=(f"ate 3 ids imdb separados por virgula (default {DEFAULT_TRES_FONTES})."),
+        help=(f"ate 3 filmes separados por virgula (default {DEFAULT_TRES_FONTES})."),
     )
     parser.add_argument(
         "--dijkstra-pares",
@@ -470,13 +472,13 @@ def _executar_tres_fontes(g2: Graph, args: argparse.Namespace, t0_total: float) 
 
         por_fonte.append(
             {
-                "source": s,
+                "origem": s,
                 "componente": {
                     "tamanho": tam_comp,
                     "ciclo": ciclo,
                 },
                 "bfs": {
-                    "source": s,
+                    "origem": s,
                     "visitados": len(ordem_b),
                     "camadas": camadas,
                     "tamanho_componente_alcancada": len(ordem_b),
@@ -484,9 +486,9 @@ def _executar_tres_fontes(g2: Graph, args: argparse.Namespace, t0_total: float) 
                     "tempo_s": round(float(dt_b), 9),
                 },
                 "dfs": {
-                    "source": s,
+                    "origem": s,
                     "visitados": len(ordem_d),
-                    "ciclo_na_componente": ciclo,
+                    "ciclo": ciclo,
                     "amostra_ordem": ordem_d[:15],
                     "tempo_s": round(float(dt_d), 9),
                 },
@@ -504,7 +506,7 @@ def _executar_tres_fontes(g2: Graph, args: argparse.Namespace, t0_total: float) 
 
     print("\n=== tres fontes ===")
     for bloco in por_fonte:
-        print(f"  fonte {bloco['source']}:")
+        print(f"  fonte {bloco['origem']}:")
         print(
             f"    componente: |V|={bloco['componente']['tamanho']}  "
             f"ciclo={bloco['componente']['ciclo']}"
@@ -535,8 +537,8 @@ def _executar_dijkstra(g2: Graph, args: argparse.Namespace) -> None:
         if resultado is None:
             registros.append(
                 {
-                    "source": src,
-                    "target": tgt,
+                    "origem": src,
+                    "destino": tgt,
                     "sem_caminho": True,
                     "custo_total": None,
                     "tamanho_caminho": 0,
@@ -547,8 +549,8 @@ def _executar_dijkstra(g2: Graph, args: argparse.Namespace) -> None:
         else:
             custo, caminho = resultado
             linha = {
-                "source": src,
-                "target": tgt,
+                "origem": src,
+                "destino": tgt,
                 "sem_caminho": False,
                 "custo_total": round(float(custo), 9),
                 "tamanho_caminho": len(caminho),
@@ -561,10 +563,10 @@ def _executar_dijkstra(g2: Graph, args: argparse.Namespace) -> None:
     print("\n=== dijkstra ===")
     for r in registros:
         if r.get("sem_caminho"):
-            print(f"  {r['source']} -> {r['target']}: sem caminho")
+            print(f"  {r['origem']} -> {r['destino']}: sem caminho")
         else:
             print(
-                f"  {r['source']} -> {r['target']}: "
+                f"  {r['origem']} -> {r['destino']}: "
                 f"custo={r['custo_total']} "
                 f"nos={r['tamanho_caminho']} "
                 f"tempo={r['tempo_s']}s"
@@ -590,7 +592,7 @@ def executar_cli(args: argparse.Namespace, projeto_root: Path | None = None) -> 
     t0_total = time.perf_counter()
     dataset_path = Path(args.dataset).resolve()
     if dataset_path.suffix.lower() != ".csv":
-        raise ValueError("precisa ser csv de arestas (ex. imdb_edges.csv).")
+        raise ValueError("precisa ser csv de arestas (ex. Imdb_arestas.csv).")
     weight_col = args.weight_col
     if args.alg == "DIJKSTRA":
         weight_col = "peso"

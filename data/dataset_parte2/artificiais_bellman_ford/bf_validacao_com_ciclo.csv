@@ -1,4 +1,4 @@
-source,target,peso
+origem,destino,peso
 a,b,1
 b,c,1
 c,a,-3

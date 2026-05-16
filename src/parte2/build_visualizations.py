@@ -207,13 +207,13 @@ def grafico_atores_similaridade(
 ) -> None:
     df = pd.read_csv(
         edges_csv,
-        usecols=["actors_common", "similaridade"],
-        dtype={"actors_common": int, "similaridade": float},
+        usecols=["qtd_atores_compartilhados", "similaridade"],
+        dtype={"qtd_atores_compartilhados": int, "similaridade": float},
     )
     df = _amostra_dataframe(df, max_pontos, seed=SCATTER_SEED_ATORES)
     rng = np.random.default_rng(SCATTER_SEED_ATORES)
     jitter_x = rng.uniform(-0.32, 0.32, size=len(df))
-    x_plot = df["actors_common"].astype(float).to_numpy() + jitter_x
+    x_plot = df["qtd_atores_compartilhados"].astype(float).to_numpy() + jitter_x
     fig, ax = plt.subplots(figsize=FIG_SCATTER, constrained_layout=True)
     ax.scatter(
         x_plot,
@@ -257,7 +257,7 @@ def grafico_similaridade_peso(
         edgecolors="none",
         rasterized=True,
     )
-    # igual ao build_imdb_dataset: peso = 1/similaridade; pontos na curva esperada
+    # peso = 1/similaridade; pontos na curva esperada
     if len(xs) >= 1:
         x_min = float(np.min(xs))
         x_max = float(np.max(xs))
@@ -288,10 +288,10 @@ def grafico_similaridade_peso(
 
 
 def _adjacencia_nao_dirigida(edges_csv: Path) -> dict[str, set[str]]:
-    df = pd.read_csv(edges_csv, usecols=["source", "target"], dtype=str)
+    df = pd.read_csv(edges_csv, usecols=["filme1", "filme2"], dtype=str)
     adj: dict[str, set[str]] = {}
     for _, row in df.iterrows():
-        u, v = row["source"], row["target"]
+        u, v = row["filme1"], row["filme2"]
         adj.setdefault(u, set()).add(v)
         adj.setdefault(v, set()).add(u)
     return adj
@@ -384,35 +384,16 @@ def grafico_distribuicao_tamanhos_componentes(sizes: list[int], saida: Path) -> 
     plt.close(fig)
 
 
-def main() -> None:
-    root = _projeto_root()
-    parser = argparse.ArgumentParser(description="Gera PNGs a partir do report JSON e do CSV.")
-    parser.add_argument(
-        "--report",
-        default=str(root / "out" / "parte2_report.json"),
-        help="Caminho para parte2_report.json",
-    )
-    parser.add_argument(
-        "--edges",
-        default=str(root / "data" / "dataset_parte2" / "imdb_edges.csv"),
-        help="CSV imdb_edges (scatters e cálculo de componentes conexas)",
-    )
-    parser.add_argument(
-        "--out-dir",
-        default=str(root / "out"),
-        help="Diretório de saída das figuras",
-    )
-    parser.add_argument(
-        "--scatter-max",
-        type=int,
-        default=50000,
-        help="Tamanho máximo da amostra nos scatter plots (desempenho)",
-    )
-    args = parser.parse_args()
-
-    report_path = Path(args.report).resolve()
-    edges_path = Path(args.edges).resolve()
-    out_dir = Path(args.out_dir).resolve()
+def gerar_figuras_parte2(
+    report_path: Path,
+    edges_path: Path,
+    out_dir: Path,
+    scatter_max: int = 50000,
+) -> list[str]:
+    """gera os 5 pngs da parte 2 e devolve os nomes gerados."""
+    report_path = Path(report_path).resolve()
+    edges_path = Path(edges_path).resolve()
+    out_dir = Path(out_dir).resolve()
 
     with open(report_path, encoding="utf-8") as fh:
         report = json.load(fh)
@@ -432,7 +413,6 @@ def main() -> None:
         raise FileNotFoundError(f"CSV não encontrado: {edges_path}")
     adj = _adjacencia_nao_dirigida(edges_path)
     sizes = _tamanhos_componentes_conexas(adj)
-    nv_rep = report.get("dataset", {}).get("|V|")
     nc_rep = report.get("dataset", {}).get("componentes_conexas")
     maior_rep = report.get("dataset", {}).get("maior_componente_conexa")
     print(
@@ -456,17 +436,8 @@ def main() -> None:
         )
 
     grafico_distribuicao_tamanhos_componentes(sizes, out_dir / "parte2_componentes_conexas.png")
-
-    grafico_atores_similaridade(
-        edges_path,
-        out_dir / "parte2_atores_vs_similaridade.png",
-        args.scatter_max,
-    )
-    grafico_similaridade_peso(
-        edges_path,
-        out_dir / "parte2_similaridade_vs_peso.png",
-        args.scatter_max,
-    )
+    grafico_atores_similaridade(edges_path, out_dir / "parte2_atores_vs_similaridade.png", scatter_max)
+    grafico_similaridade_peso(edges_path, out_dir / "parte2_similaridade_vs_peso.png", scatter_max)
 
     print(
         "[build_visualizations] Tempos médios (s):",
@@ -486,6 +457,40 @@ def main() -> None:
     print("[build_visualizations] Figuras salvas em", out_dir)
     for nome in gerados:
         print(" ", (out_dir / nome).resolve())
+    return gerados
+
+
+def main() -> None:
+    root = _projeto_root()
+    parser = argparse.ArgumentParser(description="Gera PNGs a partir do report JSON e do CSV.")
+    parser.add_argument(
+        "--report",
+        default=str(root / "out" / "parte2_report.json"),
+        help="Caminho para parte2_report.json",
+    )
+    parser.add_argument(
+        "--edges",
+        default=str(root / "data" / "dataset_parte2" / "Imdb_arestas.csv"),
+        help="CSV Imdb_arestas (scatters e calculo de componentes conexas)",
+    )
+    parser.add_argument(
+        "--out-dir",
+        default=str(root / "out"),
+        help="Diretório de saída das figuras",
+    )
+    parser.add_argument(
+        "--scatter-max",
+        type=int,
+        default=50000,
+        help="Tamanho máximo da amostra nos scatter plots (desempenho)",
+    )
+    args = parser.parse_args()
+    gerar_figuras_parte2(
+        Path(args.report),
+        Path(args.edges),
+        Path(args.out_dir),
+        scatter_max=args.scatter_max,
+    )
 
 
 if __name__ == "__main__":

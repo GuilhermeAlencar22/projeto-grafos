@@ -1,1 +1,1 @@
-"""scripts parte 2: dataset imdb, relatorio, figuras."""
+"""scripts da parte 2: relatorio, interface e visualizacoes."""

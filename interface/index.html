@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>parte 2 | imdb e algoritmos de grafos</title>
     <link rel="stylesheet" href="lib/vis-9.1.2/vis-network.css">
-    <link rel="stylesheet" href="styles.css?v=21">
+    <link rel="stylesheet" href="styles.css?v=22">
   </head>
   <body>
     <header class="topbar">
@@ -36,14 +36,14 @@
             </article>
             <article>
               <span>dataset imdb</span>
-              <strong>filtro de dados: tsvs grandes para csvs uteis (sem malha)</strong>
-              <p>dados filtrados de title.basics, title.principals e title.ratings. a partir deles foram gerados imdb_movies.csv e imdb_edges.csv.</p>
+              <strong>base final: filmes e arestas (sem malha)</strong>
+              <p>a parte 2 roda a partir de Imdb_filmes.csv e Imdb_arestas.csv: filmes como vertices, conexoes como arestas ponderadas.</p>
             </article>
           </div>
           <aside class="cinema-note">
-            <span>rascunho - nota de bastidor</span>
-            <strong>o diretor chama de escolha artistica.</strong>
-            <em>o grafo chama de conexao repetida.</em>
+            <span>leitura do grafo</span>
+            <strong>atores e generos repetidos viram conexoes.</strong>
+            <em>o peso mostra quais ligacoes ficam mais fortes.</em>
           </aside>
           <div class="hero-actions">
             <button type="button" data-view="grafos">explorar grafo</button>
@@ -89,18 +89,21 @@
               <option value="dfs">dfs - percurso</option>
               <option value="dijkstra">dijkstra - maior rota visual</option>
               <option value="bellman-ford">bellman-ford - pesos negativos</option>
+              <option value="grafo-completo">grafo completo visual</option>
             </select>
+
+            <datalist id="movies-list"></datalist>
 
             <label for="graph-search">buscar</label>
             <div class="search-row">
-              <input id="graph-search" type="search" placeholder="ex: tt0012313">
+              <input id="graph-search" type="search" placeholder="ex: Jurassic Park" list="movies-list" autocomplete="off">
               <button id="search-btn" type="button">buscar</button>
             </div>
 
             <div class="route-tool">
               <span class="route-tool-title">filme x filme</span>
-              <input id="route-source" type="search" placeholder="origem tt0012313">
-              <input id="route-target" type="search" placeholder="destino tt0022240">
+              <input id="route-origem" type="search" placeholder="origem Jurassic Park" list="movies-list" autocomplete="off">
+              <input id="route-destino" type="search" placeholder="destino Pulp Fiction" list="movies-list" autocomplete="off">
               <select id="route-algorithm">
                 <option value="dijkstra">dijkstra</option>
                 <option value="dfs">profundidade</option>
@@ -113,7 +116,7 @@
             <div class="legend">
               <strong>legenda</strong>
               <span><i class="legend-dot origin"></i>origem</span>
-              <span><i class="legend-dot target"></i>destino</span>
+              <span><i class="legend-dot destino"></i>destino</span>
               <span><i class="legend-line"></i>aresta destacada</span>
             </div>
           </aside>
@@ -123,8 +126,8 @@
             <div id="network"></div>
             <div class="graph-placeholder" id="graph-placeholder">
               <span class="loader-ring"></span>
-              <strong>subgrafo em preparacao</strong>
-              <p>na proxima etapa, este palco recebe nos, arestas, cliques e detalhes de conexao.</p>
+              <strong>grafo ainda nao carregado</strong>
+              <p>escolha um modo, busque um filme ou calcule uma rota para visualizar as conexoes.</p>
             </div>
           </div>
 
@@ -158,7 +161,7 @@
         <div class="section-heading section-heading-resultados">
           <h2>saidas</h2>
         </div>
-        <div class="results-summary" id="results-summary"></div>
+        <div class="results-resumo" id="results-resumo"></div>
         <div class="results-tech-split">
           <div class="results-tech-json" id="raw-output-pane"></div>
           <aside class="results-tech-bench" id="benchmark-output" aria-label="tempos medios por algoritmo"></aside>
@@ -189,7 +192,23 @@
       </section>
     </div>
 
+    <div class="image-modal" id="full-graph-modal" aria-hidden="true" role="dialog" aria-label="aviso grafo completo">
+      <div class="image-modal-backdrop" id="full-graph-backdrop"></div>
+      <section class="image-modal-panel" style="max-width:480px;text-align:center;gap:1rem;">
+        <h2 style="margin:0">grafo completo</h2>
+        <p style="margin:0;line-height:1.6">
+          Renderiza os <strong>3.000 links mais fortes</strong> do dataset (de 100.000).<br>
+          O roteamento filme x filme continua usando todas as 100.000 arestas.<br>
+          Pode demorar alguns segundos para carregar.
+        </p>
+        <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+          <button id="full-graph-confirm" type="button" class="btn-primary">carregar mesmo assim</button>
+          <button id="full-graph-cancel" type="button" class="modal-close">cancelar</button>
+        </div>
+      </section>
+    </div>
+
     <script src="lib/vis-9.1.2/vis-network.min.js"></script>
-    <script src="app.js?v=35"></script>
+    <script src="app.js?v=42"></script>
   </body>
 </html>

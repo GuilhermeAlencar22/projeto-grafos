@@ -1,32 +1,25 @@
-"""solve parte 2: encadeia varias execucoes do cli num so report json.
+"""roda os 4 algoritmos da parte 2 em sequencia e gera out/parte2_report.json.
 
-importa executar_cli em sequencia; flags completas ficam no cli.
+uso: python -m src.solve
 """
 
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 
+from src import cli as cli_mod
+
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src"
-
-
-def _setup_path() -> None:
-    if str(SRC) not in sys.path:
-        sys.path.insert(0, str(SRC))
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description=(
-            "roda algs parte 2 no csv padrao; saida out/parte2_report.json."
-        )
+        description="roda algs parte 2 no csv padrao; saida out/parte2_report.json."
     )
     parser.add_argument(
         "--dataset",
-        default=str(ROOT / "data" / "dataset_parte2" / "imdb_edges.csv"),
+        default=str(ROOT / "data" / "dataset_parte2" / "Imdb_arestas.csv"),
         help="csv imdb nao-dirigido (check, bfs, dfs, etc.).",
     )
     parser.add_argument(
@@ -41,10 +34,9 @@ def main() -> None:
     )
     args_cli = parser.parse_args()
 
-    _setup_path()
-    import cli as cli_mod
+    if cli_mod.DEFAULT_REPORT_PATH.exists():
+        cli_mod.DEFAULT_REPORT_PATH.unlink()
 
-    projeto_root = ROOT
     algoritmos = ["CHECK", "BFS", "DFS"]
     if not args_cli.rapido:
         algoritmos.extend(["TRES_FONTES", "DIJKSTRA", "BELLMAN_FORD"])
@@ -63,7 +55,7 @@ def main() -> None:
         run_args = argparse.Namespace(**vars(base))
         run_args.alg = nome_alg
         print(f"\n[solve] === {nome_alg} ===\n")
-        cli_mod.executar_cli(run_args, projeto_root)
+        cli_mod.executar_cli(run_args, ROOT)
 
     print(f"\n[solve] report: {cli_mod.DEFAULT_REPORT_PATH}\n")
 

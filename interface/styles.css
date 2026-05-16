@@ -535,7 +535,7 @@ button:active {
   background: var(--success);
 }
 
-.legend-dot.target {
+.legend-dot.destino {
   background: var(--danger);
 }
 
@@ -692,7 +692,7 @@ button:active {
 }
 
 .viz-grid,
-.results-summary {
+.results-resumo {
   display: grid;
   gap: 16px;
 }
@@ -702,7 +702,7 @@ button:active {
   align-items: start;
 }
 
-.results-summary {
+.results-resumo {
   grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.94fr) minmax(0, 0.98fr);
   gap: 18px;
   margin-bottom: 28px;
@@ -1078,7 +1078,7 @@ button:active {
   }
 
   .viz-grid,
-  .results-summary {
+  .results-resumo {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1102,7 +1102,7 @@ button:active {
   .hero-info-grid,
   .hero-actions,
   .viz-grid,
-  .results-summary {
+  .results-resumo {
     grid-template-columns: 1fr;
   }
 

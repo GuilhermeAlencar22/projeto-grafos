@@ -1,11 +1,19 @@
 import pandas as pd
 
 
-def load_edge_csv_graph(path, weight_column="peso", debug=False, directed=False):
-    df = pd.read_csv(path, dtype={"source": str, "target": str})
+def _colunas_vertices(df):
+    if {"source", "target"}.issubset(df.columns):
+        return "source", "target"
+    if {"filme1", "filme2"}.issubset(df.columns):
+        return "filme1", "filme2"
+    raise ValueError("csv sem colunas de vertices: use source/target ou filme1/filme2")
 
-    required_columns = {"source", "target"}
-    missing = required_columns - set(df.columns)
+
+def load_edge_csv_graph(path, weight_column="peso", debug=False, directed=False):
+    df = pd.read_csv(path, dtype=str)
+    source_col, target_col = _colunas_vertices(df)
+
+    missing = {source_col, target_col} - set(df.columns)
     if missing:
         raise ValueError(f"csv sem colunas obrigatorias: {missing}")
 
@@ -14,8 +22,8 @@ def load_edge_csv_graph(path, weight_column="peso", debug=False, directed=False)
 
     graph = {}
     for _, row in df.iterrows():
-        source = row["source"]
-        target = row["target"]
+        source = row[source_col]
+        target = row[target_col]
         weight = float(row[weight_column])
 
         if source not in graph:

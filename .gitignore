@@ -3,3 +3,7 @@ __pycache__/
 .pytest_tmp/
 pytest_tmp*/
 data/dataset_parte2/imdb/*.tsv.gz
+data/dataset_parte2/movielens/
+
+# graficos gerados (artefatos de build; regenerados por python -m src.viz parte2)
+out/parte2/*.png

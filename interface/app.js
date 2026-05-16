@@ -1,6 +1,7 @@
 const state = {
-  summary: null,
-  lookup: null,
+  resumo: null,
+  amostra: null,
+  grafoCompleto: null,   // carregado sob demanda
   network: null,
   graph: {
     nodes: null,
@@ -82,20 +83,39 @@ function avgTime(items) {
 }
 
 function movieInfo(id) {
-  return state.lookup?.movies?.[id] ?? {
-    titulo: id,
-    ano: "",
-    generos: "genero nao informado",
-    nota: "",
-  };
+  return (
+    state.amostra?.movies?.[id] ??
+    state.grafoCompleto?.filmes?.[id] ??
+    { titulo: id, ano: "", generos: "genero nao informado", nota: "" }
+  );
 }
 
 function edgeKey(a, b) {
   return [a, b].sort().join("|");
 }
 
-function lookupEdge(a, b) {
-  return state.lookup?.edges?.[edgeKey(a, b)] ?? null;
+function edgeOrigem(edge) {
+  return edge?.origem ?? "";
+}
+
+function edgeDestino(edge) {
+  return edge?.destino ?? "";
+}
+
+function buscarAresta(a, b) {
+  const key = edgeKey(a, b);
+  const fromAmostra = state.amostra?.edges?.[key] ?? null;
+  if (fromAmostra) return fromAmostra;
+
+  if (state.grafoCompleto) {
+    const adj = buildGrafoAdjacency();
+    const vizinhos = adj.get(a) ?? [];
+    const encontrado = vizinhos.find((v) => v.to === b);
+    if (encontrado) {
+      return { origem: a, destino: b, similaridade: encontrado.sim, peso: encontrado.p, actors_common: encontrado.a };
+    }
+  }
+  return null;
 }
 
 function movieGenres(id) {
@@ -125,11 +145,11 @@ function movieTitle(id) {
 }
 
 function edgeTitle(edge) {
-  const source = movieInfo(edge.source);
-  const target = movieInfo(edge.target);
-  const genres = commonGenres(edge.source, edge.target);
+  const origem = movieInfo(edgeOrigem(edge));
+  const destino = movieInfo(edgeDestino(edge));
+  const genres = commonGenres(edgeOrigem(edge), edgeDestino(edge));
   return [
-    `${source.titulo || edge.source} -> ${target.titulo || edge.target}`,
+    `${origem.titulo || edgeOrigem(edge)} -> ${destino.titulo || edgeDestino(edge)}`,
     `atores em comum: ${edge.actors_common ?? "--"}`,
     `generos em comum: ${genres.join(", ") || "--"}`,
     `similaridade: ${edge.similaridade ?? "--"}`,
@@ -170,9 +190,9 @@ function baseEdge(edge, extra = {}) {
   const color = extra.color ?? "rgba(245, 197, 24, 0.55)";
 
   return {
-    id: edge.id ?? edgeKey(edge.source, edge.target),
-    from: edge.source,
-    to: edge.target,
+    id: edge.id ?? edgeKey(edgeOrigem(edge), edgeDestino(edge)),
+    from: edgeOrigem(edge),
+    to: edgeDestino(edge),
     title: edgeTitle(edge),
     label: extra.label ?? String(edge.similaridade ?? ""),
     width: extra.width ?? Math.max(3, Math.min(10, 2 + Math.sqrt(value) * 1.8)),
@@ -202,10 +222,10 @@ function makeGraphFromEdges(edges, options = {}) {
   const visualEdges = [];
 
   edges.forEach((edge) => {
-    nodes.set(edge.source, edge.source);
-    nodes.set(edge.target, edge.target);
-    degrees.set(edge.source, (degrees.get(edge.source) ?? 0) + 1);
-    degrees.set(edge.target, (degrees.get(edge.target) ?? 0) + 1);
+    nodes.set(edgeOrigem(edge), edgeOrigem(edge));
+    nodes.set(edgeDestino(edge), edgeDestino(edge));
+    degrees.set(edgeOrigem(edge), (degrees.get(edgeOrigem(edge)) ?? 0) + 1);
+    degrees.set(edgeDestino(edge), (degrees.get(edgeDestino(edge)) ?? 0) + 1);
     visualEdges.push(baseEdge(edge, options.edgeOptions));
   });
 
@@ -226,21 +246,21 @@ function connectedEdgeSample(sortedEdges, limit = 18) {
   if (!sortedEdges.length) return [];
 
   const selected = [sortedEdges[0]];
-  const used = new Set([sortedEdges[0].id ?? edgeKey(sortedEdges[0].source, sortedEdges[0].target)]);
-  const nodes = new Set([sortedEdges[0].source, sortedEdges[0].target]);
+  const used = new Set([sortedEdges[0].id ?? edgeKey(edgeOrigem(sortedEdges[0]), edgeDestino(sortedEdges[0]))]);
+  const nodes = new Set([edgeOrigem(sortedEdges[0]), edgeDestino(sortedEdges[0])]);
 
   while (selected.length < limit) {
     const next = sortedEdges.find((edge) => {
-      const id = edge.id ?? edgeKey(edge.source, edge.target);
-      return !used.has(id) && (nodes.has(edge.source) || nodes.has(edge.target));
+      const id = edge.id ?? edgeKey(edgeOrigem(edge), edgeDestino(edge));
+      return !used.has(id) && (nodes.has(edgeOrigem(edge)) || nodes.has(edgeDestino(edge)));
     });
 
     if (!next) break;
 
     selected.push(next);
-    used.add(next.id ?? edgeKey(next.source, next.target));
-    nodes.add(next.source);
-    nodes.add(next.target);
+    used.add(next.id ?? edgeKey(edgeOrigem(next), edgeDestino(next)));
+    nodes.add(edgeOrigem(next));
+    nodes.add(edgeDestino(next));
   }
 
   return selected;
@@ -250,18 +270,18 @@ function pathEdges(path, options = {}) {
   const edges = [];
 
   for (let index = 0; index < path.length - 1; index += 1) {
-    const source = path[index];
-    const target = path[index + 1];
-    const stored = lookupEdge(source, target);
+    const origem = path[index];
+    const destino = path[index + 1];
+    const stored = buscarAresta(origem, destino);
     edges.push({
       ...(stored ?? {
-        source,
-        target,
+        origem,
+        destino,
         actors_common: "--",
         similaridade: "--",
         peso: "--",
       }),
-      id: `${options.prefix ?? "path"}-${source}-${target}-${index}`,
+      id: `${options.prefix ?? "path"}-${origem}-${destino}-${index}`,
     });
   }
 
@@ -314,7 +334,7 @@ function makeBellmanFordGraph() {
     to,
     label,
     arrows: "to",
-    dashes: danger,
+    dashes: false,
     title: `${group}\n${from} -> ${to}\npeso: ${label}`,
     color: {
       color: danger ? "#ff4d4d" : "#f5c518",
@@ -334,8 +354,8 @@ function makeBellmanFordGraph() {
       roundness: danger ? 0.34 : 0.18,
     },
     meta: {
-      source: from,
-      target: to,
+      origem: from,
+      destino: to,
       peso: label,
       caso: group,
       ciclo_negativo: danger,
@@ -345,17 +365,17 @@ function makeBellmanFordGraph() {
 
   return {
     nodes: [
-      node("ok-s", "sem ciclo\ns", -330, -130, "#2ecc71", 44, "fonte do caso sem ciclo negativo"),
+      node("ok-z", "sem ciclo\nz", -330, -130, "#2ecc71", 44, "fonte Z do caso sem ciclo negativo"),
       node("ok-a", "a", -455, 40, "#f5c518", 34, "vertice alcancado com peso positivo"),
-      node("ok-b", "b", -205, 40, "#f5c518", 34, "vertice alcancado pela fonte s"),
+      node("ok-b", "b", -205, 40, "#f5c518", 34, "vertice alcancado pela fonte Z"),
       node("ok-c", "c", -330, 210, "#f5c518", 34, "recebe relaxamento com peso negativo, mas sem formar ciclo negativo"),
       node("bad-a", "com ciclo\na", 260, -130, "#ff4d4d", 44, "inicio do caso com ciclo negativo"),
       node("bad-b", "b", 105, 150, "#f5c518", 34, "parte do ciclo dirigido"),
       node("bad-c", "c", 415, 150, "#ff4d4d", 40, "fecha o ciclo negativo voltando para a"),
     ],
     edges: [
-      directedEdge("ok-s", "ok-a", "5", "sem ciclo negativo"),
-      directedEdge("ok-s", "ok-b", "2", "sem ciclo negativo"),
+      directedEdge("ok-z", "ok-a", "5", "sem ciclo negativo"),
+      directedEdge("ok-z", "ok-b", "2", "sem ciclo negativo"),
       directedEdge("ok-b", "ok-c", "0", "sem ciclo negativo"),
       directedEdge("ok-a", "ok-c", "-3", "sem ciclo negativo"),
       directedEdge("bad-a", "bad-b", "1", "com ciclo negativo"),
@@ -366,117 +386,145 @@ function makeBellmanFordGraph() {
   };
 }
 
-function buildLookupAdjacency() {
+function buildAmostraAdjacency() {
   const adj = new Map();
 
-  Object.values(state.lookup?.edges ?? {}).forEach((edge) => {
-    if (!adj.has(edge.source)) adj.set(edge.source, []);
-    if (!adj.has(edge.target)) adj.set(edge.target, []);
-    adj.get(edge.source).push({ to: edge.target, edge });
-    adj.get(edge.target).push({ to: edge.source, edge });
+  Object.values(state.amostra?.edges ?? {}).forEach((edge) => {
+    if (!adj.has(edgeOrigem(edge))) adj.set(edgeOrigem(edge), []);
+    if (!adj.has(edgeDestino(edge))) adj.set(edgeDestino(edge), []);
+    adj.get(edgeOrigem(edge)).push({ to: edgeDestino(edge), edge });
+    adj.get(edgeDestino(edge)).push({ to: edgeOrigem(edge), edge });
   });
 
   return adj;
 }
 
-function dijkstraPath(source, target) {
-  const adj = buildLookupAdjacency();
-  const dist = new Map([[source, 0]]);
+function buildGrafoAdjacency() {
+  // retorna cache se ja construido
+  if (state._grafoAdj) return state._grafoAdj;
+
+  const adj = new Map();
+  (state.grafoCompleto?.arestas ?? []).forEach((e) => {
+    const origem = edgeOrigem(e);
+    const destino = edgeDestino(e);
+    if (!adj.has(origem)) adj.set(origem, []);
+    if (!adj.has(destino)) adj.set(destino, []);
+    adj.get(origem).push({ to: destino, peso: e.p, sim: e.sim, a: e.a });
+    adj.get(destino).push({ to: origem, peso: e.p, sim: e.sim, a: e.a });
+  });
+
+  state._grafoAdj = adj;
+  return adj;
+}
+function dijkstraPath(origem, destino) {
+  const useFullGraph = !!state.grafoCompleto;
+  const adj = useFullGraph ? buildGrafoAdjacency() : buildAmostraAdjacency();
+
+  const dist = new Map([[origem, 0]]);
   const prev = new Map();
   const visited = new Set();
-  const queue = [{ id: source, cost: 0 }];
+  // min-heap simples com array ordenado (ok ate ~100k arestas)
+  const queue = [{ id: origem, cost: 0 }];
 
   while (queue.length) {
     queue.sort((a, b) => a.cost - b.cost);
     const current = queue.shift();
     if (!current || visited.has(current.id)) continue;
     visited.add(current.id);
-    if (current.id === target) break;
+    if (current.id === destino) break;
 
-    (adj.get(current.id) ?? []).forEach(({ to, edge }) => {
-      const nextCost = current.cost + Number(edge.peso ?? 1);
-      if (nextCost < (dist.get(to) ?? Infinity)) {
-        dist.set(to, nextCost);
-        prev.set(to, current.id);
-        queue.push({ id: to, cost: nextCost });
+    const vizinhos = adj.get(current.id) ?? [];
+    vizinhos.forEach((v) => {
+      const peso = useFullGraph ? (v.peso ?? 1) : Number(v.edge?.peso ?? 1);
+      const nextCost = current.cost + peso;
+      if (nextCost < (dist.get(v.to) ?? Infinity)) {
+        dist.set(v.to, nextCost);
+        prev.set(v.to, current.id);
+        queue.push({ id: v.to, cost: nextCost });
       }
     });
   }
 
-  if (!dist.has(target)) return null;
+  if (!dist.has(destino)) return null;
 
   const path = [];
-  let step = target;
+  let step = destino;
   while (step) {
     path.unshift(step);
-    if (step === source) break;
+    if (step === origem) break;
     step = prev.get(step);
   }
 
   return {
     path,
-    cost: dist.get(target),
+    cost: dist.get(destino),
     algorithm: "dijkstra",
+    fullGraph: useFullGraph,
   };
 }
 
-function dfsPath(source, target) {
-  const adj = buildLookupAdjacency();
+function dfsPath(origem, destino) {
+  const useFullGraph = !!state.grafoCompleto;
+  const adj = useFullGraph ? buildGrafoAdjacency() : buildAmostraAdjacency();
+
+  // iterativo para evitar stack overflow com 100k arestas
   const visited = new Set();
-  const path = [];
+  const stack = [[origem, [origem]]];
 
-  function visit(node) {
+  while (stack.length) {
+    const [node, path] = stack.pop();
+    if (visited.has(node)) continue;
     visited.add(node);
-    path.push(node);
-    if (node === target) return true;
+    if (node === destino) return { path, cost: null, algorithm: "profundidade", fullGraph: useFullGraph };
 
-    for (const { to } of adj.get(node) ?? []) {
-      if (!visited.has(to) && visit(to)) return true;
+    const vizinhos = adj.get(node) ?? [];
+    for (let i = vizinhos.length - 1; i >= 0; i--) {
+      const v = vizinhos[i].to;
+      if (!visited.has(v)) {
+        stack.push([v, [...path, v]]);
+      }
     }
-
-    path.pop();
-    return false;
   }
 
-  if (!visit(source)) return null;
-
-  return {
-    path,
-    cost: null,
-    algorithm: "profundidade",
-  };
+  return null;
 }
 
-function makeTraversalGraph(source, type = "bfs") {
-  const adj = buildLookupAdjacency();
-  const visited = new Set([source]);
+function makeTraversalGraph(origem, type = "bfs") {
+  const adj = buildAmostraAdjacency();
+  const visited = new Set([origem]);
   const nodes = [];
   const treeEdges = [];
   const usedTreeEdges = new Set();
-  const limit = 25;
+  const limit = 28;
+  // max vizinhos por no: evita que um hub (ex: Jurassic Park) ocupe todos os slots
+  const maxPerNode = type === "bfs" ? 4 : 3;
 
   function addNode(id, level) {
     nodes.push(baseNode(id, {
       level,
-      size: id === source ? 42 : 28,
-      background: id === source ? "#2ecc71" : type === "bfs" ? "#f5c518" : "#7cc7ff",
-      border: id === source ? "#ffffff" : "#f5c518",
+      size: id === origem ? 42 : 28,
+      background: id === origem ? "#2ecc71" : type === "bfs" ? "#f5c518" : "#7cc7ff",
+      border: id === origem ? "#ffffff" : "#f5c518",
     }));
   }
 
-  addNode(source, 0);
+  addNode(origem, 0);
 
   if (type === "bfs") {
-    const queue = [{ id: source, level: 0 }];
+    const queue = [{ id: origem, level: 0 }];
 
     while (queue.length && nodes.length < limit) {
       const current = queue.shift();
       const neighbors = [...(adj.get(current.id) ?? [])]
-        .sort((a, b) => movieLabel(a.to).localeCompare(movieLabel(b.to)));
+        .sort((a, b) => (b.edge.similaridade ?? 0) - (a.edge.similaridade ?? 0));
 
-      neighbors.forEach(({ to, edge }) => {
-        if (visited.has(to) || nodes.length >= limit) return;
+      let addedFromNode = 0;
+      for (const { to, edge } of neighbors) {
+        if (nodes.length >= limit) break;
+        if (visited.has(to)) continue;
+        if (addedFromNode >= maxPerNode) break;
         visited.add(to);
+        addedFromNode += 1;
         addNode(to, current.level + 1);
         const visual = baseEdge({
           ...edge,
@@ -490,7 +538,7 @@ function makeTraversalGraph(source, type = "bfs") {
         treeEdges.push(visual);
         usedTreeEdges.add(edgeKey(current.id, to));
         queue.push({ id: to, level: current.level + 1 });
-      });
+      }
     }
   } else {
     function visit(id, level) {
@@ -499,9 +547,13 @@ function makeTraversalGraph(source, type = "bfs") {
       const neighbors = [...(adj.get(id) ?? [])]
         .sort((a, b) => (b.edge.similaridade ?? 0) - (a.edge.similaridade ?? 0));
 
-      neighbors.forEach(({ to, edge }) => {
-        if (visited.has(to) || nodes.length >= limit) return;
+      let addedFromNode = 0;
+      for (const { to, edge } of neighbors) {
+        if (nodes.length >= limit) break;
+        if (visited.has(to)) continue;
+        if (addedFromNode >= maxPerNode) break;
         visited.add(to);
+        addedFromNode += 1;
         addNode(to, level + 1);
         const visual = baseEdge({
           ...edge,
@@ -515,30 +567,15 @@ function makeTraversalGraph(source, type = "bfs") {
         treeEdges.push(visual);
         usedTreeEdges.add(edgeKey(id, to));
         visit(to, level + 1);
-      });
+      }
     }
 
-    visit(source, 0);
+    visit(origem, 0);
   }
-
-  const selected = new Set(nodes.map((node) => node.id));
-  const extraEdges = Object.values(state.lookup?.edges ?? {})
-    .filter((edge) => selected.has(edge.source) && selected.has(edge.target))
-    .filter((edge) => !usedTreeEdges.has(edgeKey(edge.source, edge.target)))
-    .slice(0, 10)
-    .map((edge) => baseEdge({
-      ...edge,
-      id: `${type}-extra-${edge.source}-${edge.target}`,
-    }, {
-      color: "rgba(245, 197, 24, 0.32)",
-      width: 2,
-      dashes: true,
-      label: "",
-    }));
 
   return {
     nodes,
-    edges: [...treeEdges, ...extraEdges],
+    edges: treeEdges,
     layout: "network",
     direction: type === "bfs" ? "UD" : "LR",
   };
@@ -567,7 +604,7 @@ function makeDijkstraGraph() {
   });
 
   const mainEdges = pathEdges(route.path, { prefix: "dijkstra" }).map((edge) => {
-    pathEdgeIds.add(edgeKey(edge.source, edge.target));
+    pathEdgeIds.add(edgeKey(edgeOrigem(edge), edgeDestino(edge)));
     return baseEdge(edge, {
       color: "#ff9f1c",
       width: 6,
@@ -576,29 +613,15 @@ function makeDijkstraGraph() {
     });
   });
 
-  const contextEdges = Object.values(state.lookup?.edges ?? {})
-    .filter((edge) => pathSet.has(edge.source) && pathSet.has(edge.target))
-    .filter((edge) => !pathEdgeIds.has(edgeKey(edge.source, edge.target)))
-    .slice(0, 18)
-    .map((edge) => baseEdge({
-      ...edge,
-      id: `dijkstra-context-${edge.source}-${edge.target}`,
-    }, {
-      color: "rgba(245, 197, 24, 0.26)",
-      width: 2,
-      dashes: true,
-      label: "",
-    }));
-
   return {
     nodes,
-    edges: [...mainEdges, ...contextEdges],
+    edges: mainEdges,
     layout: "network",
   };
 }
 
 function longestDijkstraPath() {
-  const nodes = Object.keys(state.lookup?.movies ?? {});
+  const nodes = Object.keys(state.amostra?.movies ?? {});
   let best = null;
 
   for (let i = 0; i < nodes.length; i += 1) {
@@ -615,8 +638,8 @@ function longestDijkstraPath() {
 }
 
 function makeNeighborhoodGraph(id) {
-  const edges = Object.values(state.lookup?.edges ?? {})
-    .filter((edge) => edge.source === id || edge.target === id);
+  const edges = Object.values(state.amostra?.edges ?? {})
+    .filter((edge) => edgeOrigem(edge) === id || edgeDestino(edge) === id);
 
   if (!edges.length) {
     return {
@@ -647,8 +670,57 @@ function makeNeighborhoodGraph(id) {
   return graph;
 }
 
+function makeFullGraph() {
+  const g = state.grafoCompleto;
+  if (!g) return { nodes: [], edges: [], layout: "network" };
+
+  const filmes = g.filmes ?? {};
+  const arestas = g.arestas ?? [];
+  const posicoes = g.posicoes ?? {};
+
+  // limite absoluto: pega as 3000 arestas de maior similaridade
+  // o roteamento (dijkstra/dfs) usa todas as 100k via buildGrafoAdjacency()
+  const LIMITE_VISUAL = 3000;
+  const arestasSorted = [...arestas].sort((a, b) => (b.sim ?? 0) - (a.sim ?? 0));
+  const arestasFiltradas = arestasSorted.slice(0, LIMITE_VISUAL);
+
+  // apenas nos que aparecem nessas arestas
+  const nodeSet = new Set();
+  arestasFiltradas.forEach((e) => { nodeSet.add(edgeOrigem(e)); nodeSet.add(edgeDestino(e)); });
+
+  const nodes = Array.from(nodeSet).map((id) => {
+    const info = filmes[id] ?? {};
+    const pos = posicoes[id];
+    const node = {
+      id,
+      label: "",
+      title: `${id}${info.ano ? ` (${info.ano})` : ""}${info.nota ? ` | ${info.nota}` : ""}`,
+      shape: "dot",
+      size: 5,
+      color: { background: "#4a9eff", border: "#2d7dd2", highlight: { background: "#ff9f1c", border: "#e67e00" } },
+    };
+    if (pos) {
+      node.x = pos.x;
+      node.y = pos.y;
+      node.physics = false;
+    }
+    return node;
+  });
+
+  const edges = arestasFiltradas.map((e, i) => ({
+    id: `fe-${i}`,
+    from: edgeOrigem(e),
+    to: edgeDestino(e),
+    width: 0.5,
+    color: { color: "rgba(100,160,255,0.22)", highlight: "rgba(255,159,28,0.9)" },
+    title: `sim: ${e.sim} | peso: ${e.p} | atores: ${e.a}`,
+  }));
+
+  return { nodes, edges, layout: "network", fullGraph: true };
+}
+
 function graphForMode(mode) {
-  const edges = Object.values(state.lookup?.edges ?? {});
+  const edges = Object.values(state.amostra?.edges ?? {});
   const bySimilarity = [...edges].sort((a, b) => (b.similaridade ?? 0) - (a.similaridade ?? 0));
   const byActors = [...edges].sort((a, b) =>
     (b.actors_common ?? 0) - (a.actors_common ?? 0)
@@ -658,18 +730,16 @@ function graphForMode(mode) {
 
   if (mode === "top") {
     return makeGraphFromEdges(byActors.slice(0, 42), {
-      edgeOptions: {
-        label: "",
-      },
+      edgeOptions: { label: "" },
     });
   }
 
   if (mode === "bfs") {
-    return makeTraversalGraph("tt0012313", "bfs");
+    return makeTraversalGraph(defaultGraphSource(), "bfs");
   }
 
   if (mode === "dfs") {
-    return makeTraversalGraph("tt0012313", "dfs");
+    return makeTraversalGraph(defaultGraphSource(), "dfs");
   }
 
   if (mode === "dijkstra") {
@@ -680,11 +750,19 @@ function graphForMode(mode) {
     return makeBellmanFordGraph();
   }
 
+  if (mode === "grafo-completo") {
+    return makeFullGraph();
+  }
+
   return makeGraphFromEdges(connectedEdgeSample(bySimilarity, 24), {
-    edgeOptions: {
-      label: "",
-    },
+    edgeOptions: { label: "" },
   });
+}
+
+function defaultGraphSource() {
+  return state.resumo?.buscas?.fontes_principais?.[0]
+    ?? Object.keys(state.amostra?.movies ?? {})[0]
+    ?? "";
 }
 
 function renderMetrics(dataset) {
@@ -695,21 +773,21 @@ function renderMetrics(dataset) {
 }
 
 
-function renderResults(summary) {
-  const bfs = summary.buscas?.bfs ?? [];
-  const dfs = summary.buscas?.dfs ?? [];
-  const dijkstra = summary.dijkstra ?? [];
-  const bellmanFord = summary.bellman_ford ?? [];
+function renderResults(resumo) {
+  const bfs = resumo.buscas?.bfs ?? [];
+  const dfs = resumo.buscas?.dfs ?? [];
+  const dijkstra = resumo.dijkstra ?? [];
+  const bellmanFord = resumo.bellman_ford ?? [];
   const dijkstraOk = dijkstra.filter((item) => !item.sem_caminho).length;
   const bfCycle = bellmanFord.some((item) => item.ciclo_negativo);
 
-  document.getElementById("results-summary").innerHTML = [
+  document.getElementById("results-resumo").innerHTML = [
     `
       <article class="result-stat">
         <h3>buscas</h3>
         <span>${bfs.length + dfs.length}</span>
-        <p>bfs percorre a ilha do filme por camadas para medir alcance e niveis de vizinhanca.<br>dfs usa as mesmas fontes, aprofunda os caminhos e ajuda a confirmar ciclos.</p>
-        <small>${metricValue(summary.buscas?.fontes_principais?.length ?? 0)} filmes de partida usados tanto na bfs quanto na dfs.</small>
+        <p>bfs mede alcance por camadas. dfs percorre trilhas mais profundas nas mesmas fontes.</p>
+        <small>${metricValue(resumo.buscas?.fontes_principais?.length ?? 0)} filmes de partida usados tanto na bfs quanto na dfs.</small>
       </article>
     `,
     `
@@ -724,17 +802,20 @@ function renderResults(summary) {
       <article class="result-stat">
         <h3>bellman-ford</h3>
         <span>${bfCycle ? "ok" : "--"}</span>
-        <p>roda em grafos dirigidos de validacao para provar que o codigo lida com peso negativo e tambem bloqueia ciclo negativo quando ele aparece.</p>
+        <p>usa grafos dirigidos de validacao para testar pesos negativos e detectar ciclo negativo.</p>
         <small>casos sinteticos separados do grafo imdb principal.</small>
       </article>
     `,
   ].join("");
 }
 
-function renderBenchmarkOutput(summary) {
-  const benchmark = summary.benchmark ?? {};
-  const benchmarkHtml = Object.entries(benchmark).map(([name, items]) => {
-    const maxVisited = Math.max(...items.map((item) => item.visitados ?? 0));
+function renderBenchmarkOutput(resumo) {
+  const benchmark = resumo.benchmark ?? {};
+  const benchmarkHtml = Object.entries(benchmark)
+    .filter(([, items]) => Array.isArray(items))
+    .map(([name, items]) => {
+    if (!Array.isArray(items) || items.length === 0) return "";
+    const maxVisited = Math.max(0, ...items.map((item) => item.visitados ?? 0));
     const detail = name === "dijkstra"
       ? `${items.length} pares`
       : name === "bellman_ford"
@@ -766,21 +847,21 @@ function renderBenchmarkOutput(summary) {
 
 function compactSearch(item) {
   return {
-    source: item.source,
-    filme: movieInfo(item.source).titulo,
+    origem: item.origem,
+    filme: movieInfo(item.origem).titulo,
     visitados: item.visitados,
     camadas: item.camadas,
-    ciclo_na_componente: item.ciclo_na_componente,
+    tem_ciclo: item.tem_ciclo,
     tempo_s: item.tempo_s,
   };
 }
 
 function compactDijkstra(item) {
   return {
-    source: item.source,
-    source_filme: movieInfo(item.source).titulo,
-    target: item.target,
-    target_filme: movieInfo(item.target).titulo,
+    origem: item.origem,
+    origem_filme: movieInfo(item.origem).titulo,
+    destino: item.destino,
+    destino_filme: movieInfo(item.destino).titulo,
     sem_caminho: item.sem_caminho,
     custo_total: item.custo_total,
     tamanho_caminho: item.tamanho_caminho,
@@ -789,23 +870,23 @@ function compactDijkstra(item) {
   };
 }
 
-function renderRawOutputs(summary) {
+function renderRawOutputs(resumo) {
   const consolidated = {
     dataset: {
-      vertices: summary.dataset?.num_vertices,
-      arestas: summary.dataset?.num_arestas,
-      ilhas: summary.dataset?.componentes_conexas,
-      maior_ilha: summary.dataset?.maior_componente_conexa,
-      grau_medio: summary.dataset?.grau?.medio,
+      vertices: resumo.dataset?.num_vertices,
+      arestas: resumo.dataset?.num_arestas,
+      ilhas: resumo.dataset?.componentes_conexas,
+      maior_ilha: resumo.dataset?.maior_componente_conexa,
+      grau_medio: resumo.dataset?.grau?.medio,
     },
     bfs_dfs: {
-      bfs: (summary.buscas?.bfs ?? []).map(compactSearch),
-      dfs: (summary.buscas?.dfs ?? []).map(compactSearch),
+      bfs: (resumo.buscas?.bfs ?? []).map(compactSearch),
+      dfs: (resumo.buscas?.dfs ?? []).map(compactSearch),
     },
-    dijkstra: (summary.dijkstra ?? []).map(compactDijkstra),
-    bellman_ford: (summary.bellman_ford ?? []).map((item) => ({
+    dijkstra: (resumo.dijkstra ?? []).map(compactDijkstra),
+    bellman_ford: (resumo.bellman_ford ?? []).map((item) => ({
       dataset: fileName(item.dataset),
-      source: item.source,
+      origem: item.origem,
       ciclo_negativo: item.ciclo_negativo,
       distancias: item.distancias,
       tempo_s: item.tempo_s,
@@ -815,7 +896,7 @@ function renderRawOutputs(summary) {
   document.getElementById("raw-output-pane").innerHTML = `
     <article class="result-panel raw-output-merged">
       <header>
-        <h3 class="saidas-pane-title">parte2_report.json filtrada</h3>
+        <h3 class="saidas-pane-title">resumo tecnico da parte 2</h3>
       </header>
       <pre class="raw-output-merged-pre"><code>${attr(JSON.stringify(consolidated, null, 2))}</code></pre>
     </article>
@@ -917,7 +998,7 @@ function renderDetailsForEdge(id) {
         </div>
         <div>
           <dt>ciclo negativo</dt>
-          <dd>${meta.ciclo_negativo ? "esta aresta faz parte do ciclo negativo destacado" : "nao"}</dd>
+          <dd>${meta.ciclo_negativo ? "sim" : "nao"}</dd>
         </div>
         <div>
           <dt>observacao</dt>
@@ -928,9 +1009,9 @@ function renderDetailsForEdge(id) {
     return;
   }
 
-  const source = movieInfo(meta.source ?? edge?.from);
-  const target = movieInfo(meta.target ?? edge?.to);
-  const genres = meta.source && meta.target ? commonGenres(meta.source, meta.target) : [];
+  const origem = movieInfo(meta.origem ?? edge?.from);
+  const destino = movieInfo(meta.destino ?? edge?.to);
+  const genres = meta.origem && meta.destino ? commonGenres(meta.origem, meta.destino) : [];
   const actorNames = Array.isArray(meta.actors_common_names) ? meta.actors_common_names : [];
   const actorIds = Array.isArray(meta.actors_common_ids) ? meta.actors_common_ids : [];
   const actors = actorNames.length
@@ -944,15 +1025,15 @@ function renderDetailsForEdge(id) {
   details.innerHTML = `
     <p class="eyebrow">selecao</p>
     <h3>aresta selecionada</h3>
-    <p>${attr(source.titulo || edge?.from)} -> ${attr(target.titulo || edge?.to)}</p>
+    <p>${attr(origem.titulo || edge?.from)} -> ${attr(destino.titulo || edge?.to)}</p>
     <dl class="detail-list">
       <div>
         <dt>origem</dt>
-        <dd>${attr(source.titulo || edge?.from)}</dd>
+        <dd>${attr(origem.titulo || edge?.from)}</dd>
       </div>
       <div>
         <dt>destino</dt>
-        <dd>${attr(target.titulo || edge?.to)}</dd>
+        <dd>${attr(destino.titulo || edge?.to)}</dd>
       </div>
       <div>
         <dt>${actorLabel}</dt>
@@ -974,24 +1055,24 @@ function renderDetailsForEdge(id) {
   `;
 }
 
-function renderRouteDetails(result, source, target) {
+function renderRouteDetails(result, origem, destino) {
   const details = document.getElementById("details-panel");
-  const sourceMovie = movieInfo(source);
-  const targetMovie = movieInfo(target);
+  const origemMovie = movieInfo(origem);
+  const destinoMovie = movieInfo(destino);
 
   if (!result) {
     details.innerHTML = `
       <p class="eyebrow">rota</p>
-      <h3>sem caminho no lookup</h3>
-      <p>${attr(sourceMovie.titulo || source)} -> ${attr(targetMovie.titulo || target)}</p>
+      <h3>sem caminho na amostra</h3>
+      <p>${attr(origemMovie.titulo || origem)} -> ${attr(destinoMovie.titulo || destino)}</p>
       <dl class="detail-list">
         <div>
           <dt>origem</dt>
-          <dd>${attr(source)}</dd>
+          <dd>${attr(origem)}</dd>
         </div>
         <div>
           <dt>destino</dt>
-          <dd>${attr(target)}</dd>
+          <dd>${attr(destino)}</dd>
         </div>
         <div>
           <dt>observacao</dt>
@@ -1005,15 +1086,15 @@ function renderRouteDetails(result, source, target) {
   details.innerHTML = `
     <p class="eyebrow">rota</p>
     <h3>${attr(result.algorithm)}</h3>
-    <p>${attr(sourceMovie.titulo || source)} -> ${attr(targetMovie.titulo || target)}</p>
+    <p>${attr(origemMovie.titulo || origem)} -> ${attr(destinoMovie.titulo || destino)}</p>
     <dl class="detail-list">
       <div>
         <dt>origem</dt>
-        <dd>${attr(source)}</dd>
+        <dd>${attr(origem)}</dd>
       </div>
       <div>
         <dt>destino</dt>
-        <dd>${attr(target)}</dd>
+        <dd>${attr(destino)}</dd>
       </div>
       <div>
         <dt>nos no caminho</dt>
@@ -1035,7 +1116,7 @@ function renderBellmanDetails() {
   document.getElementById("details-panel").innerHTML = `
     <p class="eyebrow">bellman-ford</p>
     <h3>validacao direcionada artificial</h3>
-    <p>estes dois grafos nao sao do imdb. eles servem para provar peso negativo sem ciclo e deteccao de ciclo negativo.</p>
+    <p>estes dois grafos nao sao do imdb. eles validam peso negativo sem ciclo e deteccao de ciclo negativo.</p>
     <dl class="detail-list">
       <div>
         <dt>caso sem ciclo negativo</dt>
@@ -1043,7 +1124,7 @@ function renderBellmanDetails() {
       </div>
       <div>
         <dt>caso com ciclo negativo</dt>
-        <dd>grafo dirigido com ciclo de custo negativo; o algoritmo bloqueia o resultado e marca deteccao.</dd>
+        <dd>grafo dirigido com ciclo de custo negativo; o algoritmo bloqueia o resultado.</dd>
       </div>
       <div>
         <dt>por que artificial?</dt>
@@ -1097,6 +1178,9 @@ function drawGraph(mode = "similaridade") {
       tooltipDelay: 120,
       navigationButtons: false,
       keyboard: true,
+      // melhora o desempenho no grafo completo
+      hideEdgesOnDrag: !!graph.fullGraph,
+      hideEdgesOnZoom: !!graph.fullGraph,
     },
     layout: isPathLayout
       ? {
@@ -1109,21 +1193,21 @@ function drawGraph(mode = "similaridade") {
           },
         }
       : {},
-    physics: {
-      enabled: true,
-      solver: "forceAtlas2Based",
-      forceAtlas2Based: {
-        gravitationalConstant: -90,
-        centralGravity: 0.018,
-        springLength: 145,
-        springConstant: 0.08,
-        damping: 0.5,
-        avoidOverlap: 0.75,
-      },
-      stabilization: {
-        iterations: 180,
-      },
-    },
+    physics: graph.fullGraph
+      ? { enabled: false }
+      : {
+          enabled: !isPathLayout,
+          solver: "forceAtlas2Based",
+          forceAtlas2Based: {
+            gravitationalConstant: -90,
+            centralGravity: 0.018,
+            springLength: 145,
+            springConstant: 0.08,
+            damping: 0.5,
+            avoidOverlap: 0.75,
+          },
+          stabilization: { iterations: 180 },
+        },
     nodes: {
       shadow: {
         enabled: true,
@@ -1204,17 +1288,65 @@ function focusGraphNode(id) {
   return true;
 }
 
+async function loadGrafoCompleto() {
+  if (state.grafoCompleto) return state.grafoCompleto;
+  const data = await fetchJson("data/parte2_grafo.json?v=1");
+  state.grafoCompleto = data;
+  return data;
+}
+
+function showFullGraphModal(modeSelect) {
+  const modal = document.getElementById("full-graph-modal");
+  const confirmBtn = document.getElementById("full-graph-confirm");
+  const cancelBtn = document.getElementById("full-graph-cancel");
+  const backdrop = document.getElementById("full-graph-backdrop");
+
+  modal.setAttribute("aria-hidden", "false");
+  modal.style.display = "flex";
+
+  function close(revert = true) {
+    modal.setAttribute("aria-hidden", "true");
+    modal.style.display = "";
+    if (revert) modeSelect.value = "similaridade";
+    confirmBtn.removeEventListener("click", onConfirm);
+    cancelBtn.removeEventListener("click", onCancel);
+    backdrop.removeEventListener("click", onCancel);
+  }
+
+  async function onConfirm() {
+    close(false);
+    confirmBtn.textContent = "carregando...";
+    confirmBtn.disabled = true;
+    await loadGrafoCompleto();
+    confirmBtn.textContent = "carregar mesmo assim";
+    confirmBtn.disabled = false;
+    drawGraph("grafo-completo");
+    refreshGraphView(true);
+    resetDetails();
+  }
+
+  function onCancel() { close(true); }
+
+  confirmBtn.addEventListener("click", onConfirm);
+  cancelBtn.addEventListener("click", onCancel);
+  backdrop.addEventListener("click", onCancel);
+}
+
 function setupGraphControls() {
   const mode = document.getElementById("graph-mode");
   const search = document.getElementById("graph-search");
   const searchButton = document.getElementById("search-btn");
   const resetButton = document.getElementById("reset-graph-btn");
-  const routeSource = document.getElementById("route-source");
-  const routeTarget = document.getElementById("route-target");
+  const routeOrigem = document.getElementById("route-origem");
+  const routeDestino = document.getElementById("route-destino");
   const routeAlgorithm = document.getElementById("route-algorithm");
   const routeButton = document.getElementById("route-run-btn");
 
   mode.addEventListener("change", () => {
+    if (mode.value === "grafo-completo") {
+      showFullGraphModal(mode);
+      return;
+    }
     drawGraph(mode.value);
     refreshGraphView(true);
     if (mode.value === "bellman-ford") {
@@ -1229,7 +1361,7 @@ function setupGraphControls() {
     if (!id) return;
 
     let found = focusGraphNode(id);
-    if (!found && state.lookup?.movies?.[id]) {
+    if (!found && state.amostra?.movies?.[id]) {
       drawGraph(makeNeighborhoodGraph(id));
       found = focusGraphNode(id);
     }
@@ -1247,16 +1379,24 @@ function setupGraphControls() {
     search.classList.remove("search-miss");
   });
 
-  function runRoute() {
-    const source = routeSource.value.trim();
-    const target = routeTarget.value.trim();
+  async function runRoute() {
+    const origem = routeOrigem.value.trim();
+    const destino = routeDestino.value.trim();
     const algorithm = routeAlgorithm.value;
 
-    if (!source || !target) return;
+    if (!origem || !destino) return;
+
+    if (!state.grafoCompleto) {
+      routeButton.textContent = "carregando grafo...";
+      routeButton.disabled = true;
+      await loadGrafoCompleto();
+      routeButton.textContent = "calcular rota";
+      routeButton.disabled = false;
+    }
 
     const result = algorithm === "dfs"
-      ? dfsPath(source, target)
-      : dijkstraPath(source, target);
+      ? dfsPath(origem, destino)
+      : dijkstraPath(origem, destino);
 
     if (result) {
       drawGraph(makePathGraph(result.path, {
@@ -1268,16 +1408,18 @@ function setupGraphControls() {
         labelEdges: algorithm === "dijkstra",
       }));
     } else {
-      drawGraph(makeNeighborhoodGraph(source));
+      drawGraph(makeNeighborhoodGraph(origem));
     }
 
-    renderRouteDetails(result, source, target);
-    routeSource.classList.toggle("search-miss", !state.lookup?.movies?.[source]);
-    routeTarget.classList.toggle("search-miss", !state.lookup?.movies?.[target]);
+    renderRouteDetails(result, origem, destino);
+    const movieExists = (id) =>
+      !!(state.amostra?.movies?.[id] ?? state.grafoCompleto?.filmes?.[id]);
+    routeOrigem.classList.toggle("search-miss", !movieExists(origem));
+    routeDestino.classList.toggle("search-miss", !movieExists(destino));
   }
 
   routeButton.addEventListener("click", runRoute);
-  [routeSource, routeTarget].forEach((input) => {
+  [routeOrigem, routeDestino].forEach((input) => {
     input.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         event.preventDefault();
@@ -1289,11 +1431,11 @@ function setupGraphControls() {
 
   resetButton.addEventListener("click", () => {
     search.value = "";
-    routeSource.value = "";
-    routeTarget.value = "";
+    routeOrigem.value = "";
+    routeDestino.value = "";
     search.classList.remove("search-miss");
-    routeSource.classList.remove("search-miss");
-    routeTarget.classList.remove("search-miss");
+    routeOrigem.classList.remove("search-miss");
+    routeDestino.classList.remove("search-miss");
     state.network?.unselectAll();
     state.network?.fit({
       animation: {
@@ -1420,25 +1562,34 @@ function setupViews() {
 }
 
 async function init() {
-  const [summary, lookup] = await Promise.all([
-    fetchJson("data/parte2_summary.json?v=2"),
-    fetchJson("data/parte2_lookup.json?v=2"),
+  const [resumo, amostra] = await Promise.all([
+    fetchJson("data/resumo_parte2.json?v=1"),
+    fetchJson("data/parte2_amostra.json?v=7"),
   ]);
-  state.summary = summary;
-  state.lookup = lookup;
+  state.resumo = resumo;
+  state.amostra = amostra;
+
+  // popula datalist com os titulos da amostra para autocomplete nos inputs de busca.
+  const dl = document.getElementById("movies-list");
+  if (dl && amostra?.movies) {
+    Object.keys(amostra.movies).sort().forEach((title) => {
+      const opt = document.createElement("option");
+      opt.value = title;
+      dl.appendChild(opt);
+    });
+  }
 
   setupViews();
-  renderMetrics(state.summary.dataset);
-  renderResults(state.summary);
-  renderBenchmarkOutput(state.summary);
-  renderRawOutputs(state.summary);
-  renderVisualizations(state.summary.visualizacoes);
+  renderMetrics(state.resumo.dataset);
+  renderResults(state.resumo);
+  renderBenchmarkOutput(state.resumo);
+  renderRawOutputs(state.resumo);
+  renderVisualizations(state.resumo.visualizacoes);
   setupGraphControls();
   setupVizModal();
   setupGraphFullscreen();
 }
 
-init().catch((err) => {
-  console.error(err);
+init().catch(() => {
   document.body.classList.add("load-error");
 });

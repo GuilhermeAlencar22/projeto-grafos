@@ -1,10 +1,11 @@
-"""implementa menor caminho, bellman-ford e as buscas em largura e profundidade."""
+"""bfs, dfs, dijkstra e bellman-ford implementados do zero."""
 
 from collections import deque
 import heapq
 
 
-def _validar_pesos_nao_negativos(graph):
+def validar_pesos_para_dijkstra(graph):
+    """levanta ValueError se o grafo tiver qualquer peso negativo."""
     for u in graph.get_nodes():
         for v, w in graph.neighbors(u):
             if w < 0:
@@ -13,11 +14,12 @@ def _validar_pesos_nao_negativos(graph):
                 )
 
 
-def validar_pesos_para_dijkstra(graph):
-    _validar_pesos_nao_negativos(graph)
-
-
 def dijkstra(graph, start, target):
+    """menor caminho entre start e target; retorna (custo, caminho) ou None se nao existir.
+
+    rejeita pesos negativos com ValueError.
+    usa heap minimo para escolher sempre o no de menor custo acumulado.
+    """
     if start not in graph.adj or target not in graph.adj:
         return None
 
@@ -28,6 +30,7 @@ def dijkstra(graph, start, target):
 
     while pq:
         d, u = heapq.heappop(pq)
+        # entrada desatualizada: ja encontramos custo menor pra esse no
         if u not in dist or d != dist[u]:
             continue
         if u == target:
@@ -46,6 +49,7 @@ def dijkstra(graph, start, target):
     if target not in dist:
         return None
 
+    # reconstroi o caminho de tras pra frente pelo pred
     caminho = []
     cur = target
     while cur is not None:
@@ -56,6 +60,12 @@ def dijkstra(graph, start, target):
 
 
 def bellman_ford(graph, start):
+    """distancias a partir de start; aceita pesos negativos.
+
+    retorna (True, None) se detectar ciclo negativo.
+    retorna (False, dict_distancias) caso contrario.
+    roda n-1 relaxacoes e depois uma passagem extra para checar ciclo.
+    """
     if start not in graph.adj:
         raise ValueError(f"no inicial inexistente no grafo: {start}")
 
@@ -79,6 +89,7 @@ def bellman_ford(graph, start):
         if not alterou:
             break
 
+    # se ainda da pra relaxar, ha ciclo negativo
     for u in nodes:
         du = dist[u]
         if du == INF:
@@ -91,6 +102,10 @@ def bellman_ford(graph, start):
 
 
 def bfs(graph, start):
+    """busca em largura a partir de start.
+
+    retorna (ordem_de_visita, niveis) onde niveis[v] = distancia em arestas ate start.
+    """
     visited = {start}
     levels = {start: 0}
     queue = deque([start])
@@ -109,6 +124,7 @@ def bfs(graph, start):
 
 
 def dfs(graph, start):
+    """busca em profundidade iterativa a partir de start; retorna ordem de visita."""
     visited = set()
     stack = [start]
     order = []
@@ -118,7 +134,6 @@ def dfs(graph, start):
         if node not in visited:
             visited.add(node)
             order.append(node)
-
             for neighbor, _ in graph.neighbors(node):
                 if neighbor not in visited:
                     stack.append(neighbor)
@@ -126,12 +141,16 @@ def dfs(graph, start):
     return order
 
 
-# dfs com branco/cinza/preto (digrafo): tree/back/forward/cross e ciclo pela aresta back
+# cores usadas pela dfs no digrafo para classificar arestas
 _BRANCO, _CINZA, _PRETO = 0, 1, 2
 
 
 def dfs_classificacao_dirigido(graph, start):
-    """dfs no digrafo desde start; devolve ordem, se tem ciclo e lista de arestas por tipo."""
+    """dfs recursiva em digrafo; classifica cada aresta como tree/back/forward/cross.
+
+    retorna (ordem, tem_ciclo, lista_de_arestas).
+    aresta back indica ciclo.
+    """
     if start not in graph.adj:
         return [], False, []
 
