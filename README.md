@@ -1,155 +1,265 @@
-# Projeto Final — Rede de Aeroportos do Brasil + Algoritmos de Grafos
+﻿# Projeto Final - Rede de Aeroportos + IMDb
 
-## 📌 Descrição
-ste projeto tem como objetivo modelar, analisar e visualizar a rede de aeroportos do Brasil utilizando conceitos de **Teoria dos Grafos** e **Algoritmos Clássicos**. 
+Projeto final de Teoria dos Grafos, dividido em duas partes: modelagem da rede de aeroportos do Brasil e comparacao de algoritmos em um dataset maior de filmes do IMDb.
 
-A rede foi construída a partir de um dataset real de aeroportos e enriquecida com conexões baseadas em **voos diretos reais**, permitindo análises estruturais complexas e simulações de rotas otimizadas.
+O projeto usa implementacao propria dos algoritmos de grafo. Nao foram usadas bibliotecas prontas de grafos para BFS, DFS, Dijkstra ou Bellman-Ford.
 
-O projeto está dividido em duas etapas:
+## Sumario
 
-* **Parte 1:** Modelagem, métricas fundamentais, algoritmos de busca/caminho mínimo e visualizações interativas.
-* **Parte 2:** Extensão com novos datasets, algoritmos avançados (Bellman-Ford), análise de performance e robustez da rede.
+1. [Equipe](#equipe)
+2. [Visao geral](#visao-geral)
+3. [Parte 1 - Aeroportos](#parte-1---aeroportos)
+4. [Parte 2 - IMDb](#parte-2---imdb)
+5. [Algoritmos](#algoritmos)
+6. [Saidas geradas](#saidas-geradas)
+7. [Como executar](#como-executar)
+8. [Interface](#interface)
+9. [Testes](#testes)
+10. [Estrutura](#estrutura)
+11. [Observacoes](#observacoes)
 
-## 👥 Equipe
+## Equipe
+
 - Guilherme Alencar Augusto Correa - gaac@cesar.school
-- Rodrigo Lucena Cavalcanti - rlc2@cesar.school 
-- Rodrigo Torres Galindo Filho - rtgf@cesar.school 
+- Rodrigo Lucena Cavalcanti - rlc2@cesar.school
+- Rodrigo Torres Galindo Filho - rtgf@cesar.school
 - Erick Acioli Belo - eab2@cesar.school
-- João Marcelo Tavares Pereira Montenegro - jmtpm@cesar.school
+- Joao Marcelo Tavares Pereira Montenegro - jmtpm@cesar.school
 
----
+## Visao geral
 
-## Modelagem do Problema
+A Parte 1 modela uma rede de aeroportos brasileiros. Cada aeroporto e um vertice, e cada conexao representa uma rota direta definida pelo grupo.
 
-A rede foi estruturada seguindo os princípios matemáticos de grafos:
+A Parte 2 usa um dataset maior baseado em filmes do IMDb. Cada filme e um vertice, e as arestas representam conexoes entre filmes por atores e generos compartilhados.
 
-* **Nós (Vértices):** Cada aeroporto é um nó identificado pelo seu código **IATA** (ex: REC, GRU, POA).
-* **Arestas:** Cada conexão representa um voo direto entre dois aeroportos.
-* **Propriedades do Grafo:**
-    * **Não direcionado:** Se existe voo de A para B, assume-se a rota de retorno B para A.
-    * **Conectado:** Não existem aeroportos isolados na rede principal.
-    * **Ponderado:** As conexões possuem custos baseados no tempo.
+As duas partes usam a mesma base de estrutura de grafo e os mesmos algoritmos principais, mantendo a separacao dos dados e das geracoes especificas.
 
-As conexões foram definidas com base na malha aérea real brasileira, respeitando a hierarquia de *hubs* (centros de distribuição), aeroportos regionais e periféricos.
+## Parte 1 - Aeroportos
 
----
+Dataset principal:
 
-## Pesos das Arestas
+- `data/aeroportos_data.csv`
+- `data/adjacencias_aeroportos.csv`
+- `data/rotas.csv`
 
-Para tornar a simulação realista, os pesos das arestas representam o **tempo estimado de voo direto** em horas.
+Modelagem:
 
-**Modelo adotado:** `peso = tempo_de_voo`
+- vertices: aeroportos identificados por codigo IATA;
+- arestas: conexoes entre aeroportos;
+- grafo: nao direcionado, conectado e ponderado;
+- peso: tempo estimado de voo direto.
 
-* ✔ Apenas valores positivos (garante compatibilidade com Dijkstra).
-* ✔ Proporcionalidade real baseada na distância e logística aérea.
+A Parte 1 calcula metricas globais, metricas por regiao, ego-networks, graus, rankings e rotas minimas com Dijkstra.
 
----
+## Parte 2 - IMDb
 
-## Métricas Calculadas
+Dataset final:
 
-O projeto gera uma série de arquivos na pasta `out/` com os resultados das análises:
+- `data/dataset_parte2/Imdb_filmes.csv`
+- `data/dataset_parte2/Imdb_arestas.csv`
 
-### Globais
-Estatísticas sobre a conectividade total da rede (Ordem, Tamanho e Densidade).
-* Arquivo: `out/global.json`
+Casos artificiais do Bellman-Ford:
 
-### Por Região
-Análise de subgrafos induzidos pelas regiões geográficas do Brasil.
-* Arquivo: `out/regioes.json`
+- `data/dataset_parte2/artificiais_bellman_ford/bf_validacao_sem_ciclo.csv`
+- `data/dataset_parte2/artificiais_bellman_ford/bf_validacao_com_ciclo.csv`
 
-### Ego-Networks
-Métricas locais para cada aeroporto:
-* Grau (número de conexões).
-* Ordem e Tamanho da vizinhança.
-* Densidade local.
-* Arquivo: `out/ego_aeroportos.csv`
+Modelagem:
 
----
+- vertices: filmes;
+- arestas: pares de filmes conectados por atores ou generos em comum;
+- grafo IMDb: nao direcionado e ponderado;
+- Bellman-Ford: usa grafos dirigidos artificiais para validar pesos negativos e ciclo negativo.
 
-## Rankings e Distribuição
+Metricas atuais da Parte 2:
 
-* **Graus:** Lista ordenada de conectividade.
-* **Hubs:** Identificação dos aeroportos com maior impacto na rede.
-* Arquivos: `out/graus.csv` e `out/rankings.json`
+- vertices: 3.985 filmes;
+- arestas: 100.000 conexoes;
+- componentes conexas: 7;
+- maior componente: 3.971 vertices;
+- maior grau: `True Romance`, grau 208.
 
----
+Regra de similaridade:
 
-## Algoritmos Implementados
+```text
+similaridade = (2 * atores em comum) + generos em comum
+peso = 1 / similaridade
+```
 
-Um dos diferenciais deste projeto é a **implementação manual** (do zero) dos algoritmos, sem o uso de bibliotecas de grafos prontas:
+Quanto maior a similaridade entre dois filmes, menor o peso da aresta. Assim, o Dijkstra prefere caminhos com conexoes mais fortes.
 
-1.  **BFS (Breadth-First Search):** Para exploração de níveis e caminhos mínimos em grafos não ponderados.
-2.  **DFS (Depth-First Search):** Para verificação de conectividade e exploração profunda.
-3.  **Dijkstra:** Para encontrar a rota mais rápida (menor peso) entre quaisquer dois aeroportos na rede ponderada.
-4.  *(Em breve)* **Bellman-Ford:** Para análise de caminhos com suporte a diferentes tipos de restrições.
+Relatorio tecnico detalhado da branch pre-merge da Parte 2:
 
----
+https://docs.google.com/document/d/1iRzc20usINSrlRvJHTN3PdxI0YTkbO0oMMhQkzxXky8/edit?usp=sharing
 
-## Cálculo de Rotas (Dijkstra)
+## Algoritmos
 
-O sistema calcula o caminho de custo mínimo entre todos os pares possíveis de aeroportos.
-* Arquivo: `out/distancias_rotas.csv`
+Algoritmos implementados manualmente:
 
-**Exemplos de Saída:**
-* `REC → POA` | Custo (Horas): **4.33**
-* `MAO → GRU` | Custo (Horas): **3.75**
+- BFS: busca em largura, usada para alcance, visitados e camadas;
+- DFS: busca em profundidade, usada para exploracao e ciclos;
+- Dijkstra: menor caminho com pesos nao negativos;
+- Bellman-Ford: pesos negativos e deteccao de ciclo negativo.
 
----
+Na Parte 2:
 
-## Visualizações
+- BFS e DFS rodam em 3 fontes distintas;
+- Dijkstra roda em pelo menos 5 pares origem-destino;
+- Bellman-Ford roda em um caso com peso negativo sem ciclo negativo e outro com ciclo negativo detectado;
+- tempos de execucao sao registrados em `out/parte2_report.json`.
 
-### 1. Árvore de Percurso
-Representação dos caminhos mínimos estruturada como árvore.
-* **Destaques:** Rotas coloridas, nós proporcionais ao grau e tooltips.
-* Arquivo: `out/arvore_percurso.html`
+## Saidas geradas
 
-### 2. Grafo Interativo Completo
-Visualização dinâmica utilizando `pyvis`.
-* **Funcionalidades:** Busca de aeroportos, zoom, navegação e layout dinâmico para evitar sobreposição.
-* Arquivo: `out/grafo_interativo.html`
+Parte 1:
 
-### 3. Gráficos Analíticos
-* **Histograma:** Distribuição de graus dos aeroportos (`out/histograma.png`).
-* **Ranking:** Comparação visual dos principais aeroportos (`out/ranking.png`).
-* **Regiões:** Distribuição da malha por região brasileira (`out/regioes.png`).
+- `out/global.json`
+- `out/regioes.json`
+- `out/ego_aeroportos.csv`
+- `out/graus.csv`
+- `out/rankings.json`
+- `out/distancias_rotas.csv`
+- `out/arvore_percurso.html`
+- `out/grafo_interativo.html`
+- `out/histograma.png`
+- `out/ranking.png`
+- `out/regioes.png`
+- `out/subgrafo_hubs.html`
 
----
+Parte 2:
 
-## ▶️ Como Executar
+- `out/parte2_report.json`
+- `out/parte2/parte2_benchmark_tempos.png`
+- `out/parte2/parte2_distribuicao_graus.png`
+- `out/parte2/parte2_componentes_conexas.png`
+- `out/parte2/parte2_similaridade_vs_peso.png`
+- `out/parte2/parte2_atores_vs_similaridade.png`
+- `interface/data/resumo_parte2.json`
+- `interface/data/parte2_amostra.json`
+- `interface/data/parte2_grafo.json`
 
-1. **Clonar o repositório:**
-   ```bash
-   git clone [https://github.com/seu-usuario/nome-do-repositorio.git](https://github.com/seu-usuario/nome-do-repositorio.git)
-   cd nome-do-repositorio ```
-2. **Criar e ativar ambiente virtual:**
-    ```bash
-    python3 -m venv venv  # Linux/Mac
-    # No Windows use: venv\Scripts\activate ```
-3. **Instalar dependências**
-    ```bash
-    pip install -r requirements.txt ```
-4. **Executar o projeto:**
-    ```bash
-    python src/solve.py ```
+## Como executar
 
----
+Instalar dependencias:
 
-## 📌 Tecnologias Utilizadas
+```powershell
+python -m pip install -r requirements.txt
+```
 
-* **Python 3.11+**
-* **Matplotlib:** Geração de gráficos e histogramas.
-* **Pyvis:** Visualização de redes interativas em HTML.
-* **Heapq:** Implementação eficiente da fila de prioridade para o algoritmo de Dijkstra.
-* **Pytest:** Framework de testes automatizados para garantir a integridade dos algoritmos.
+Rodar tudo:
 
----
+```powershell
+python -m src.solve
+```
 
-## 🚀 Parte 2
+Rodar apenas a Parte 1:
 
+```powershell
+python -m src.solve parte1
+```
 
+Rodar apenas a Parte 2:
 
----
+```powershell
+python -m src.solve parte2
+```
 
-## 📊 Conclusão
+Gerar visualizacoes da Parte 2:
 
-Este projeto demonstra como a **Teoria dos Grafos** pode ser aplicada para resolver problemas logísticos complexos no mundo real. A rede construída revela a estrutura hierárquica da aviação brasileira, destacando a importância vital de grandes *hubs* para a conectividade nacional e permitindo a otimização de rotas com base em dados reais de tempo e distância.
+```powershell
+python -m src.viz parte2
+```
+
+Gerar dados da interface da Parte 2:
+
+```powershell
+python -m src.parte2.build_interface_data
+python -m src.parte2.build_interface_grafo
+```
+
+Rodar servidor local:
+
+```powershell
+python -m http.server 8000 --bind 127.0.0.1
+```
+
+Abrir:
+
+```text
+http://127.0.0.1:8000/
+```
+
+## Interface
+
+A interface principal fica em:
+
+- `index.html`
+- `interface/parte1.html`
+- `interface/index.html`
+- `interface/styles.css`
+- `interface/app.js`
+
+Ela usa HTML, CSS e JavaScript puro com `vis-network` para os grafos interativos.
+
+Na raiz do projeto, `index.html` serve como entrada simples para escolher Parte 1 ou Parte 2.
+
+Na Parte 1, `interface/parte1.html` organiza os arquivos gerados em `out/`, incluindo grafo interativo, arvore de percurso, subgrafo de hubs e graficos analiticos.
+
+Na Parte 2, a interface mostra:
+
+- resumo do dataset;
+- subgrafos visuais;
+- busca e rotas entre filmes;
+- resultados dos algoritmos;
+- graficos de desempenho e estrutura.
+
+O modo de grafo completo carrega um arquivo maior (`parte2_grafo.json`) e pode exigir mais do navegador. O refinamento final desse modo fica para a etapa de acabamento apos o merge.
+
+## Testes
+
+Rodar testes:
+
+```powershell
+python -m pytest -q
+```
+
+Testes cobrem:
+
+- BFS com visitados e niveis;
+- DFS simples e classificacao de arestas;
+- Dijkstra com caminho, ausencia de caminho e rejeicao de peso negativo;
+- Bellman-Ford com peso negativo sem ciclo negativo e ciclo negativo detectado;
+- loader de CSV de arestas.
+
+## Estrutura
+
+```text
+projeto-grafos/
+├─ data/
+│  ├─ aeroportos_data.csv
+│  ├─ adjacencias_aeroportos.csv
+│  ├─ rotas.csv
+│  └─ dataset_parte2/
+├─ interface/
+│  ├─ data/
+│  ├─ assets/
+│  ├─ index.html
+│  ├─ styles.css
+│  └─ app.js
+├─ out/
+├─ src/
+│  ├─ graphs/
+│  ├─ parte2/
+│  ├─ utils/
+│  ├─ cli.py
+│  ├─ solve.py
+│  └─ viz.py
+├─ tests/
+├─ requirements.txt
+└─ README.md
+```
+
+## Observacoes
+
+- A branch de teste de merge junta a Parte 1 e a Parte 2 para validacao antes de aplicar na `main`.
+- A Parte 1 continua focada na rede de aeroportos.
+- A Parte 2 continua focada no dataset IMDb e na comparacao de algoritmos.
+- As melhorias finais de UX, AVD e acabamento visual devem ser feitas depois da validacao do merge.

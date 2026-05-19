@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>parte 2 | imdb e algoritmos de grafos</title>
+    <link rel="stylesheet" href="lib/vis-9.1.2/vis-network.css">
+    <link rel="stylesheet" href="styles.css?v=22">
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">IMDb</span>
+        <div>
+          <span class="eyebrow">parte 2</span>
+          <h1>teoria dos grafos</h1>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="is-active" href="#inicio" data-view="inicio">inicio</a>
+        <a href="#grafos" data-view="grafos">grafos</a>
+        <a href="#resultados" data-view="resultados">resultados</a>
+        <a href="#graficos" data-view="graficos">graficos</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero view-panel is-active" id="inicio" data-view-panel="inicio">
+        <div class="hero-copy">
+          <h2>filmes viram nos. atores e generos criam arestas.</h2>
+          <div class="hero-info-grid">
+            <article class="formula-card">
+              <span>regra de peso</span>
+              <strong>similaridade</strong>
+              <p>calculada por (2 x atores em comum) + generos em comum. o peso e invertido: peso = 1 / similaridade, entao conexoes mais fortes ficam mais baratas nos caminhos.</p>
+            </article>
+            <article>
+              <span>dataset imdb</span>
+              <strong>base final: filmes e arestas (sem malha)</strong>
+              <p>a parte 2 roda a partir de Imdb_filmes.csv e Imdb_arestas.csv: filmes como vertices, conexoes como arestas ponderadas.</p>
+            </article>
+          </div>
+          <aside class="cinema-note">
+            <span>leitura do grafo</span>
+            <strong>atores e generos repetidos viram conexoes.</strong>
+            <em>o peso mostra quais ligacoes ficam mais fortes.</em>
+          </aside>
+          <div class="hero-actions">
+            <button type="button" data-view="grafos">explorar grafo</button>
+            <button type="button" data-view="resultados">ver resultados</button>
+            <button type="button" data-view="graficos">abrir graficos</button>
+          </div>
+        </div>
+        <div class="hero-side">
+          <div class="metric-grid" id="dataset-metrics">
+            <article class="metric-card">
+              <span>vertices</span>
+              <strong data-field="num_vertices">--</strong>
+            </article>
+            <article class="metric-card">
+              <span>arestas</span>
+              <strong data-field="num_arestas">--</strong>
+            </article>
+            <article class="metric-card">
+              <span>grau medio</span>
+              <strong data-field="grau_medio">--</strong>
+            </article>
+            <article class="metric-card">
+              <span>ilhas</span>
+              <strong data-field="componentes_conexas">--</strong>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel-section view-panel" id="grafos" data-view-panel="grafos">
+        <div class="section-heading">
+          <h2>visualizacao interativa</h2>
+        </div>
+
+        <div class="graph-shell">
+          <aside class="graph-controls">
+            <div class="panel-kicker">controle da cena</div>
+            <label for="graph-mode">modo do grafo</label>
+            <select id="graph-mode">
+              <option value="similaridade">maior similaridade</option>
+              <option value="top">top conexoes</option>
+              <option value="bfs">bfs - camadas</option>
+              <option value="dfs">dfs - percurso</option>
+              <option value="dijkstra">dijkstra - maior rota visual</option>
+              <option value="bellman-ford">bellman-ford - pesos negativos</option>
+              <option value="grafo-completo">grafo completo visual</option>
+            </select>
+
+            <datalist id="movies-list"></datalist>
+
+            <label for="graph-search">buscar</label>
+            <div class="search-row">
+              <input id="graph-search" type="search" placeholder="ex: Jurassic Park" list="movies-list" autocomplete="off">
+              <button id="search-btn" type="button">buscar</button>
+            </div>
+
+            <div class="route-tool">
+              <span class="route-tool-title">filme x filme</span>
+              <input id="route-origem" type="search" placeholder="origem Jurassic Park" list="movies-list" autocomplete="off">
+              <input id="route-destino" type="search" placeholder="destino Pulp Fiction" list="movies-list" autocomplete="off">
+              <select id="route-algorithm">
+                <option value="dijkstra">dijkstra</option>
+                <option value="dfs">profundidade</option>
+              </select>
+              <button id="route-run-btn" type="button">calcular rota</button>
+            </div>
+
+            <button id="reset-graph-btn" type="button">limpar destaque</button>
+
+            <div class="legend">
+              <strong>legenda</strong>
+              <span><i class="legend-dot origin"></i>origem</span>
+              <span><i class="legend-dot destino"></i>destino</span>
+              <span><i class="legend-line"></i>aresta destacada</span>
+            </div>
+          </aside>
+
+          <div class="graph-area">
+            <button class="graph-fullscreen-btn" id="graph-fullscreen-btn" type="button">maximizar</button>
+            <div id="network"></div>
+            <div class="graph-placeholder" id="graph-placeholder">
+              <span class="loader-ring"></span>
+              <strong>grafo ainda nao carregado</strong>
+              <p>escolha um modo, busque um filme ou calcule uma rota para visualizar as conexoes.</p>
+            </div>
+          </div>
+
+          <aside class="details-panel" id="details-panel">
+            <p class="eyebrow">selecao</p>
+            <h3>nenhum item selecionado</h3>
+            <p>ao clicar em um filme ou aresta, os dados aparecem aqui.</p>
+            <dl class="detail-list">
+              <div>
+                <dt>filme</dt>
+                <dd>--</dd>
+              </div>
+              <div>
+                <dt>conexao</dt>
+                <dd>--</dd>
+              </div>
+              <div>
+                <dt>similaridade</dt>
+                <dd>--</dd>
+              </div>
+              <div>
+                <dt>peso</dt>
+                <dd>--</dd>
+              </div>
+            </dl>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panel-section view-panel" id="resultados" data-view-panel="resultados">
+        <div class="section-heading section-heading-resultados">
+          <h2>saidas</h2>
+        </div>
+        <div class="results-resumo" id="results-resumo"></div>
+        <div class="results-tech-split">
+          <div class="results-tech-json" id="raw-output-pane"></div>
+          <aside class="results-tech-bench" id="benchmark-output" aria-label="tempos medios por algoritmo"></aside>
+        </div>
+      </section>
+
+      <section class="panel-section view-panel" id="graficos" data-view-panel="graficos">
+        <div class="section-heading">
+          <h2>evidencias visuais</h2>
+          <p>clique em qualquer grafico para ver a imagem inteira na tela.</p>
+        </div>
+        <div class="viz-grid" id="viz-grid"></div>
+      </section>
+    </main>
+
+    <div class="image-modal" id="viz-modal" aria-hidden="true" role="dialog" aria-label="grafico ampliado">
+      <div class="image-modal-backdrop" data-close-modal></div>
+      <section class="image-modal-panel">
+        <header>
+          <div>
+            <p class="eyebrow">grafico ampliado</p>
+            <h2 id="modal-title">grafico</h2>
+          </div>
+          <button class="modal-close" type="button" data-close-modal>fechar</button>
+        </header>
+        <img id="modal-image" src="" alt="">
+        <p id="modal-caption"></p>
+      </section>
+    </div>
+
+    <div class="image-modal" id="full-graph-modal" aria-hidden="true" role="dialog" aria-label="aviso grafo completo">
+      <div class="image-modal-backdrop" id="full-graph-backdrop"></div>
+      <section class="image-modal-panel" style="max-width:480px;text-align:center;gap:1rem;">
+        <h2 style="margin:0">grafo completo</h2>
+        <p style="margin:0;line-height:1.6">
+          Renderiza os <strong>3.000 links mais fortes</strong> do dataset (de 100.000).<br>
+          O roteamento filme x filme continua usando todas as 100.000 arestas.<br>
+          Pode demorar alguns segundos para carregar.
+        </p>
+        <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+          <button id="full-graph-confirm" type="button" class="btn-primary">carregar mesmo assim</button>
+          <button id="full-graph-cancel" type="button" class="modal-close">cancelar</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="lib/vis-9.1.2/vis-network.min.js"></script>
+    <script src="app.js?v=42"></script>
+  </body>
+</html>

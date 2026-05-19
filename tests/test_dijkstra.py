@@ -1,5 +1,7 @@
-from graphs.graph import Graph
-from graphs.algorithms import dijkstra
+import pytest
+
+from src.graphs.graph import Graph
+from src.graphs.algorithms import dijkstra, validar_pesos_para_dijkstra
 
 
 def test_dijkstra_caminho_simples():
@@ -23,3 +25,15 @@ def test_dijkstra_sem_caminho():
 
     assert custo == float("inf")
     assert caminho == []
+
+
+@pytest.mark.parametrize(
+    "fn",
+    [validar_pesos_para_dijkstra, lambda g: dijkstra(g, "A", "B")],
+)
+def test_dijkstra_rejeita_peso_negativo(fn):
+    g = Graph()
+    g.add_edge("A", "B", -1.0)
+
+    with pytest.raises(ValueError, match="peso negativo"):
+        fn(g)

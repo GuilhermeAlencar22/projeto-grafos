@@ -1,11 +1,26 @@
-from pyvis.network import Network
+import argparse
 import os
-import matplotlib.pyplot as plt
+import shutil
+import sys
+from pathlib import Path
 from collections import defaultdict
 
 def _ensure_out():
     os.makedirs("out", exist_ok=True)
+
+
+def _matplotlib_pyplot():
+    import matplotlib
+
+    matplotlib.use("Agg", force=True)
+    import matplotlib.pyplot as plt
+
+    return plt
+
+
 def gerar_arvore_percurso(grafo, caminhos, aeroportos=None, output_path="out/arvore_percurso.html"):
+    from pyvis.network import Network
+
     _ensure_out()
     net = Network(height="750px", width="100%", bgcolor="#020617", font_color="#e2e8f0")
     cores_rotas = ["#ef4444", "#06b6d4"]
@@ -60,6 +75,11 @@ def gerar_arvore_percurso(grafo, caminhos, aeroportos=None, output_path="out/arv
                 background:#0f172a; padding:6px 14px; border-radius:6px;
                 border:1px solid #475569;
             ">← Voltar</a>
+            <a href="../interface/parte1.html" style="
+                color:#e2e8f0; text-decoration:none; font-size:13px;
+                background:#111827; padding:6px 14px; border-radius:6px;
+                border:1px solid #475569;
+            ">Painel Parte 1</a>
             <span style="color:#e2e8f0; font-weight:700; font-size:15px;">
                 ⟶ Árvore de Percurso — Caminhos Mínimos
             </span>
@@ -110,7 +130,61 @@ def gerar_arvore_percurso(grafo, caminhos, aeroportos=None, output_path="out/arv
         f.truncate()
 
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+REPORT_PARTE2 = ROOT / "out" / "parte2_report.json"
+EDGES_PARTE2 = ROOT / "data" / "dataset_parte2" / "Imdb_arestas.csv"
+OUT_PARTE2 = ROOT / "out" / "parte2"
+INTERFACE_ASSETS = ROOT / "interface" / "assets"
+
+
+def _rodar_parte2(args):
+    from src.parte2.build_visualizations import gerar_figuras_parte2
+
+    out_dir = Path(args.out_dir)
+    gerados = gerar_figuras_parte2(
+        report_path=Path(args.report),
+        edges_path=Path(args.edges),
+        out_dir=out_dir,
+        scatter_max=args.scatter_max,
+    )
+
+    if args.mirror_interface:
+        INTERFACE_ASSETS.mkdir(parents=True, exist_ok=True)
+        for nome in gerados:
+            shutil.copyfile(out_dir / nome, INTERFACE_ASSETS / nome)
+        print(f"[viz] espelhado em {INTERFACE_ASSETS}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="gera visualizacoes do projeto.")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    p2 = sub.add_parser("parte2", help="figuras da parte 2.")
+    p2.add_argument("--report", default=str(REPORT_PARTE2))
+    p2.add_argument("--edges", default=str(EDGES_PARTE2))
+    p2.add_argument("--out-dir", default=str(OUT_PARTE2))
+    p2.add_argument("--scatter-max", type=int, default=50000)
+    p2.add_argument(
+        "--no-mirror",
+        dest="mirror_interface",
+        action="store_false",
+        help="nao copia os pngs pra interface/assets.",
+    )
+    p2.set_defaults(func=_rodar_parte2, mirror_interface=True)
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()
+
 def gerar_grafo_interativo(grafo, aeroportos, ego_metrics):
+    from pyvis.network import Network
+
     _ensure_out()
     net = Network(height="100vh", width="100%", bgcolor="#0f172a", font_color="white")
     ego_dict = {e["aeroporto"]: e for e in ego_metrics}
@@ -195,6 +269,11 @@ def gerar_grafo_interativo(grafo, aeroportos, ego_metrics):
             <span style="color:#f8fafc; font-weight:700; font-size:15px; margin-right:8px;">
                 ✈ Rede de Aeroportos
             </span>
+            <a href="../interface/parte1.html" style="
+                color:#e2e8f0; text-decoration:none; font-size:13px;
+                background:#111827; padding:6px 14px; border-radius:6px;
+                border:1px solid #475569;
+            ">Painel Parte 1</a>
             <a href="subgrafo_hubs.html" style="
                 color:#f59e0b; text-decoration:none; font-size:13px;
                 background:#292524; padding:6px 14px; border-radius:6px;
@@ -205,6 +284,21 @@ def gerar_grafo_interativo(grafo, aeroportos, ego_metrics):
                 background:#082f49; padding:6px 14px; border-radius:6px;
                 border:1px solid #06b6d4;
             ">⟶ Árvore de Percurso</a>
+            <a href="histograma.png" style="
+                color:#cbd5e1; text-decoration:none; font-size:13px;
+                background:#111827; padding:6px 12px; border-radius:6px;
+                border:1px solid #334155;
+            ">Histograma</a>
+            <a href="ranking.png" style="
+                color:#cbd5e1; text-decoration:none; font-size:13px;
+                background:#111827; padding:6px 12px; border-radius:6px;
+                border:1px solid #334155;
+            ">Ranking</a>
+            <a href="regioes.png" style="
+                color:#cbd5e1; text-decoration:none; font-size:13px;
+                background:#111827; padding:6px 12px; border-radius:6px;
+                border:1px solid #334155;
+            ">Regiões</a>
 
             <div style="margin-left:auto; display:flex; gap:6px;">
                 <input id="search" placeholder="Buscar aeroporto (ex: GRU)" style="
@@ -388,6 +482,7 @@ def _estilo_base(ax, fig, titulo, subtitulo=""):
 
 
 def plot_histograma_graus(grafo):
+    plt = _matplotlib_pyplot()
     _ensure_out()
 
     NIVEIS_COR = {
@@ -453,6 +548,7 @@ def plot_histograma_graus(grafo):
 
 
 def plot_ranking(grafo):
+    plt = _matplotlib_pyplot()
     _ensure_out()
 
     NIVEIS_COR = {
@@ -509,6 +605,7 @@ def plot_ranking(grafo):
 
 
 def plot_regioes(grafo, aeroportos):
+    plt = _matplotlib_pyplot()
     _ensure_out()
 
     COR_REGIAO = {
@@ -563,6 +660,8 @@ def plot_regioes(grafo, aeroportos):
 
 
 def plot_subgrafo_hubs(grafo, aeroportos):
+    from pyvis.network import Network
+
     _ensure_out()
     graus = {k: len(v) for k, v in grafo.adj.items()}
     hubs = sorted(graus, key=graus.get, reverse=True)[:8]
@@ -573,7 +672,7 @@ def plot_subgrafo_hubs(grafo, aeroportos):
     for h in hubs:
         g = graus[h]
         regiao = aeroportos.get(h, {}).get("regiao", "N/A")
-        # Gradiente âmbar → laranja conforme grau relativo
+        # cor varia conforme o grau relativo
         intensidade = g / max_grau
         cor = "#f59e0b" if intensidade > 0.85 else ("#fb923c" if intensidade > 0.6 else "#38bdf8")
         net.add_node(
@@ -636,6 +735,11 @@ def plot_subgrafo_hubs(grafo, aeroportos):
                 background:#0f172a; padding:6px 14px; border-radius:6px;
                 border:1px solid #475569;
             ">← Voltar</a>
+            <a href="../interface/parte1.html" style="
+                color:#e2e8f0; text-decoration:none; font-size:13px;
+                background:#111827; padding:6px 14px; border-radius:6px;
+                border:1px solid #475569;
+            ">Painel Parte 1</a>
             <span style="color:#f59e0b; font-weight:700; font-size:15px;">
                 ★ Subgrafo — Top 8 Hubs
             </span>

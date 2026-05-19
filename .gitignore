@@ -1,3 +1,7 @@
 out/
 __pycache__/
 *.pyc
+.pytest_tmp/
+pytest_tmp*/
+data/dataset_parte2/imdb/*.tsv.gz
+data/dataset_parte2/movielens/
