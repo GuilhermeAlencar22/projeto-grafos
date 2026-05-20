@@ -1,5 +1,5 @@
-from src.graphs.graph import Graph
-from src.graphs.algorithms import dfs, dfs_classificacao_dirigido
+from src.shared.graph import Graph
+from src.shared.algorithms import dfs, dfs_classificacao_dirigido
 
 
 def test_dfs_basico():

@@ -1,265 +1,233 @@
-﻿# Projeto Final - Rede de Aeroportos + IMDb
+# Projeto Final — Teoria dos Grafos
 
-Projeto final de Teoria dos Grafos, dividido em duas partes: modelagem da rede de aeroportos do Brasil e comparacao de algoritmos em um dataset maior de filmes do IMDb.
+Projeto dividido em duas partes: **Parte 1** modela a rede de aeroportos brasileiros; **Parte 2** aplica algoritmos de grafos sobre um dataset de filmes do IMDb.
 
-O projeto usa implementacao propria dos algoritmos de grafo. Nao foram usadas bibliotecas prontas de grafos para BFS, DFS, Dijkstra ou Bellman-Ford.
+Todos os algoritmos (BFS, DFS, Dijkstra, Bellman-Ford) foram implementados do zero em Python puro, sem bibliotecas de grafos prontas.
 
-## Sumario
-
-1. [Equipe](#equipe)
-2. [Visao geral](#visao-geral)
-3. [Parte 1 - Aeroportos](#parte-1---aeroportos)
-4. [Parte 2 - IMDb](#parte-2---imdb)
-5. [Algoritmos](#algoritmos)
-6. [Saidas geradas](#saidas-geradas)
-7. [Como executar](#como-executar)
-8. [Interface](#interface)
-9. [Testes](#testes)
-10. [Estrutura](#estrutura)
-11. [Observacoes](#observacoes)
+---
 
 ## Equipe
 
-- Guilherme Alencar Augusto Correa - gaac@cesar.school
-- Rodrigo Lucena Cavalcanti - rlc2@cesar.school
-- Rodrigo Torres Galindo Filho - rtgf@cesar.school
-- Erick Acioli Belo - eab2@cesar.school
-- Joao Marcelo Tavares Pereira Montenegro - jmtpm@cesar.school
+| Nome | E-mail |
+|---|---|
+| Guilherme Alencar Augusto Correa | gaac@cesar.school |
+| Rodrigo Lucena Cavalcanti | rlc2@cesar.school |
+| Rodrigo Torres Galindo Filho | rtgf@cesar.school |
+| Erick Acioli Belo | eab2@cesar.school |
+| João Marcelo Tavares Pereira Montenegro | jmtpm@cesar.school |
 
-## Visao geral
+---
 
-A Parte 1 modela uma rede de aeroportos brasileiros. Cada aeroporto e um vertice, e cada conexao representa uma rota direta definida pelo grupo.
+## Pré-requisitos
 
-A Parte 2 usa um dataset maior baseado em filmes do IMDb. Cada filme e um vertice, e as arestas representam conexoes entre filmes por atores e generos compartilhados.
+- Python 3.10 ou superior
+- Pip atualizado
 
-As duas partes usam a mesma base de estrutura de grafo e os mesmos algoritmos principais, mantendo a separacao dos dados e das geracoes especificas.
+---
 
-## Parte 1 - Aeroportos
+## Instalação
 
-Dataset principal:
+```bash
+# 1. Clone o repositório
+git clone <url-do-repositorio>
+cd projeto-grafos
 
-- `data/aeroportos_data.csv`
-- `data/adjacencias_aeroportos.csv`
-- `data/rotas.csv`
+# 2. (Opcional, recomendado) Crie um ambiente virtual
+python -m venv venv
 
-Modelagem:
+# Windows
+venv\Scripts\activate
 
-- vertices: aeroportos identificados por codigo IATA;
-- arestas: conexoes entre aeroportos;
-- grafo: nao direcionado, conectado e ponderado;
-- peso: tempo estimado de voo direto.
+# macOS / Linux
+source venv/bin/activate
 
-A Parte 1 calcula metricas globais, metricas por regiao, ego-networks, graus, rankings e rotas minimas com Dijkstra.
-
-## Parte 2 - IMDb
-
-Dataset final:
-
-- `data/dataset_parte2/Imdb_filmes.csv`
-- `data/dataset_parte2/Imdb_arestas.csv`
-
-Casos artificiais do Bellman-Ford:
-
-- `data/dataset_parte2/artificiais_bellman_ford/bf_validacao_sem_ciclo.csv`
-- `data/dataset_parte2/artificiais_bellman_ford/bf_validacao_com_ciclo.csv`
-
-Modelagem:
-
-- vertices: filmes;
-- arestas: pares de filmes conectados por atores ou generos em comum;
-- grafo IMDb: nao direcionado e ponderado;
-- Bellman-Ford: usa grafos dirigidos artificiais para validar pesos negativos e ciclo negativo.
-
-Metricas atuais da Parte 2:
-
-- vertices: 3.985 filmes;
-- arestas: 100.000 conexoes;
-- componentes conexas: 7;
-- maior componente: 3.971 vertices;
-- maior grau: `True Romance`, grau 208.
-
-Regra de similaridade:
-
-```text
-similaridade = (2 * atores em comum) + generos em comum
-peso = 1 / similaridade
-```
-
-Quanto maior a similaridade entre dois filmes, menor o peso da aresta. Assim, o Dijkstra prefere caminhos com conexoes mais fortes.
-
-Relatorio tecnico detalhado da branch pre-merge da Parte 2:
-
-https://docs.google.com/document/d/1iRzc20usINSrlRvJHTN3PdxI0YTkbO0oMMhQkzxXky8/edit?usp=sharing
-
-## Algoritmos
-
-Algoritmos implementados manualmente:
-
-- BFS: busca em largura, usada para alcance, visitados e camadas;
-- DFS: busca em profundidade, usada para exploracao e ciclos;
-- Dijkstra: menor caminho com pesos nao negativos;
-- Bellman-Ford: pesos negativos e deteccao de ciclo negativo.
-
-Na Parte 2:
-
-- BFS e DFS rodam em 3 fontes distintas;
-- Dijkstra roda em pelo menos 5 pares origem-destino;
-- Bellman-Ford roda em um caso com peso negativo sem ciclo negativo e outro com ciclo negativo detectado;
-- tempos de execucao sao registrados em `out/parte2_report.json`.
-
-## Saidas geradas
-
-Parte 1:
-
-- `out/global.json`
-- `out/regioes.json`
-- `out/ego_aeroportos.csv`
-- `out/graus.csv`
-- `out/rankings.json`
-- `out/distancias_rotas.csv`
-- `out/arvore_percurso.html`
-- `out/grafo_interativo.html`
-- `out/histograma.png`
-- `out/ranking.png`
-- `out/regioes.png`
-- `out/subgrafo_hubs.html`
-
-Parte 2:
-
-- `out/parte2_report.json`
-- `out/parte2/parte2_benchmark_tempos.png`
-- `out/parte2/parte2_distribuicao_graus.png`
-- `out/parte2/parte2_componentes_conexas.png`
-- `out/parte2/parte2_similaridade_vs_peso.png`
-- `out/parte2/parte2_atores_vs_similaridade.png`
-- `interface/data/resumo_parte2.json`
-- `interface/data/parte2_amostra.json`
-- `interface/data/parte2_grafo.json`
-
-## Como executar
-
-Instalar dependencias:
-
-```powershell
+# 3. Instale as dependências
 python -m pip install -r requirements.txt
 ```
 
-Rodar tudo:
+---
 
-```powershell
+## Como executar
+
+> Todos os comandos devem ser rodados a partir da **raiz do projeto** (`projeto-grafos/`).
+
+### Pipeline completo (Parte 1 + Parte 2)
+
+```bash
 python -m src.solve
 ```
 
-Rodar apenas a Parte 1:
+Gera todas as saídas em `out/`, os JSONs da interface e os gráficos.
 
-```powershell
+### Apenas Parte 1
+
+```bash
 python -m src.solve parte1
 ```
 
-Rodar apenas a Parte 2:
+### Apenas Parte 2
 
-```powershell
+```bash
 python -m src.solve parte2
 ```
 
-Gerar visualizacoes da Parte 2:
+### Gerar visualizações da Parte 2 (PNGs)
 
-```powershell
+```bash
 python -m src.viz parte2
 ```
 
-Gerar dados da interface da Parte 2:
+### Gerar dados da interface web da Parte 2
 
-```powershell
+```bash
 python -m src.parte2.build_interface_data
 python -m src.parte2.build_interface_grafo
 ```
 
-Rodar servidor local:
+### Subir o servidor local e abrir a interface
 
-```powershell
+```bash
 python -m http.server 8000 --bind 127.0.0.1
 ```
 
-Abrir:
+Abrir no navegador:
 
-```text
+```
 http://127.0.0.1:8000/
 ```
 
-## Interface
+A página inicial (`index.html`) direciona para a Parte 1 ou Parte 2.
 
-A interface principal fica em:
+---
 
-- `index.html`
-- `interface/parte1.html`
-- `interface/index.html`
-- `interface/styles.css`
-- `interface/app.js`
+## Exemplos via CLI
 
-Ela usa HTML, CSS e JavaScript puro com `vis-network` para os grafos interativos.
+```bash
+# Parte 1 — BFS a partir de Recife
+python -m src.cli --dataset ./data/aeroportos_data.csv --alg BFS --source REC --out ./out/
 
-Na raiz do projeto, `index.html` serve como entrada simples para escolher Parte 1 ou Parte 2.
+# Parte 1 — Dijkstra de Recife até Porto Alegre
+python -m src.cli --dataset ./data/aeroportos_data.csv --alg DIJKSTRA --source REC --target POA --out ./out/
 
-Na Parte 1, `interface/parte1.html` organiza os arquivos gerados em `out/`, incluindo grafo interativo, arvore de percurso, subgrafo de hubs e graficos analiticos.
+# Parte 2 — Dijkstra entre dois filmes
+python -m src.cli --dataset ./data/dataset_parte2/ --alg DIJKSTRA --source "Jurassic Park" --target "Pulp Fiction" --out ./out/
+```
 
-Na Parte 2, a interface mostra:
-
-- resumo do dataset;
-- subgrafos visuais;
-- busca e rotas entre filmes;
-- resultados dos algoritmos;
-- graficos de desempenho e estrutura.
-
-O modo de grafo completo carrega um arquivo maior (`parte2_grafo.json`) e pode exigir mais do navegador. O refinamento final desse modo fica para a etapa de acabamento apos o merge.
+---
 
 ## Testes
 
-Rodar testes:
-
-```powershell
-python -m pytest -q
+```bash
+python -m pytest -v
 ```
 
-Testes cobrem:
+13 testes cobrindo:
 
-- BFS com visitados e niveis;
-- DFS simples e classificacao de arestas;
-- Dijkstra com caminho, ausencia de caminho e rejeicao de peso negativo;
-- Bellman-Ford com peso negativo sem ciclo negativo e ciclo negativo detectado;
-- loader de CSV de arestas.
+- **BFS**: níveis corretos em grafo pequeno e componente isolada
+- **DFS**: detecção de ciclo e classificação de arestas (tree/back/cross/forward)
+- **Dijkstra**: caminho correto, ausência de caminho, rejeição de peso negativo
+- **Bellman-Ford**: peso negativo sem ciclo (distâncias corretas) + ciclo negativo detectado
+- **I/O**: carregamento de CSV de arestas
 
-## Estrutura
+---
 
-```text
+## Saídas geradas
+
+Após rodar `python -m src.solve`, os seguintes arquivos são criados:
+
+### Parte 1 (`out/`)
+
+| Arquivo | Conteúdo |
+|---|---|
+| `global.json` | Ordem, tamanho e densidade do grafo |
+| `regioes.json` | Métricas por região do Brasil |
+| `graus.csv` | Grau de cada aeroporto |
+| `ego_aeroportos.csv` | Ego-networks dos principais hubs |
+| `rankings.json` | Aeroportos mais conectados |
+| `distancias_rotas.csv` | Caminhos mínimos (Dijkstra) |
+| `grafo_interativo.html` | Grafo completo navegável |
+| `arvore_percurso.html` | Percurso REC → POA |
+| `arvore_percurso_gru_mao.html` | Percurso GRU → MAO |
+| `subgrafo_hubs.html` | Subgrafo dos hubs principais |
+| `avd_relatorio.html` | Relatório analítico completo |
+| `histograma.png` | Distribuição de graus |
+| `ranking.png` | Ranking visual dos hubs |
+| `regioes.png` | Comparação por região |
+
+### Parte 2 (`out/` e `interface/`)
+
+| Arquivo | Conteúdo |
+|---|---|
+| `out/parte2_report.json` | Resultados de todos os algoritmos + benchmark |
+| `interface/assets/*.png` | Gráficos analíticos (distribuição, benchmark, etc.) |
+| `interface/data/resumo_parte2.json` | Resumo leve para a interface |
+| `interface/data/parte2_amostra.json` | Amostra visual do grafo |
+| `interface/data/parte2_grafo.json` | Grafo completo (100k arestas) para modo avançado |
+
+---
+
+## Estrutura do projeto
+
+```
 projeto-grafos/
-├─ data/
-│  ├─ aeroportos_data.csv
-│  ├─ adjacencias_aeroportos.csv
-│  ├─ rotas.csv
-│  └─ dataset_parte2/
-├─ interface/
-│  ├─ data/
-│  ├─ assets/
-│  ├─ index.html
-│  ├─ styles.css
-│  └─ app.js
-├─ out/
-├─ src/
-│  ├─ graphs/
-│  ├─ parte2/
-│  ├─ utils/
-│  ├─ cli.py
-│  ├─ solve.py
-│  └─ viz.py
-├─ tests/
-├─ requirements.txt
-└─ README.md
+├── data/
+│   ├── aeroportos_data.csv
+│   ├── adjacencias_aeroportos.csv
+│   ├── rotas.csv
+│   └── dataset_parte2/
+│       ├── Imdb_filmes.csv
+│       ├── Imdb_arestas.csv
+│       └── artificiais_bellman_ford/
+│           ├── bf_validacao_sem_ciclo.csv
+│           └── bf_validacao_com_ciclo.csv
+├── interface/
+│   ├── data/           ← JSONs gerados pelo pipeline
+│   ├── assets/         ← PNGs gerados pelo pipeline
+│   ├── lib/            ← vis-network (local, sem CDN)
+│   ├── index.html
+│   ├── parte1.html
+│   ├── styles.css
+│   └── app.js
+├── out/                ← saídas geradas (recriadas pelo pipeline)
+├── src/
+│   ├── shared/         ← Graph, algoritmos, I/O compartilhados
+│   ├── parte1/         ← métricas e visualizações da Parte 1
+│   ├── parte2/         ← builders da interface da Parte 2
+│   ├── solve.py        ← pipeline principal
+│   ├── viz.py          ← gerador de PNGs
+│   └── cli.py          ← interface de linha de comando
+├── tests/
+├── index.html          ← página de entrada (escolha Parte 1 ou Parte 2)
+├── requirements.txt
+└── README.md
 ```
 
-## Observacoes
+---
 
-- A branch de teste de merge junta a Parte 1 e a Parte 2 para validacao antes de aplicar na `main`.
-- A Parte 1 continua focada na rede de aeroportos.
-- A Parte 2 continua focada no dataset IMDb e na comparacao de algoritmos.
-- As melhorias finais de UX, AVD e acabamento visual devem ser feitas depois da validacao do merge.
+## Modelagem — Parte 2 (IMDb)
+
+| Propriedade | Valor |
+|---|---|
+| Vértices | 3.985 filmes |
+| Arestas | 100.000 conexões |
+| Tipo | Não-dirigido, ponderado |
+| Componentes conexas | 7 (maior: 3.971 filmes) |
+| Grau médio | 50,2 |
+
+**Fórmula de peso:**
+
+```
+similaridade = (2 × atores em comum) + gêneros em comum
+peso         = 1 / similaridade
+```
+
+Conexões mais fortes têm peso menor — o Dijkstra escolhe naturalmente caminhos por filmes mais parecidos.
+
+---
+
+## Observações
+
+- `plotly` foi removido do `requirements.txt` — não é usado no projeto.
+- `networkx` foi removido — os algoritmos são implementados manualmente.
+- O arquivo `interface/data/parte2_grafo.json` (~8 MB) está versionado para evitar que a professora precise rodar o pipeline completo apenas para ver a interface.
+- O modo "grafo completo" na interface renderiza as 3.000 arestas mais fortes das 100.000 disponíveis para não travar o navegador. O roteamento filme × filme continua usando todas as 100.000.

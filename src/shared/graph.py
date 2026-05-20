@@ -1,3 +1,5 @@
+"""estrutura de grafo com lista de adjacência usada em ambas as partes do projeto."""
+
 import random
 
 

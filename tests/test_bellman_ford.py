@@ -1,5 +1,5 @@
-from src.graphs.algorithms import bellman_ford
-from src.graphs.graph import Graph
+from src.shared.algorithms import bellman_ford
+from src.shared.graph import Graph
 
 
 def test_bellman_ford_negativos_sem_ciclo_negativo_distancias():

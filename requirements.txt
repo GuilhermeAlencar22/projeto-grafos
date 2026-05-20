@@ -1,5 +1,13 @@
-pandas
-matplotlib
-plotly
-pyvis
-pytest
+# Dependências do Projeto Final — Teoria dos Grafos
+# Instalar com: python -m pip install -r requirements.txt
+
+# Visualizações e gráficos
+matplotlib>=3.7
+pyvis>=0.3.2
+
+# Manipulação de dados
+pandas>=2.0
+numpy>=1.24
+
+# Testes
+pytest>=7.0

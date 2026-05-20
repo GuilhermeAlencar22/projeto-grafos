@@ -1,7 +1,41 @@
-out/
+# ── Ambientes virtuais ────────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+.env/
+
+# ── Python cache ──────────────────────────────────────────────────────────────
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ── Testes e cobertura ────────────────────────────────────────────────────────
+.pytest_cache/
 .pytest_tmp/
 pytest_tmp*/
+.coverage
+htmlcov/
+
+# ── Saídas geradas pelo pipeline (recriadas com python -m src.solve) ──────────
+# Manter apenas o .gitkeep para garantir que a pasta out/ exista no clone
+out/*
+!out/.gitkeep
+
+# ── Dados brutos pesados (baixados externamente) ──────────────────────────────
 data/dataset_parte2/imdb/*.tsv.gz
 data/dataset_parte2/movielens/
+
+# ── IDEs e editores ───────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Distribuição e build ──────────────────────────────────────────────────────
+dist/
+build/
+*.egg-info/

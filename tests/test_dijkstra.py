@@ -1,7 +1,7 @@
 import pytest
 
-from src.graphs.graph import Graph
-from src.graphs.algorithms import dijkstra, validar_pesos_para_dijkstra
+from src.shared.graph import Graph
+from src.shared.algorithms import dijkstra, validar_pesos_para_dijkstra
 
 
 def test_dijkstra_caminho_simples():

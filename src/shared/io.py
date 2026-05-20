@@ -1,11 +1,10 @@
+"""leitura e validação de datasets CSV para construção dos grafos."""
+
 import csv
 
 import pandas as pd
 
-try:
-    from src.graphs.graph import Graph
-except ModuleNotFoundError:
-    from graphs.graph import Graph
+from src.shared.graph import Graph
 
 
 def carregar_aeroportos(path):

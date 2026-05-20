@@ -3,52 +3,67 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>parte 2 | imdb e algoritmos de grafos</title>
+    <title>Parte 2 — Rede IMDb | Teoria dos Grafos</title>
     <link rel="stylesheet" href="lib/vis-9.1.2/vis-network.css">
     <link rel="stylesheet" href="styles.css?v=22">
   </head>
   <body>
     <header class="topbar">
       <div class="brand">
-        <span class="brand-mark">IMDb</span>
+        <span class="brand-mark">P2</span>
         <div>
-          <span class="eyebrow">parte 2</span>
+          <p class="eyebrow">parte 2</p>
           <h1>teoria dos grafos</h1>
         </div>
       </div>
       <nav class="nav">
-        <a class="is-active" href="#inicio" data-view="inicio">inicio</a>
+        <a class="is-active" href="#inicio" data-view="inicio">início</a>
         <a href="#grafos" data-view="grafos">grafos</a>
         <a href="#resultados" data-view="resultados">resultados</a>
-        <a href="#graficos" data-view="graficos">graficos</a>
+        <a href="#graficos" data-view="graficos">gráficos</a>
+        <a href="parte1.html">parte 1</a>
+        <a href="../index.html" style="border-left:1px solid var(--line);padding-left:1rem;margin-left:0.5rem;">← início</a>
       </nav>
     </header>
 
     <main>
       <section class="hero view-panel is-active" id="inicio" data-view-panel="inicio">
         <div class="hero-copy">
-          <h2>filmes viram nos. atores e generos criam arestas.</h2>
+          <h2>filmes são vértices. atores e gêneros criam arestas ponderadas.</h2>
           <div class="hero-info-grid">
             <article class="formula-card">
-              <span>regra de peso</span>
-              <strong>similaridade</strong>
-              <p>calculada por (2 x atores em comum) + generos em comum. o peso e invertido: peso = 1 / similaridade, entao conexoes mais fortes ficam mais baratas nos caminhos.</p>
+              <span>fórmula de peso (parte 2)</span>
+              <strong>similaridade = (2 × atores) + gêneros</strong>
+              <p>
+                Cada ator em comum vale <b>2</b> (evidência direta de elenco compartilhado).
+                Cada gênero em comum vale <b>1</b> (relação mais ampla).
+                O peso da aresta é <b>peso = 1 / similaridade</b>:
+                conexões mais fortes ficam com custo menor — o Dijkstra
+                escolhe naturalmente caminhos por filmes mais parecidos.
+              </p>
             </article>
             <article>
-              <span>dataset imdb</span>
-              <strong>base final: filmes e arestas (sem malha)</strong>
-              <p>a parte 2 roda a partir de Imdb_filmes.csv e Imdb_arestas.csv: filmes como vertices, conexoes como arestas ponderadas.</p>
+              <span>dataset IMDb — sem malha aérea</span>
+              <strong>3.985 filmes · 100.000 conexões</strong>
+              <p>
+                Fonte: <code style="font-size:12px;color:var(--primary)">Imdb_filmes.csv</code>
+                e <code style="font-size:12px;color:var(--primary)">Imdb_arestas.csv</code>.
+                Grafo <b>não-dirigido e ponderado</b>. 7 componentes conexas;
+                a maior tem 3.971 filmes. Grau médio: 50,2.
+                Implementado <b>sem libs de algoritmos prontos</b>
+                (BFS, DFS, Dijkstra, Bellman-Ford em Python puro).
+              </p>
             </article>
           </div>
           <aside class="cinema-note">
-            <span>leitura do grafo</span>
-            <strong>atores e generos repetidos viram conexoes.</strong>
-            <em>o peso mostra quais ligacoes ficam mais fortes.</em>
+            <span>exemplo concreto</span>
+            <strong>Vingadores 1 ↔ Vingadores 2: sim = 22 · peso = 0,045</strong>
+            <em>9 atores em comum + mesmo gênero = aresta grossa = caminho barato no Dijkstra.</em>
           </aside>
           <div class="hero-actions">
             <button type="button" data-view="grafos">explorar grafo</button>
             <button type="button" data-view="resultados">ver resultados</button>
-            <button type="button" data-view="graficos">abrir graficos</button>
+            <button type="button" data-view="graficos">gráficos analíticos</button>
           </div>
         </div>
         <div class="hero-side">
@@ -75,7 +90,7 @@
 
       <section class="panel-section view-panel" id="grafos" data-view-panel="grafos">
         <div class="section-heading">
-          <h2>visualizacao interativa</h2>
+          <h2>Visualização Interativa</h2>
         </div>
 
         <div class="graph-shell">
@@ -83,13 +98,13 @@
             <div class="panel-kicker">controle da cena</div>
             <label for="graph-mode">modo do grafo</label>
             <select id="graph-mode">
+              <option value="franquias">franquias — grupos por elenco</option>
               <option value="similaridade">maior similaridade</option>
-              <option value="top">top conexoes</option>
-              <option value="bfs">bfs - camadas</option>
-              <option value="dfs">dfs - percurso</option>
-              <option value="dijkstra">dijkstra - maior rota visual</option>
-              <option value="bellman-ford">bellman-ford - pesos negativos</option>
-              <option value="grafo-completo">grafo completo visual</option>
+              <option value="bfs">bfs — percurso por camadas</option>
+              <option value="dfs">dfs — percurso em profundidade</option>
+              <option value="dijkstra">dijkstra — menor caminho</option>
+              <option value="bellman-ford">bellman-ford — pesos negativos</option>
+              <option value="grafo-completo">grafo completo (100k arestas)</option>
             </select>
 
             <datalist id="movies-list"></datalist>
@@ -114,10 +129,15 @@
             <button id="reset-graph-btn" type="button">limpar destaque</button>
 
             <div class="legend">
-              <strong>legenda</strong>
-              <span><i class="legend-dot origin"></i>origem</span>
-              <span><i class="legend-dot destino"></i>destino</span>
+              <strong>legenda visual</strong>
+              <span><i class="legend-dot origin"></i>origem / início</span>
+              <span><i class="legend-dot destino"></i>destino / fim</span>
               <span><i class="legend-line"></i>aresta destacada</span>
+              <hr>
+              <span>nó maior = mais conexões (grau)</span>
+              <span>aresta grossa = alta similaridade</span>
+              <span>cor do nó = gênero principal</span>
+              <span style="margin-top:2px;font-style:italic;">passe o mouse para detalhes</span>
             </div>
           </aside>
 
@@ -159,9 +179,128 @@
 
       <section class="panel-section view-panel" id="resultados" data-view-panel="resultados">
         <div class="section-heading section-heading-resultados">
-          <h2>saidas</h2>
+          <h2>Resultados e Discussão Crítica</h2>
+          <p class="section-sub">Corretude, desempenho e análise comparativa dos algoritmos sobre o grafo IMDb.</p>
         </div>
+
+        <!-- 1. Cards de resumo por algoritmo -->
         <div class="results-resumo" id="results-resumo"></div>
+
+        <!-- 2. Tabelas detalhadas BFS/DFS/Dijkstra/Bellman-Ford -->
+        <div id="results-tables"></div>
+
+        <!-- 3. Discussão crítica (item 5 da rubrica) -->
+        <section class="discussao-section" id="discussao-critica">
+          <h3 class="discussao-title">Discussão Crítica</h3>
+
+          <div class="discussao-grid">
+
+            <article class="discussao-card">
+              <h4>BFS — quando usar</h4>
+              <p>
+                A BFS percorre o grafo por <strong>camadas</strong>, garantindo que cada filme visitado está
+                na menor distância (em número de arestas) da fonte. Sobre o grafo IMDb, a partir de
+                <em>Jurassic Park</em>, a BFS alcançou <strong>3.971 filmes em 7 camadas</strong>,
+                provando que a maior componente conexa tem diâmetro pequeno — típico de redes de
+                co-ocorrência densas.
+              </p>
+              <p>
+                <strong>Adequada quando:</strong> o objetivo é encontrar o caminho com
+                <em>menos saltos</em> entre filmes, ou medir o alcance de um vértice.
+                <strong>Não adequada quando:</strong> os pesos das arestas importam —
+                ela ignora que uma aresta de similaridade 2 (só gênero) e uma de similaridade 22
+                (praticamente mesmo elenco) têm custos muito diferentes.
+              </p>
+            </article>
+
+            <article class="discussao-card">
+              <h4>DFS — quando usar</h4>
+              <p>
+                A DFS mergulha o mais fundo possível antes de retroceder, produzindo uma ordem
+                diferente da BFS para as mesmas fontes. Nos três casos testados, a DFS
+                <strong>confirmou a presença de ciclos</strong> (aresta de retorno detectada),
+                o que é esperado em grafos não-dirigidos densos.
+              </p>
+              <p>
+                <strong>Adequada quando:</strong> interessa verificar conectividade, detectar
+                ciclos ou explorar estruturas em profundidade (ex.: trilhas de gênero).
+                <strong>Não adequada quando:</strong> precisa do caminho mais curto — a DFS
+                pode retornar caminhos muito longos antes de encontrar o destino.
+              </p>
+            </article>
+
+            <article class="discussao-card">
+              <h4>Dijkstra — quando usar</h4>
+              <p>
+                O Dijkstra encontra o caminho de <strong>menor custo ponderado</strong>.
+                Com o peso = 1 / similaridade, ele naturalmente escolhe caminhos passando pelos
+                filmes <em>mais parecidos</em>. O par mais longo encontrado foi
+                <em>Departures → Bad Taste</em> com 13 filmes no caminho e custo 3,29,
+                cruzando gêneros muito distintos.
+              </p>
+              <p>
+                <strong>Adequada quando:</strong> os pesos variam e importa minimizar o custo
+                total — exatamente o caso deste grafo. Requer pesos ≥ 0 (garantido aqui:
+                similaridade ≥ 2 → peso ≤ 0,5).
+                <strong>Limite do design:</strong> peso = 1/similaridade comprime demais
+                conexões fracas (sim=2 → peso=0,5) e fortes (sim=22 → peso=0,045),
+                tornando caminhos de similaridade 2 caros demais comparados a caminhos
+                de similaridade 22.
+              </p>
+            </article>
+
+            <article class="discussao-card">
+              <h4>Bellman-Ford — quando usar</h4>
+              <p>
+                O Bellman-Ford suporta <strong>pesos negativos</strong> e detecta
+                <strong>ciclos negativos</strong>. No grafo IMDb principal os pesos são
+                sempre positivos (1/similaridade), por isso foram criados dois grafos
+                artificiais dirigidos para validação: um sem ciclo negativo
+                (distâncias corretas calculadas) e um com ciclo negativo (algoritmo
+                sinalizou e bloqueou o resultado).
+              </p>
+              <p>
+                <strong>Adequada quando:</strong> o grafo tem arestas com peso negativo
+                ou é necessário detectar ciclos negativos.
+                <strong>Menos eficiente que Dijkstra</strong> para pesos positivos:
+                complexidade O(V·E) vs O((V+E) log V) do Dijkstra com heap.
+              </p>
+            </article>
+
+            <article class="discussao-card discussao-card-wide">
+              <h4>Limites do design de pesos</h4>
+              <p>
+                A fórmula <code>similaridade = (2 × atores) + gêneros</code> e
+                <code>peso = 1 / similaridade</code> funciona bem para o Dijkstra,
+                mas tem três limitações explícitas:
+              </p>
+              <ol class="discussao-list">
+                <li>
+                  <strong>Gênero vale menos que ator (fator 2):</strong> correto conceitualmente —
+                  compartilhar um ator é evidência direta de produção conectada; gênero é mais
+                  amplo. Porém, filmes de nicho com poucos atores em comum mas mesmo gênero muito
+                  específico (ex.: documentários) ficam subrepresentados.
+                </li>
+                <li>
+                  <strong>Peso não-linear:</strong> a função 1/x comprime o espaço de pesos.
+                  Entre sim=2 (peso=0,500) e sim=22 (peso=0,045) há diferença de 10×, mas entre
+                  sim=10 (peso=0,100) e sim=11 (peso=0,091) a diferença é mínima. Isso pode
+                  fazer o Dijkstra tratar conexões de força 10 e 11 como equivalentes.
+                </li>
+                <li>
+                  <strong>Grafo não-dirigido:</strong> a relação "compartilha ator" é simétrica,
+                  então o grafo não-dirigido é a modelagem correta. Para Bellman-Ford (que exige
+                  direção para ciclos negativos), foram criados grafos artificiais dirigidos
+                  separados — escolha deliberada para validar o algoritmo sem distorcer o
+                  dataset principal.
+                </li>
+              </ol>
+            </article>
+
+          </div>
+        </section>
+
+        <!-- 4. JSON técnico + benchmark -->
         <div class="results-tech-split">
           <div class="results-tech-json" id="raw-output-pane"></div>
           <aside class="results-tech-bench" id="benchmark-output" aria-label="tempos medios por algoritmo"></aside>
@@ -170,8 +309,7 @@
 
       <section class="panel-section view-panel" id="graficos" data-view-panel="graficos">
         <div class="section-heading">
-          <h2>evidencias visuais</h2>
-          <p>clique em qualquer grafico para ver a imagem inteira na tela.</p>
+          <h2>Evidencias Visuais</h2>
         </div>
         <div class="viz-grid" id="viz-grid"></div>
       </section>
@@ -207,6 +345,10 @@
         </div>
       </section>
     </div>
+
+    <footer style="text-align:center;padding:32px 20px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);margin-top:0;">
+      Projeto Final — Teoria dos Grafos &nbsp;·&nbsp; Python puro · PyVis · Matplotlib · Pandas
+    </footer>
 
     <script src="lib/vis-9.1.2/vis-network.min.js"></script>
     <script src="app.js?v=42"></script>

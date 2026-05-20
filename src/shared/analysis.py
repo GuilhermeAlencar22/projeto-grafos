@@ -1,6 +1,6 @@
 from collections import deque
 
-from src.graphs.graph import Graph
+from src.shared.graph import Graph
 
 
 def componente_alcancavel(graph: Graph, start: str) -> list:

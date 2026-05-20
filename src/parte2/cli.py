@@ -7,20 +7,20 @@ from collections import Counter
 from pathlib import Path
 import sys
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.graphs.algorithms import (
+from src.shared.algorithms import (
     bellman_ford,
     bfs,
     dfs,
     dijkstra,
     validar_pesos_para_dijkstra,
 )
-from src.graphs.analysis import componente_alcancavel, componente_tem_ciclo
-from src.graphs.graph import Graph, print_degree_sample_stats
-from src.graphs.io import load_edge_csv_graph
+from src.shared.analysis import componente_alcancavel, componente_tem_ciclo
+from src.shared.graph import Graph, print_degree_sample_stats
+from src.shared.io import load_edge_csv_graph
 from src.parte2.relatorio import (
     CHAVE_BFS,
     CHAVE_DFS,

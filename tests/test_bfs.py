@@ -1,5 +1,5 @@
-from src.graphs.graph import Graph
-from src.graphs.algorithms import bfs
+from src.shared.graph import Graph
+from src.shared.algorithms import bfs
 
 
 def test_bfs_basico():

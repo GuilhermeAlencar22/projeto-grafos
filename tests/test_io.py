@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.graphs.io import load_edge_csv_graph
+from src.shared.io import load_edge_csv_graph
 
 
 def test_load_edge_csv_grafo_nao_orientado(tmp_path):

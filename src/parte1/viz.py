@@ -1,3 +1,5 @@
+"""visualizações da parte 1: grafo interativo, árvore de percurso, subgrafo e gráficos."""
+
 import argparse
 import os
 import shutil

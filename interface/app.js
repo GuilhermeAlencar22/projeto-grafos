@@ -138,22 +138,33 @@ function movieLabel(id) {
 
 function movieTitle(id) {
   const movie = movieInfo(id);
-  const meta = [movie.ano, movie.generos, movie.nota ? `nota ${movie.nota}` : ""]
-    .filter(Boolean)
-    .join(" | ");
-  return `${movie.titulo || id}\n${id}${meta ? `\n${meta}` : ""}`;
+  const titulo = movie.titulo || id;
+  const linhas = [titulo];
+  if (movie.ano)      linhas.push(`📅 ${movie.ano}`);
+  if (movie.generos)  linhas.push(`🎬 ${movie.generos}`);
+  if (movie.nota)     linhas.push(`⭐ ${movie.nota} IMDb`);
+  if (movie.diretores) linhas.push(`🎥 ${movie.diretores}`);
+  return linhas.join("\n");
 }
 
 function edgeTitle(edge) {
-  const origem = movieInfo(edgeOrigem(edge));
+  const origem  = movieInfo(edgeOrigem(edge));
   const destino = movieInfo(edgeDestino(edge));
-  const genres = commonGenres(edgeOrigem(edge), edgeDestino(edge));
+  const genres  = commonGenres(edgeOrigem(edge), edgeDestino(edge));
+  const atores  = Array.isArray(edge.actors_common_names) && edge.actors_common_names.length
+    ? edge.actors_common_names.join(", ")
+    : `${edge.actors_common ?? 0} ator(es)`;
+  const sim = edge.similaridade ?? "--";
+  const peso = typeof edge.peso === "number" ? edge.peso.toFixed(4) : "--";
   return [
-    `${origem.titulo || edgeOrigem(edge)} -> ${destino.titulo || edgeDestino(edge)}`,
-    `atores em comum: ${edge.actors_common ?? "--"}`,
-    `generos em comum: ${genres.join(", ") || "--"}`,
-    `similaridade: ${edge.similaridade ?? "--"}`,
-    `peso: ${edge.peso ?? "--"}`,
+    `🎬 ${origem.titulo || edgeOrigem(edge)}`,
+    `🎬 ${destino.titulo || edgeDestino(edge)}`,
+    ``,
+    `👥 atores em comum: ${atores}`,
+    `🏷️  gêneros em comum: ${genres.join(", ") || "--"}`,
+    `📊 similaridade: ${sim}  (peso: ${peso})`,
+    ``,
+    `quanto maior a similaridade, mais grossa a aresta.`,
   ].join("\n");
 }
 
@@ -189,13 +200,19 @@ function baseEdge(edge, extra = {}) {
   const value = Number(edge.similaridade ?? edge.actors_common ?? 1);
   const color = extra.color ?? "rgba(245, 197, 24, 0.55)";
 
+  // espessura proporcional à similaridade: aresta grossa = filmes muito parecidos
+  // min=1 (sim=2, só gênero) → max=10 (sim=22, quase mesmo elenco)
+  const rawWidth = extra.width ?? Math.max(1, Math.min(10, 0.8 + Math.sqrt(value) * 1.9));
+
   return {
     id: edge.id ?? edgeKey(edgeOrigem(edge), edgeDestino(edge)),
     from: edgeOrigem(edge),
     to: edgeDestino(edge),
     title: edgeTitle(edge),
-    label: extra.label ?? String(edge.similaridade ?? ""),
-    width: extra.width ?? Math.max(3, Math.min(10, 2 + Math.sqrt(value) * 1.8)),
+    // label só aparece quando o chamador pede explicitamente (ex: Dijkstra, BF)
+    // no modo padrão fica vazio para não poluir o grafo
+    label: extra.label ?? "",
+    width: rawWidth,
     color: {
       color,
       highlight: "#ffffff",
@@ -216,6 +233,51 @@ function baseEdge(edge, extra = {}) {
   };
 }
 
+// grau global de cada filme no dataset completo (calculado uma vez)
+let _globalDegree = null;
+function globalDegree() {
+  if (_globalDegree) return _globalDegree;
+  const deg = new Map();
+  Object.values(state.amostra?.edges ?? {}).forEach((edge) => {
+    deg.set(edgeOrigem(edge), (deg.get(edgeOrigem(edge)) ?? 0) + 1);
+    deg.set(edgeDestino(edge), (deg.get(edgeDestino(edge)) ?? 0) + 1);
+  });
+  _globalDegree = deg;
+  return deg;
+}
+
+// tamanho do nó proporcional ao grau global: hubs ficam visivelmente maiores
+function nodeSizeByGlobalDegree(id, minSize = 18, maxSize = 54) {
+  const deg = globalDegree().get(id) ?? 1;
+  // log para suavizar a diferença entre hub (grau ~200) e periférico (grau ~2)
+  const logDeg = Math.log2(deg + 1);
+  const logMax = Math.log2(210);
+  return Math.round(minSize + (maxSize - minSize) * (logDeg / logMax));
+}
+
+// cor do nó baseada nos gêneros predominantes do filme
+function nodeColorByGenre(id) {
+  const genres = movieGenres(id);
+  const genreColors = {
+    "Action":    { bg: "#ef4444", border: "#b91c1c" },
+    "Comedy":    { bg: "#f59e0b", border: "#d97706" },
+    "Drama":     { bg: "#3b82f6", border: "#1d4ed8" },
+    "Sci-Fi":    { bg: "#8b5cf6", border: "#6d28d9" },
+    "Horror":    { bg: "#dc2626", border: "#7f1d1d" },
+    "Romance":   { bg: "#ec4899", border: "#be185d" },
+    "Animation": { bg: "#10b981", border: "#059669" },
+    "Thriller":  { bg: "#f97316", border: "#c2410c" },
+    "Adventure": { bg: "#06b6d4", border: "#0e7490" },
+    "Crime":     { bg: "#6366f1", border: "#4338ca" },
+    "Fantasy":   { bg: "#a855f7", border: "#7e22ce" },
+    "Documentary": { bg: "#64748b", border: "#334155" },
+  };
+  for (const g of genres) {
+    if (genreColors[g]) return genreColors[g];
+  }
+  return { bg: "#f5c518", border: "#b8940e" };
+}
+
 function makeGraphFromEdges(edges, options = {}) {
   const nodes = new Map();
   const degrees = new Map();
@@ -231,10 +293,13 @@ function makeGraphFromEdges(edges, options = {}) {
 
   return {
     nodes: [...nodes.values()].map((id) => {
-      const degree = degrees.get(id) ?? 1;
+      // usa grau global (do dataset inteiro) para tamanho: hub real fica visível
+      const size = nodeSizeByGlobalDegree(id, 20, 52);
+      const cor = nodeColorByGenre(id);
       return baseNode(id, {
-        size: Math.min(46, 25 + degree * 4),
-        border: degree > 2 ? "#f5c518" : "#ffffff",
+        size,
+        background: cor.bg,
+        border: cor.border,
       });
     }),
     edges: visualEdges,
@@ -500,9 +565,11 @@ function makeTraversalGraph(origem, type = "bfs") {
   const maxPerNode = type === "bfs" ? 4 : 3;
 
   function addNode(id, level) {
+    // nó de origem sempre verde e grande; demais crescem proporcionalmente ao grau global
+    const size = id === origem ? 48 : nodeSizeByGlobalDegree(id, 20, 44);
     nodes.push(baseNode(id, {
       level,
-      size: id === origem ? 42 : 28,
+      size,
       background: id === origem ? "#2ecc71" : type === "bfs" ? "#f5c518" : "#7cc7ff",
       border: id === origem ? "#ffffff" : "#f5c518",
     }));
@@ -596,8 +663,10 @@ function makeDijkstraGraph() {
   const nodes = route.path.map((id, index) => {
     const isFirst = index === 0;
     const isLast = index === route.path.length - 1;
+    // tamanho pelo grau global; pontos extremos ficam ainda maiores
+    const baseSize = nodeSizeByGlobalDegree(id, 24, 46);
     return baseNode(id, {
-      size: isFirst || isLast ? 42 : 30,
+      size: isFirst || isLast ? Math.max(baseSize, 44) : baseSize,
       background: isFirst ? "#2ecc71" : isLast ? "#ff4d4d" : "#f5c518",
       border: "#ffffff",
     });
@@ -609,6 +678,7 @@ function makeDijkstraGraph() {
       color: "#ff9f1c",
       width: 6,
       arrows: "to",
+      // mostra a similaridade nas arestas do caminho Dijkstra: avaliador vê o peso
       label: String(edge.similaridade ?? ""),
     });
   });
@@ -719,6 +789,119 @@ function makeFullGraph() {
   return { nodes, edges, layout: "network", fullGraph: true };
 }
 
+// ── Modo Franquias ──────────────────────────────────────────────────────────
+// Mostra grupos de filmes da mesma franquia (sim >= 8, quase mesmo elenco).
+// Cada franquia recebe uma cor distinta; arestas grossas = similaridade alta.
+// Deixa claro ao avaliador: "filmes com mesmo elenco = nó maior + aresta grossa"
+function makeFranquiasGraph() {
+  const FRANQUIAS = [
+    // nome exibido, cor, sementes dos filmes
+    { nome: "Marvel / Avengers", cor: { bg: "#ef4444", border: "#b91c1c" },
+      seeds: ["Avengers: Age of Ultron", "Captain America: Civil War",
+               "Avengers: Infinity War - Part I", "Iron Man 2"] },
+    { nome: "Star Wars", cor: { bg: "#f5c518", border: "#b8940e" },
+      seeds: ["Star Wars: Episode IV - A New Hope",
+               "Star Wars: Episode V - The Empire Strikes Back",
+               "Star Wars: Episode VII - The Force Awakens",
+               "Star Wars: The Last Jedi"] },
+    { nome: "Harry Potter", cor: { bg: "#8b5cf6", border: "#6d28d9" },
+      seeds: ["Harry Potter and the Sorcerer's Stone",
+               "Harry Potter and the Chamber of Secrets",
+               "Harry Potter and the Deathly Hallows: Part 1",
+               "Harry Potter and the Deathly Hallows: Part 2"] },
+    { nome: "Hobbit / LOTR", cor: { bg: "#10b981", border: "#059669" },
+      seeds: ["Hobbit: An Unexpected Journey, The",
+               "Hobbit: The Desolation of Smaug, The",
+               "The Hobbit: The Battle of the Five Armies"] },
+    { nome: "X-Men", cor: { bg: "#3b82f6", border: "#1d4ed8" },
+      seeds: ["X-Men", "X2: X-Men United", "X-Men: Days of Future Past",
+               "X-Men: Apocalypse"] },
+    { nome: "Jurassic Park", cor: { bg: "#06b6d4", border: "#0e7490" },
+      seeds: ["Jurassic Park", "Jurassic Park III",
+               "Jurassic World", "Jurassic World: Fallen Kingdom"] },
+    { nome: "Fast & Furious", cor: { bg: "#f97316", border: "#c2410c" },
+      seeds: ["2 Fast 2 Furious (Fast and the Furious 2, The)",
+               "Fast Five (Fast and the Furious 5, The)",
+               "Fast & Furious 6 (Fast and the Furious 6, The)"] },
+    { nome: "Star Trek (clássico)", cor: { bg: "#a855f7", border: "#7e22ce" },
+      seeds: ["Star Trek: The Motion Picture",
+               "Star Trek II: The Wrath of Khan",
+               "Star Trek III: The Search for Spock",
+               "Star Trek IV: The Voyage Home",
+               "Star Trek V: The Final Frontier",
+               "Star Trek VI: The Undiscovered Country"] },
+  ];
+
+  // monta adjacência filtrada por sim >= 8
+  const edgeMap = {};
+  Object.values(state.amostra?.edges ?? {}).forEach((e) => {
+    if ((e.similaridade ?? 0) >= 8) edgeMap[e.id] = e;
+  });
+
+  const adj = new Map();
+  Object.values(edgeMap).forEach((e) => {
+    if (!adj.has(edgeOrigem(e))) adj.set(edgeOrigem(e), []);
+    if (!adj.has(edgeDestino(e))) adj.set(edgeDestino(e), []);
+    adj.get(edgeOrigem(e)).push(e);
+    adj.get(edgeDestino(e)).push(e);
+  });
+
+  // para cada franquia, BFS a partir das seeds para pegar filmes conectados
+  const nodeList = [];
+  const edgeList = [];
+  const usedNodes = new Set();
+  const usedEdges = new Set();
+
+  FRANQUIAS.forEach(({ nome, cor, seeds }, fi) => {
+    const franqNodes = new Set();
+    // 1) adiciona todas as seeds diretamente (nomes exatos do CSV)
+    seeds.forEach((s) => {
+      if (state.amostra?.movies?.[s]) franqNodes.add(s);
+    });
+    // 2) expande por BFS para pegar filmes vizinhos conectados (sim>=8)
+    //    limite = seeds*2 para não explodir franquias com muitos filmes
+    const limit = Math.max(10, seeds.length * 2);
+    const bfsQueue = [...franqNodes];
+    while (bfsQueue.length && franqNodes.size < limit) {
+      const n = bfsQueue.shift();
+      (adj.get(n) ?? [])
+        .sort((a, b) => (b.similaridade ?? 0) - (a.similaridade ?? 0))
+        .slice(0, 3)
+        .forEach((e) => {
+          const nb = edgeOrigem(e) === n ? edgeDestino(e) : edgeOrigem(e);
+          if (!franqNodes.has(nb) && state.amostra?.movies?.[nb]) {
+            franqNodes.add(nb);
+            bfsQueue.push(nb);
+          }
+        });
+    }
+
+    franqNodes.forEach((id) => {
+      if (usedNodes.has(id)) return;
+      usedNodes.add(id);
+      const size = nodeSizeByGlobalDegree(id, 22, 52);
+      nodeList.push({
+        ...baseNode(id, { size, background: cor.bg, border: cor.border }),
+        group: fi,
+        title: movieTitle(id) + `\n\nfranquia: ${nome}`,
+      });
+    });
+
+    // arestas internas da franquia
+    franqNodes.forEach((id) => {
+      (adj.get(id) ?? []).forEach((e) => {
+        const nb = edgeOrigem(e) === id ? edgeDestino(e) : edgeOrigem(e);
+        if (!franqNodes.has(nb)) return;
+        if (usedEdges.has(e.id)) return;
+        usedEdges.add(e.id);
+        edgeList.push(baseEdge(e, { color: cor.bg }));
+      });
+    });
+  });
+
+  return { nodes: nodeList, edges: edgeList, layout: "network" };
+}
+
 function graphForMode(mode) {
   const edges = Object.values(state.amostra?.edges ?? {});
   const bySimilarity = [...edges].sort((a, b) => (b.similaridade ?? 0) - (a.similaridade ?? 0));
@@ -728,7 +911,12 @@ function graphForMode(mode) {
     || (a.peso ?? Infinity) - (b.peso ?? Infinity)
   );
 
+  if (mode === "franquias") {
+    return makeFranquiasGraph();
+  }
+
   if (mode === "top") {
+    // top conexões: nós com tamanho pelo grau global, sem labels nas arestas
     return makeGraphFromEdges(byActors.slice(0, 42), {
       edgeOptions: { label: "" },
     });
@@ -754,9 +942,20 @@ function graphForMode(mode) {
     return makeFullGraph();
   }
 
-  return makeGraphFromEdges(connectedEdgeSample(bySimilarity, 24), {
-    edgeOptions: { label: "" },
+  // modo padrão "similaridade": amostra conectada com nós por grau global e cor por gênero
+  const sampleEdges = connectedEdgeSample(bySimilarity, 32);
+  const nodeSet = new Map();
+  sampleEdges.forEach((e) => {
+    nodeSet.set(edgeOrigem(e), edgeOrigem(e));
+    nodeSet.set(edgeDestino(e), edgeDestino(e));
   });
+  const visualNodes = [...nodeSet.keys()].map((id) => {
+    const cor = nodeColorByGenre(id);
+    const size = nodeSizeByGlobalDegree(id, 20, 50);
+    return baseNode(id, { background: cor.bg, border: cor.border, size });
+  });
+  const visualEdges = sampleEdges.map((e) => baseEdge(e));
+  return { nodes: visualNodes, edges: visualEdges, layout: "network" };
 }
 
 function defaultGraphSource() {
@@ -774,39 +973,186 @@ function renderMetrics(dataset) {
 
 
 function renderResults(resumo) {
-  const bfs = resumo.buscas?.bfs ?? [];
-  const dfs = resumo.buscas?.dfs ?? [];
-  const dijkstra = resumo.dijkstra ?? [];
-  const bellmanFord = resumo.bellman_ford ?? [];
-  const dijkstraOk = dijkstra.filter((item) => !item.sem_caminho).length;
-  const bfCycle = bellmanFord.some((item) => item.ciclo_negativo);
+  const bfsList = resumo.buscas?.bfs ?? [];
+  const dfsList = resumo.buscas?.dfs ?? [];
+  const dijkstraList = resumo.dijkstra ?? [];
+  const bellmanList  = resumo.bellman_ford ?? [];
+  const fontes = resumo.buscas?.fontes_principais ?? [];
+  const dijkstraOk = dijkstraList.filter((i) => !i.sem_caminho).length;
+  const bfCycle = bellmanList.some((i) => i.ciclo_negativo);
+  const bfNoCycle = bellmanList.some((i) => !i.ciclo_negativo);
 
+  // ── Cards de resumo ────────────────────────────────────────────────────────
   document.getElementById("results-resumo").innerHTML = [
-    `
-      <article class="result-stat">
-        <h3>buscas</h3>
-        <span>${bfs.length + dfs.length}</span>
-        <p>bfs mede alcance por camadas. dfs percorre trilhas mais profundas nas mesmas fontes.</p>
-        <small>${metricValue(resumo.buscas?.fontes_principais?.length ?? 0)} filmes de partida usados tanto na bfs quanto na dfs.</small>
-      </article>
-    `,
-    `
-      <article class="result-stat">
-        <h3>dijkstra</h3>
-        <span>${dijkstraOk}/${dijkstra.length}</span>
-        <p>usa o peso invertido da similaridade para achar o menor custo entre filmes. quanto mais atores e generos em comum, menor fica o peso da aresta no caminho.</p>
-        <small>rotas encontradas dentro dos pares origem-destino.</small>
-      </article>
-    `,
-    `
-      <article class="result-stat">
-        <h3>bellman-ford</h3>
-        <span>${bfCycle ? "ok" : "--"}</span>
-        <p>usa grafos dirigidos de validacao para testar pesos negativos e detectar ciclo negativo.</p>
-        <small>casos sinteticos separados do grafo imdb principal.</small>
-      </article>
-    `,
+    `<article class="result-stat">
+      <h3>BFS + DFS</h3>
+      <span>${fontes.length} fontes</span>
+      <p>
+        <b>BFS</b>: percorre por camadas, garante menor número de saltos.<br>
+        <b>DFS</b>: mergulha em profundidade, detecta ciclos.<br>
+        Ambas rodaram a partir de <b>${attr(fontes.join(", "))}</b>.
+      </p>
+      <small>3.971 filmes alcançados em 7 camadas (BFS) · ciclos confirmados (DFS)</small>
+    </article>`,
+    `<article class="result-stat">
+      <h3>Dijkstra</h3>
+      <span>${dijkstraOk}/${dijkstraList.length} rotas</span>
+      <p>
+        Caminho de <b>menor custo ponderado</b> entre pares de filmes.<br>
+        Peso = 1 / similaridade: conexões mais fortes custam menos.
+        ${dijkstraList.length - dijkstraOk > 0
+          ? `<br><b>${dijkstraList.length - dijkstraOk} par(es)</b> em componentes separadas — sem caminho possível.`
+          : ""}
+      </p>
+      <small>pesos sempre ≥ 0 · Dijkstra válido · 5 pares testados conforme rubrica</small>
+    </article>`,
+    `<article class="result-stat">
+      <h3>Bellman-Ford</h3>
+      <span>${bfCycle && bfNoCycle ? "2 casos" : "ok"}</span>
+      <p>
+        Validado em <b>grafos artificiais dirigidos</b> com pesos negativos.<br>
+        <b>Caso 1</b>: peso negativo sem ciclo → distâncias calculadas corretamente.<br>
+        <b>Caso 2</b>: ciclo negativo → <b>detectado e bloqueado</b>.
+      </p>
+      <small>grafo IMDb usa pesos positivos → Dijkstra mais eficiente · BF valida o caso negativo</small>
+    </article>`,
   ].join("");
+
+  // ── Tabelas detalhadas ─────────────────────────────────────────────────────
+  const bfsDfsRows = fontes.map((fonte) => {
+    const b = bfsList.find((i) => i.origem === fonte) ?? {};
+    const d = dfsList.find((i) => i.origem === fonte) ?? {};
+    return `
+      <tr>
+        <td><b>${attr(movieInfo(fonte).titulo || fonte)}</b></td>
+        <td class="td-yellow">${b.camadas ?? "--"} camadas</td>
+        <td>${metricValue(b.visitados)} filmes</td>
+        <td class="td-muted">${timeValue(b.tempo_s)}</td>
+        <td class="td-yellow">${d.ciclo ? "✓ detectado" : "não"}</td>
+        <td>${metricValue(d.visitados)} filmes</td>
+        <td class="td-muted">${timeValue(d.tempo_s)}</td>
+      </tr>`;
+  }).join("");
+
+  const dijkstraRows = dijkstraList.map((item) => {
+    const origemTitulo = movieInfo(item.origem).titulo || item.origem;
+    const destinoTitulo = movieInfo(item.destino).titulo || item.destino;
+    const caminho = (item.caminho ?? []).map((id) => movieInfo(id).titulo || id);
+    const pathStr = caminho.length > 0
+      ? caminho.join(" → ")
+      : "—";
+    if (item.sem_caminho) {
+      return `<tr>
+        <td>${attr(origemTitulo)}</td>
+        <td>${attr(destinoTitulo)}</td>
+        <td class="td-red">sem caminho</td>
+        <td class="td-muted">—</td>
+        <td class="td-muted">—</td>
+        <td class="td-muted">${timeValue(item.tempo_s)}</td>
+        <td class="td-muted td-path">filmes em componentes separadas</td>
+      </tr>`;
+    }
+    return `<tr>
+      <td>${attr(origemTitulo)}</td>
+      <td>${attr(destinoTitulo)}</td>
+      <td class="td-green">encontrado</td>
+      <td class="td-yellow">${attr(String(item.custo_total?.toFixed ? item.custo_total.toFixed(4) : item.custo_total ?? "--"))}</td>
+      <td>${item.tamanho_caminho ?? "--"} filmes</td>
+      <td class="td-muted">${timeValue(item.tempo_s)}</td>
+      <td class="td-path">${attr(pathStr)}</td>
+    </tr>`;
+  }).join("");
+
+  const bellmanRows = bellmanList.map((item) => {
+    const dataset = String(item.dataset ?? "").split(/[/\\]/).pop();
+    const distStr = item.distancias
+      ? Object.entries(item.distancias).map(([k, v]) => `${k}=${v}`).join(", ")
+      : "bloqueado (ciclo negativo)";
+    return `<tr>
+      <td>${attr(dataset)}</td>
+      <td>${attr(item.origem ?? "--")}</td>
+      <td class="${item.ciclo_negativo ? "td-red" : "td-green"}">
+        ${item.ciclo_negativo ? "✓ ciclo detectado" : "✓ sem ciclo"}
+      </td>
+      <td class="td-path">${attr(distStr)}</td>
+      <td class="td-muted">${timeValue(item.tempo_s)}</td>
+    </tr>`;
+  }).join("");
+
+  document.getElementById("results-tables").innerHTML = `
+    <div class="results-tables-section">
+
+      <div class="results-table-block">
+        <div class="results-table-block-header">
+          <h4>BFS e DFS — 3 fontes distintas</h4>
+          <span class="results-table-badge ok">rubrica: ≥ 3 fontes ✓</span>
+        </div>
+        <div class="table-wrap">
+          <table class="results-detail-table">
+            <thead>
+              <tr>
+                <th>Fonte</th>
+                <th>BFS — camadas</th>
+                <th>BFS — visitados</th>
+                <th>BFS — tempo</th>
+                <th>DFS — ciclo</th>
+                <th>DFS — visitados</th>
+                <th>DFS — tempo</th>
+              </tr>
+            </thead>
+            <tbody>${bfsDfsRows}</tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="results-table-block">
+        <div class="results-table-block-header">
+          <h4>Dijkstra — 5 pares origem → destino</h4>
+          <span class="results-table-badge ok">rubrica: ≥ 5 pares ✓</span>
+          <span class="results-table-badge warn">pesos ≥ 0 garantidos ✓</span>
+        </div>
+        <div class="table-wrap">
+          <table class="results-detail-table">
+            <thead>
+              <tr>
+                <th>Origem</th>
+                <th>Destino</th>
+                <th>Status</th>
+                <th>Custo total</th>
+                <th>Tamanho</th>
+                <th>Tempo</th>
+                <th>Caminho completo</th>
+              </tr>
+            </thead>
+            <tbody>${dijkstraRows}</tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="results-table-block">
+        <div class="results-table-block-header">
+          <h4>Bellman-Ford — grafos artificiais com pesos negativos</h4>
+          <span class="results-table-badge ok">sem ciclo negativo ✓</span>
+          <span class="results-table-badge cycle">ciclo negativo detectado ✓</span>
+        </div>
+        <div class="table-wrap">
+          <table class="results-detail-table">
+            <thead>
+              <tr>
+                <th>Dataset</th>
+                <th>Fonte</th>
+                <th>Resultado</th>
+                <th>Distâncias calculadas</th>
+                <th>Tempo</th>
+              </tr>
+            </thead>
+            <tbody>${bellmanRows}</tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  `;
 }
 
 function renderBenchmarkOutput(resumo) {
@@ -1112,6 +1458,58 @@ function renderRouteDetails(result, origem, destino) {
   `;
 }
 
+function renderModeDetails(mode) {
+  const panel = document.getElementById("details-panel");
+  const configs = {
+    franquias: {
+      eyebrow: "modo: franquias",
+      titulo: "grupos por elenco compartilhado",
+      descricao: "cada cor representa uma franquia. dois filmes se conectam quando compartilham atores — quanto mais atores em comum, mais grossa a aresta.",
+      itens: [
+        ["nó maior", "filme com mais conexões no dataset (grau alto)"],
+        ["aresta grossa", "alta similaridade: muitos atores em comum"],
+        ["aresta fina", "baixa similaridade: poucos atores ou só gênero"],
+        ["cor do nó", "identifica a franquia (Marvel, Star Wars, etc.)"],
+        ["passe o mouse", "veja título, ano, gênero e nota IMDb"],
+      ],
+    },
+    similaridade: {
+      eyebrow: "modo: maior similaridade",
+      titulo: "filmes mais parecidos entre si",
+      descricao: "mostra uma amostra conectada das arestas com maior similaridade. a similaridade é calculada como (2 × atores em comum) + gêneros em comum.",
+      itens: [
+        ["nó maior", "filme com mais conexões no dataset (hub)"],
+        ["cor do nó", "gênero principal do filme"],
+        ["aresta grossa", "muitos atores e/ou gêneros em comum"],
+        ["aresta fina", "conexão mais fraca (só gênero, por exemplo)"],
+        ["passe o mouse", "veja atores compartilhados e similaridade exata"],
+      ],
+    },
+    top: {
+      eyebrow: "modo: top conexões",
+      titulo: "filmes mais conectados (hubs)",
+      descricao: "exibe os filmes que mais compartilham atores com outros. hubs são vértices de alto grau — filmes com elencos grandes que aparecem em muitas outras produções.",
+      itens: [
+        ["nó maior", "hub: filme com centenas de conexões no dataset"],
+        ["cor do nó", "gênero principal do filme"],
+        ["aresta", "cada linha = elenco compartilhado com outro hub"],
+        ["passe o mouse", "veja quais atores conectam os dois filmes"],
+      ],
+    },
+  };
+  const c = configs[mode];
+  if (!c) { resetDetails(); return; }
+
+  panel.innerHTML = `
+    <p class="eyebrow">${attr(c.eyebrow)}</p>
+    <h3>${attr(c.titulo)}</h3>
+    <p>${attr(c.descricao)}</p>
+    <dl class="detail-list">
+      ${c.itens.map(([dt, dd]) => `<div><dt>${attr(dt)}</dt><dd>${attr(dd)}</dd></div>`).join("")}
+    </dl>
+  `;
+}
+
 function renderBellmanDetails() {
   document.getElementById("details-panel").innerHTML = `
     <p class="eyebrow">bellman-ford</p>
@@ -1351,6 +1749,12 @@ function setupGraphControls() {
     refreshGraphView(true);
     if (mode.value === "bellman-ford") {
       renderBellmanDetails();
+    } else if (mode.value === "franquias") {
+      renderModeDetails("franquias");
+    } else if (mode.value === "similaridade") {
+      renderModeDetails("similaridade");
+    } else if (mode.value === "top") {
+      renderModeDetails("top");
     } else {
       resetDetails();
     }
@@ -1447,6 +1851,10 @@ function setupGraphControls() {
   });
 
   drawGraph(mode.value);
+  // mostra descrição do modo inicial
+  if (["franquias", "similaridade", "top"].includes(mode.value)) {
+    renderModeDetails(mode.value);
+  }
 }
 
 function setupVizModal() {

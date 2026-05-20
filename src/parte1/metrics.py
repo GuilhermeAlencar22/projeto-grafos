@@ -1,3 +1,5 @@
+"""métricas globais, por região e ego-network para o grafo da parte 1."""
+
 from collections import defaultdict
 
 def calcular_densidade(n, e):

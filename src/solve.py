@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src import cli as cli_mod
+from src.parte2 import cli as cli_mod
 
 
 def salvar_json(path, data):
@@ -32,15 +32,15 @@ def salvar_csv(path, data):
 
 
 def rodar_parte1():
-    from src.graphs.algorithms import dijkstra
-    from src.graphs.io import carregar_aeroportos, carregar_grafo
-    from src.utils.metrics import (
+    from src.shared.algorithms import dijkstra
+    from src.shared.io import carregar_aeroportos, carregar_grafo
+    from src.parte1.metrics import (
         calcular_graus,
         ego_network_metrics,
         metricas_globais,
         subgrafo_por_regiao,
     )
-    from src.viz import (
+    from src.parte1.viz import (
         gerar_arvore_percurso,
         gerar_grafo_interativo,
         plot_histograma_graus,

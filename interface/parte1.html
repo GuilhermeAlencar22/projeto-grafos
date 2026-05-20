@@ -3,268 +3,254 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Parte 1 - Aeroportos</title>
+  <title>Parte 1 — Rede de Aeroportos | Teoria dos Grafos</title>
+  <link rel="stylesheet" href="styles.css?v=22">
   <style>
-    :root {
-      --bg: #101010;
-      --panel: #171717;
-      --panel-2: #202020;
-      --border: #333333;
-      --text: #f5f5f5;
-      --muted: #b7b7b7;
-      --yellow: #f5c518;
-      --blue: #38bdf8;
-    }
+    /* ── Estilos específicos da Parte 1 (complementam styles.css) ── */
 
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
-    }
-
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 28px;
-      background: rgba(16, 16, 16, 0.94);
-      border-bottom: 1px solid var(--border);
-    }
-
-    header a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    header strong {
-      margin-right: auto;
-      color: var(--yellow);
-      text-transform: uppercase;
-      font-size: 14px;
-    }
-
-    main {
-      width: min(1180px, calc(100% - 36px));
-      margin: 42px auto 70px;
-    }
-
-    .hero {
+    .p1-hero {
       display: grid;
       grid-template-columns: 1.2fr 0.8fr;
       gap: 26px;
       align-items: end;
-      margin-bottom: 30px;
+      padding: 36px 0 30px;
     }
 
-    .tag {
-      display: inline-block;
-      padding: 8px 12px;
-      margin-bottom: 16px;
-      background: var(--yellow);
-      color: #111;
-      border-radius: 6px;
-      font-weight: 800;
-      font-size: 13px;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 0 0 12px;
-      font-size: clamp(32px, 5vw, 58px);
-      line-height: 1;
-    }
-
-    p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.55;
-      font-size: 17px;
-    }
-
-    .actions {
+    .p1-hero-actions {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
     }
 
-    .button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 52px;
-      padding: 12px 14px;
-      color: #111;
-      background: var(--yellow);
-      border: 1px solid var(--yellow);
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 800;
+    .p1-section {
+      margin-top: 40px;
     }
 
-    .button.secondary {
-      color: var(--text);
-      background: var(--panel);
-      border-color: var(--border);
+    .p1-section-title {
+      margin: 0 0 16px;
+      color: var(--primary);
+      font-size: clamp(20px, 2.5vw, 28px);
+      font-weight: 900;
     }
 
-    .button:hover {
-      filter: brightness(1.08);
-    }
-
-    .section {
-      margin-top: 34px;
-    }
-
-    .section h2 {
-      margin: 0 0 14px;
-      color: var(--yellow);
-      font-size: 24px;
-    }
-
-    .grid {
+    .p1-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 16px;
     }
 
-    .card {
-      padding: 18px;
-      background: var(--panel);
-      border: 1px solid var(--border);
+    .p1-card {
+      padding: 20px;
+      background: var(--panel-flat);
+      border: 1px solid var(--yellow-line);
       border-radius: 8px;
+      transition: transform 160ms ease, border-color 160ms ease;
     }
 
-    .card strong {
+    .p1-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(245, 197, 24, 0.44);
+    }
+
+    .p1-card-label {
       display: block;
       margin-bottom: 8px;
-      color: var(--yellow);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 900;
       text-transform: uppercase;
-      font-size: 12px;
+      letter-spacing: 0.06em;
     }
 
-    .card a {
+    .p1-card a {
       color: var(--text);
       text-decoration: none;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 800;
+      line-height: 1.2;
     }
 
-    .card p {
-      margin-top: 10px;
+    .p1-card a:hover {
+      color: var(--primary);
+    }
+
+    .p1-card p {
+      margin: 10px 0 0;
+      color: var(--muted);
       font-size: 14px;
+      line-height: 1.5;
     }
 
-    .gallery {
+    .p1-gallery {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
+      grid-template-columns: 1fr;
+      gap: 28px;
     }
 
-    figure {
+    .p1-figure {
       margin: 0;
-      background: var(--panel);
-      border: 1px solid var(--border);
+      background: var(--panel-flat);
+      border: 1px solid var(--yellow-line);
       border-radius: 8px;
       overflow: hidden;
+      transition: transform 160ms ease, border-color 160ms ease;
     }
 
-    figure a {
+    .p1-figure:hover {
+      transform: translateY(-2px);
+      border-color: rgba(245, 197, 24, 0.44);
+    }
+
+    .p1-figure a {
       display: block;
     }
 
-    img {
+    .p1-figure img {
       display: block;
       width: 100%;
-      height: 250px;
+      height: auto;
+      aspect-ratio: 4 / 2.2;
       object-fit: contain;
       background: #fff;
     }
 
-    figcaption {
-      padding: 12px 14px;
+    .p1-figure figcaption {
+      padding: 12px 16px;
       color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .p1-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 10px 14px;
+      color: #121212;
+      background: var(--primary);
+      border: 1px solid transparent;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 800;
       font-size: 14px;
+      cursor: pointer;
+      transition: filter 140ms ease, transform 140ms ease;
+    }
+
+    .p1-btn.secondary {
+      color: var(--text);
+      background: var(--panel-flat);
+      border-color: var(--line);
+    }
+
+    .p1-btn:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
     }
 
     @media (max-width: 900px) {
-      .hero,
-      .grid,
-      .gallery,
-      .actions {
-        grid-template-columns: 1fr;
-      }
+      .p1-hero { grid-template-columns: 1fr; }
+      .p1-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .p1-hero-actions { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .p1-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <strong>parte 1 | aeroportos</strong>
-    <a href="../index.html">inicio</a>
-    <a href="../interface/">parte 2</a>
-    <a href="../README.md">readme</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">P1</span>
+      <div>
+        <p class="eyebrow">parte 1</p>
+        <h1>teoria dos grafos</h1>
+      </div>
+    </div>
+    <nav class="nav">
+      <a class="is-active" href="#">aeroportos</a>
+      <a href="index.html" data-view="grafos">parte 2</a>
+      <a href="../index.html" style="opacity:0.65;border-left:1px solid var(--line);padding-left:1rem;margin-left:0.5rem;">← início</a>
+    </nav>
   </header>
 
   <main>
-    <section class="hero">
+
+    <section class="p1-hero">
       <div>
-        <span class="tag">rede de aeroportos</span>
-        <h1>rotas, hubs e metricas do grafo</h1>
-        <p>A Parte 1 modela aeroportos brasileiros como vertices e conexoes diretas como arestas ponderadas. Esta pagina junta os HTMLs e graficos gerados em <code>out/</code>.</p>
+        <p class="eyebrow">rede de aeroportos</p>
+        <h2 style="margin:0 0 14px;font-size:clamp(28px,4vw,52px);line-height:1.05;">Rotas, Uubs e Métricas do Grafo</h2>
+        <p style="margin:0;color:var(--muted);font-size:16px;line-height:1.6;max-width:540px;">
+          A Parte 1 modela aeroportos brasileiros como vértices e conexões diretas como arestas ponderadas.
+          Esta página reúne os HTMLs e gráficos gerados em <code style="font-size:13px;color:var(--primary);">out/</code>.
+        </p>
       </div>
-      <nav class="actions" aria-label="acoes principais">
-        <a class="button" href="../out/grafo_interativo.html">abrir grafo</a>
-        <a class="button secondary" href="../out/arvore_percurso.html">arvore de percurso</a>
-        <a class="button secondary" href="../out/subgrafo_hubs.html">subgrafo hubs</a>
+      <nav class="p1-hero-actions" aria-label="ações principais" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+        <a class="p1-btn" href="../out/grafo_interativo.html">abrir grafo</a>
+        <a class="p1-btn secondary" href="../out/arvore_percurso.html">percurso REC → POA</a>
+        <a class="p1-btn secondary" href="../out/arvore_percurso_gru_mao.html">percurso GRU → MAO</a>
+        <a class="p1-btn secondary" href="../out/subgrafo_hubs.html">subgrafo hubs</a>
       </nav>
     </section>
 
-    <section class="section">
-      <h2>arquivos principais</h2>
-      <div class="grid">
-        <article class="card">
-          <strong>metricas</strong>
+    <section class="p1-section">
+      <h2 class="p1-section-title">Arquivos Principais</h2>
+      <div class="p1-grid">
+        <article class="p1-card">
+          <span class="p1-card-label">métricas</span>
           <a href="../out/global.json">global.json</a>
           <p>Ordem, tamanho e densidade do grafo de aeroportos.</p>
         </article>
-        <article class="card">
-          <strong>rotas</strong>
+        <article class="p1-card">
+          <span class="p1-card-label">rotas</span>
           <a href="../out/distancias_rotas.csv">distancias_rotas.csv</a>
-          <p>Caminhos minimos calculados com Dijkstra.</p>
+          <p>Caminhos mínimos calculados com Dijkstra.</p>
         </article>
-        <article class="card">
-          <strong>rankings</strong>
+        <article class="p1-card">
+          <span class="p1-card-label">rankings</span>
           <a href="../out/rankings.json">rankings.json</a>
           <p>Aeroportos mais conectados e maior densidade local.</p>
+        </article>
+        <article class="p1-card">
+          <span class="p1-card-label">relatório AVD</span>
+          <a href="../out/avd_relatorio.html">avd_relatorio.html</a>
+          <p>Análise visual com métricas, gráficos e tabelas regionais.</p>
         </article>
       </div>
     </section>
 
-    <section class="section">
-      <h2>graficos analiticos</h2>
-      <div class="gallery">
-        <figure>
-          <a href="../out/histograma.png"><img src="../out/histograma.png" alt="histograma de graus"></a>
-          <figcaption>Distribuicao de graus dos aeroportos.</figcaption>
+    <section class="p1-section">
+      <h2 class="p1-section-title">Gráficos Analíticos</h2>
+      <div class="p1-gallery">
+        <figure class="p1-figure">
+          <a href="../out/histograma.png">
+            <img src="../out/histograma.png" alt="histograma de graus">
+          </a>
+          <figcaption>Distribuição de graus dos aeroportos.</figcaption>
         </figure>
-        <figure>
-          <a href="../out/ranking.png"><img src="../out/ranking.png" alt="ranking de aeroportos"></a>
+        <figure class="p1-figure">
+          <a href="../out/ranking.png">
+            <img src="../out/ranking.png" alt="ranking de aeroportos">
+          </a>
           <figcaption>Ranking visual dos aeroportos mais conectados.</figcaption>
         </figure>
-        <figure>
-          <a href="../out/regioes.png"><img src="../out/regioes.png" alt="comparacao por regioes"></a>
-          <figcaption>Comparacao do grau medio por regiao.</figcaption>
+        <figure class="p1-figure">
+          <a href="../out/regioes.png">
+            <img src="../out/regioes.png" alt="comparação por regiões">
+          </a>
+          <figcaption>Comparação do grau médio por região.</figcaption>
         </figure>
       </div>
     </section>
+
   </main>
+
+  <footer style="text-align:center;padding:32px 20px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);margin-top:56px;">
+    Projeto Final — Teoria dos Grafos &nbsp;·&nbsp; Python puro · PyVis · Matplotlib · Pandas
+  </footer>
+
 </body>
 </html>
