@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parte 1 — Grafos de Aeroportos</title>
+<style>
+:root{--bg:#050505;--card:#121212;--card2:#171717;--border:#2a2a2a;--text:#f2f2f2;--muted:#a3a3a3;--yellow:#f5c518;}
+*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:linear-gradient(180deg,#050505 0%,#0a0a0a 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.topbar{border-bottom:1px solid var(--border);background:#000} .topbar-inner{max-width:1260px;margin:auto;padding:18px 24px;display:flex;justify-content:space-between;align-items:center} .brand{color:var(--yellow);font-weight:900;font-size:18px} .rightnav{display:flex;gap:26px;color:var(--muted);font-size:14px}
+header,main,footer{max-width:1260px;margin:auto;padding-left:24px;padding-right:24px} header{padding-top:42px;padding-bottom:8px} .hero{text-align:center} .badge{display:inline-block;background:var(--yellow);color:#1b1b1b;font-weight:900;font-size:14px;letter-spacing:.05em;padding:8px 16px;border-radius:10px;margin-bottom:18px}
+h1{margin:0 auto 18px;max-width:980px;font-size:clamp(44px,7vw,88px);line-height:.95;letter-spacing:-.05em} h1 .yellow{color:var(--yellow)} .lead{max-width:920px;margin:0 auto;color:var(--muted);line-height:1.65;font-size:17px}
+.kpis{max-width:980px;margin:40px auto 18px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));overflow:hidden;border:1px solid var(--border);border-radius:18px;background:linear-gradient(180deg,#111,#0e0e0e)} .kpi{text-align:center;padding:20px 12px 22px;border-right:1px solid var(--border)} .kpi:last-child{border-right:none} .kpi .value{color:var(--yellow);font-size:30px;font-weight:900;margin-bottom:6px} .kpi .label{color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.navchips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:24px} .navchips a{text-decoration:none;color:var(--text);border:1px solid var(--border);background:#0f0f0f;padding:10px 14px;border-radius:999px;font-size:14px}
+.section{margin:26px 0;padding:24px;border:1px solid var(--border);border-radius:22px;background:linear-gradient(180deg,var(--card2),var(--card))} .section h2{margin:0 0 10px;font-size:28px;letter-spacing:-.03em} .section p{margin-top:0;color:var(--muted);line-height:1.68}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start} .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px} .cardmini{background:#0f0f0f;border:1px solid var(--border);border-radius:18px;padding:16px} .cardmini b{display:block;margin-bottom:6px} .cardmini span{color:var(--muted);font-size:14px;line-height:1.45}
+.chart{width:100%;height:auto;display:block} .chart-title{fill:var(--text);font-size:20px;font-weight:900;letter-spacing:.03em} .grid{stroke:#2b2b2b;stroke-dasharray:4 4} .axis{fill:#9f9f9f;font-size:11px} .axis-title{fill:#cecece;font-size:12px;font-weight:800} .value-label{fill:var(--text);font-size:12px;font-weight:900} .node-label{fill:var(--text);font-size:11px;font-weight:900;paint-order:stroke;stroke:#000;stroke-width:4px}
+.legend{margin-top:10px;padding:14px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;border:1px solid var(--border);border-radius:16px;background:#0d0d0d} .legend-title{width:100%;color:var(--yellow);font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:900} .legend-item{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:13px} .legend-item b{color:var(--text)} .swatch{width:15px;height:15px;border-radius:4px;border:1px solid rgba(255,255,255,.2);display:inline-block;flex:0 0 auto}
+.table-wrap{overflow-x:auto;margin-top:14px;border:1px solid var(--border);border-radius:16px} table{width:100%;border-collapse:collapse;background:#0e0e0e;color:var(--text);font-size:14px} th,td{padding:12px 10px;border-bottom:1px solid #232323;text-align:left;vertical-align:top} th{color:var(--yellow);font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase} .note{margin-top:12px;border-left:4px solid var(--yellow);background:rgba(245,197,24,.08);padding:14px 15px;border-radius:12px;color:var(--muted)}
+footer{color:#737373;padding-top:8px;padding-bottom:40px;font-size:13px;line-height:1.6} @media(max-width:960px){.kpis,.grid2,.grid4{grid-template-columns:1fr}}
+</style></head>
+<body>
+<div class="topbar"><div class="topbar-inner"><div class="brand">✈︎&nbsp; TEORIA DOS GRAFOS</div><div class="rightnav"><span>Parte 1</span><span>Parte 2</span></div></div></div>
+<header><div class="hero"><span class="badge">PARTE 1</span><h1><span>Grafos de</span> <span class="yellow">Aeroportos</span><br><span>e Conectividade</span></h1><p class="lead">Esta página apresenta a <strong>Parte 1</strong> do projeto: modelagem da malha de aeroportos como grafo. Os nós são aeroportos, as arestas são conexões e os pesos representam o custo/distância relativa usada nos algoritmos.</p>
+<div class="kpis"><div class="kpi"><div class="value">20</div><div class="label">Aeroportos</div></div><div class="kpi"><div class="value">114</div><div class="label">Arestas na base</div></div><div class="kpi"><div class="value">114</div><div class="label">Conexões únicas</div></div><div class="kpi"><div class="value">0.600</div><div class="label">Densidade</div></div><div class="kpi"><div class="value">11.4</div><div class="label">Grau médio</div></div></div>
+<div class="navchips"><a href="#visao">Visão geral</a><a href="#grau">Grau</a><a href="#regiao">Regiões</a><a href="#pesos">Pesos</a><a href="#rede">Rede</a><a href="#dijkstra">Dijkstra</a><a href="#benchmark">Benchmark</a></div></div></header>
+<main>
+<section id="visao" class="section"><h2>Como ler a Parte 1</h2><p>A análise começa pela estrutura do grafo: número de nós, arestas, grau dos aeroportos, conexões por região, pesos das rotas e desempenho dos algoritmos. A lógica é a mesma da Teoria dos Grafos: entender quais aeroportos são mais centrais e como os caminhos se organizam na rede.</p><div class="grid4"><div class="cardmini"><b>Nós</b><span>Aeroportos identificados pelo código IATA.</span></div><div class="cardmini"><b>Arestas</b><span>Conexões entre aeroportos, com tipo e justificativa.</span></div><div class="cardmini"><b>Pesos</b><span>Custo relativo usado para o menor caminho.</span></div><div class="cardmini"><b>Algoritmos</b><span>BFS, DFS, Dijkstra e Bellman-Ford.</span></div></div></section>
+<section id="grau" class="section"><h2>1. Grau dos aeroportos</h2><p>O grau mostra quantas conexões cada aeroporto possui. Aeroportos com grau maior funcionam como pontos centrais da rede, semelhantes a hubs.</p><div class="grid2"><div><svg class="chart" viewBox="0 0 920 400" role="img" aria-label="Distribuição de graus dos aeroportos">
+<rect width="920" height="400" rx="18" fill="#101010" stroke="#2a2a2a"/>
+<text x="460.0" y="30" text-anchor="middle" class="chart-title">Distribuição de graus dos aeroportos</text>
+<line x1="72" x2="892" y1="334.0" y2="334.0" class="grid"/>
+<text x="62" y="338.0" text-anchor="end" class="axis">0,00</text>
+<line x1="72" x2="892" y1="262.5" y2="262.5" class="grid"/>
+<text x="62" y="266.5" text-anchor="end" class="axis">0,50</text>
+<line x1="72" x2="892" y1="191.0" y2="191.0" class="grid"/>
+<text x="62" y="195.0" text-anchor="end" class="axis">1,00</text>
+<line x1="72" x2="892" y1="119.5" y2="119.5" class="grid"/>
+<text x="62" y="123.5" text-anchor="end" class="axis">1,50</text>
+<line x1="72" x2="892" y1="48.0" y2="48.0" class="grid"/>
+<text x="62" y="52.0" text-anchor="end" class="axis">2,00</text>
+<rect x="72.0" y="48.0" width="55.7" height="286.0" rx="6" fill="#4cc9f0"></rect>
+<text x="99.8" y="40.0" text-anchor="middle" class="value-label">2,00</text>
+<text x="99.8" y="366" text-anchor="middle" class="axis">5</text>
+<rect x="135.7" y="191.0" width="55.7" height="143.0" rx="6" fill="#f72585"></rect>
+<text x="163.5" y="183.0" text-anchor="middle" class="value-label">1,00</text>
+<text x="163.5" y="366" text-anchor="middle" class="axis">6</text>
+<rect x="199.4" y="48.0" width="55.7" height="286.0" rx="6" fill="#ffd166"></rect>
+<text x="227.2" y="40.0" text-anchor="middle" class="value-label">2,00</text>
+<text x="227.2" y="366" text-anchor="middle" class="axis">7</text>
+<rect x="263.1" y="48.0" width="55.7" height="286.0" rx="6" fill="#06d6a0"></rect>
+<text x="290.9" y="40.0" text-anchor="middle" class="value-label">2,00</text>
+<text x="290.9" y="366" text-anchor="middle" class="axis">8</text>
+<rect x="326.8" y="191.0" width="55.7" height="143.0" rx="6" fill="#8b5cf6"></rect>
+<text x="354.6" y="183.0" text-anchor="middle" class="value-label">1,00</text>
+<text x="354.6" y="366" text-anchor="middle" class="axis">9</text>
+<rect x="390.5" y="48.0" width="55.7" height="286.0" rx="6" fill="#ff7a00"></rect>
+<text x="418.3" y="40.0" text-anchor="middle" class="value-label">2,00</text>
+<text x="418.3" y="366" text-anchor="middle" class="axis">10</text>
+<rect x="454.2" y="48.0" width="55.7" height="286.0" rx="6" fill="#22c55e"></rect>
+<text x="482.0" y="40.0" text-anchor="middle" class="value-label">2,00</text>
+<text x="482.0" y="366" text-anchor="middle" class="axis">11</text>
+<rect x="517.8" y="191.0" width="55.7" height="143.0" rx="6" fill="#94a3b8"></rect>
+<text x="545.7" y="183.0" text-anchor="middle" class="value-label">1,00</text>
+<text x="545.7" y="366" text-anchor="middle" class="axis">12</text>
+<rect x="581.5" y="191.0" width="55.7" height="143.0" rx="6" fill="#38bdf8"></rect>
+<text x="609.4" y="183.0" text-anchor="middle" class="value-label">1,00</text>
+<text x="609.4" y="366" text-anchor="middle" class="axis">14</text>
+<rect x="645.2" y="48.0" width="55.7" height="286.0" rx="6" fill="#ef476f"></rect>
+<text x="673.1" y="40.0" text-anchor="middle" class="value-label">2,00</text>
+<text x="673.1" y="366" text-anchor="middle" class="axis">16</text>
+<rect x="708.9" y="191.0" width="55.7" height="143.0" rx="6" fill="#14b8a6"></rect>
+<text x="736.8" y="183.0" text-anchor="middle" class="value-label">1,00</text>
+<text x="736.8" y="366" text-anchor="middle" class="axis">17</text>
+<rect x="772.6" y="191.0" width="55.7" height="143.0" rx="6" fill="#eab308"></rect>
+<text x="800.5" y="183.0" text-anchor="middle" class="value-label">1,00</text>
+<text x="800.5" y="366" text-anchor="middle" class="axis">18</text>
+<rect x="836.3" y="48.0" width="55.7" height="286.0" rx="6" fill="#4cc9f0"></rect>
+<text x="864.2" y="40.0" text-anchor="middle" class="value-label">2,00</text>
+<text x="864.2" y="366" text-anchor="middle" class="axis">19</text>
+<text x="460.0" y="388" text-anchor="middle" class="axis-title">Grau</text>
+<text x="18" y="200.0" transform="rotate(-90 18 200.0)" text-anchor="middle" class="axis-title">Quantidade de aeroportos</text>
+</svg><div class="legend"><div class="legend-title">Legenda</div>
+<div class="legend-item"><span class="swatch" style="background:#4cc9f0"></span><b>Cores variadas</b><span>diferenciam visualmente as barras; valores estão nos rótulos e eixos</span></div>
+</div></div><div><svg class="chart" viewBox="0 0 920 400" role="img" aria-label="Top 10 aeroportos mais conectados">
+<rect width="920" height="400" rx="18" fill="#101010" stroke="#2a2a2a"/>
+<text x="460.0" y="30" text-anchor="middle" class="chart-title">Top 10 aeroportos mais conectados</text>
+<line x1="72" x2="892" y1="278.0" y2="278.0" class="grid"/>
+<text x="62" y="282.0" text-anchor="end" class="axis">0,00</text>
+<line x1="72" x2="892" y1="220.5" y2="220.5" class="grid"/>
+<text x="62" y="224.5" text-anchor="end" class="axis">4,75</text>
+<line x1="72" x2="892" y1="163.0" y2="163.0" class="grid"/>
+<text x="62" y="167.0" text-anchor="end" class="axis">9,50</text>
+<line x1="72" x2="892" y1="105.5" y2="105.5" class="grid"/>
+<text x="62" y="109.5" text-anchor="end" class="axis">14,25</text>
+<line x1="72" x2="892" y1="48.0" y2="48.0" class="grid"/>
+<text x="62" y="52.0" text-anchor="end" class="axis">19,00</text>
+<rect x="72.0" y="48.0" width="74.8" height="230.0" rx="6" fill="#06d6a0"></rect>
+<text x="109.4" y="40.0" text-anchor="middle" class="value-label">19,00</text>
+<text transform="translate(109.4,304) rotate(-45)" text-anchor="end" class="axis">CNF</text>
+<rect x="154.8" y="48.0" width="74.8" height="230.0" rx="6" fill="#4cc9f0"></rect>
+<text x="192.2" y="40.0" text-anchor="middle" class="value-label">19,00</text>
+<text transform="translate(192.2,304) rotate(-45)" text-anchor="end" class="axis">BSB</text>
+<rect x="237.6" y="60.1" width="74.8" height="217.9" rx="6" fill="#06d6a0"></rect>
+<text x="275.0" y="52.1" text-anchor="middle" class="value-label">18,00</text>
+<text transform="translate(275.0,304) rotate(-45)" text-anchor="end" class="axis">GRU</text>
+<rect x="320.4" y="72.2" width="74.8" height="205.8" rx="6" fill="#06d6a0"></rect>
+<text x="357.8" y="64.2" text-anchor="middle" class="value-label">17,00</text>
+<text transform="translate(357.8,304) rotate(-45)" text-anchor="end" class="axis">CGH</text>
+<rect x="403.2" y="84.3" width="74.8" height="193.7" rx="6" fill="#f72585"></rect>
+<text x="440.6" y="76.3" text-anchor="middle" class="value-label">16,00</text>
+<text transform="translate(440.6,304) rotate(-45)" text-anchor="end" class="axis">REC</text>
+<rect x="486.0" y="84.3" width="74.8" height="193.7" rx="6" fill="#06d6a0"></rect>
+<text x="523.4" y="76.3" text-anchor="middle" class="value-label">16,00</text>
+<text transform="translate(523.4,304) rotate(-45)" text-anchor="end" class="axis">GIG</text>
+<rect x="568.8" y="108.5" width="74.8" height="169.5" rx="6" fill="#f72585"></rect>
+<text x="606.2" y="100.5" text-anchor="middle" class="value-label">14,00</text>
+<text transform="translate(606.2,304) rotate(-45)" text-anchor="end" class="axis">SSA</text>
+<rect x="651.6" y="132.7" width="74.8" height="145.3" rx="6" fill="#f72585"></rect>
+<text x="689.0" y="124.7" text-anchor="middle" class="value-label">12,00</text>
+<text transform="translate(689.0,304) rotate(-45)" text-anchor="end" class="axis">JPA</text>
+<rect x="734.4" y="144.8" width="74.8" height="133.2" rx="6" fill="#f72585"></rect>
+<text x="771.8" y="136.8" text-anchor="middle" class="value-label">11,00</text>
+<text transform="translate(771.8,304) rotate(-45)" text-anchor="end" class="axis">FOR</text>
+<rect x="817.2" y="144.8" width="74.8" height="133.2" rx="6" fill="#ffd166"></rect>
+<text x="854.6" y="136.8" text-anchor="middle" class="value-label">11,00</text>
+<text transform="translate(854.6,304) rotate(-45)" text-anchor="end" class="axis">BEL</text>
+<text x="460.0" y="388" text-anchor="middle" class="axis-title">Aeroporto</text>
+<text x="18" y="200.0" transform="rotate(-90 18 200.0)" text-anchor="middle" class="axis-title">Grau</text>
+</svg><div class="legend"><div class="legend-title">Legenda de cores — regiões</div>
+<div class="legend-item"><span class="swatch" style="background:#4cc9f0"></span><b>Centro-Oeste</b><span>2 aeroporto(s)</span></div>
+<div class="legend-item"><span class="swatch" style="background:#f72585"></span><b>Nordeste</b><span>6 aeroporto(s)</span></div>
+<div class="legend-item"><span class="swatch" style="background:#ffd166"></span><b>Norte</b><span>4 aeroporto(s)</span></div>
+<div class="legend-item"><span class="swatch" style="background:#06d6a0"></span><b>Sudeste</b><span>5 aeroporto(s)</span></div>
+<div class="legend-item"><span class="swatch" style="background:#8b5cf6"></span><b>Sul</b><span>3 aeroporto(s)</span></div>
+</div></div></div><div class="table-wrap"><table><thead><tr><th>#</th><th>IATA</th><th>Cidade</th><th>Região</th><th>Grau</th></tr></thead><tbody><tr><td>1</td><td>CNF</td><td>Belo Horizonte</td><td>Sudeste</td><td>19</td></tr><tr><td>2</td><td>BSB</td><td>Brasília</td><td>Centro-Oeste</td><td>19</td></tr><tr><td>3</td><td>GRU</td><td>São Paulo</td><td>Sudeste</td><td>18</td></tr><tr><td>4</td><td>CGH</td><td>São Paulo</td><td>Sudeste</td><td>17</td></tr><tr><td>5</td><td>REC</td><td>Recife</td><td>Nordeste</td><td>16</td></tr><tr><td>6</td><td>GIG</td><td>Rio de Janeiro</td><td>Sudeste</td><td>16</td></tr><tr><td>7</td><td>SSA</td><td>Salvador</td><td>Nordeste</td><td>14</td></tr><tr><td>8</td><td>JPA</td><td>João Pessoa</td><td>Nordeste</td><td>12</td></tr><tr><td>9</td><td>FOR</td><td>Fortaleza</td><td>Nordeste</td><td>11</td></tr><tr><td>10</td><td>BEL</td><td>Belém</td><td>Norte</td><td>11</td></tr></tbody></table></div></section>
+<section id="regiao" class="section"><h2>2. Conectividade por região</h2><p>O grau médio por região mostra se alguma região concentra aeroportos mais conectados. O heatmap resume o volume de conexões entre regiões.</p><div class="grid2"><div><svg class="chart" viewBox="0 0 920 400" role="img" aria-label="Grau médio por região">
+<rect width="920" height="400" rx="18" fill="#101010" stroke="#2a2a2a"/>
+<text x="460.0" y="30" text-anchor="middle" class="chart-title">Grau médio por região</text>
+<line x1="72" x2="892" y1="278.0" y2="278.0" class="grid"/>
+<text x="62" y="282.0" text-anchor="end" class="axis">0,00</text>
+<line x1="72" x2="892" y1="220.5" y2="220.5" class="grid"/>
+<text x="62" y="224.5" text-anchor="end" class="axis">3,90</text>
+<line x1="72" x2="892" y1="163.0" y2="163.0" class="grid"/>
+<text x="62" y="167.0" text-anchor="end" class="axis">7,80</text>
+<line x1="72" x2="892" y1="105.5" y2="105.5" class="grid"/>
+<text x="62" y="109.5" text-anchor="end" class="axis">11,70</text>
+<line x1="72" x2="892" y1="48.0" y2="48.0" class="grid"/>
+<text x="62" y="52.0" text-anchor="end" class="axis">15,60</text>
+<rect x="72.0" y="48.0" width="157.6" height="230.0" rx="6" fill="#06d6a0"></rect>
+<text x="150.8" y="40.0" text-anchor="middle" class="value-label">15,60</text>
+<text transform="translate(150.8,304) rotate(-45)" text-anchor="end" class="axis">Sudeste</text>
+<rect x="237.6" y="79.0" width="157.6" height="199.0" rx="6" fill="#4cc9f0"></rect>
+<text x="316.4" y="71.0" text-anchor="middle" class="value-label">13,50</text>
+<text transform="translate(316.4,304) rotate(-45)" text-anchor="end" class="axis">Centro-Oeste</text>
+<rect x="403.2" y="110.9" width="157.6" height="167.1" rx="6" fill="#f72585"></rect>
+<text x="482.0" y="102.9" text-anchor="middle" class="value-label">11,33</text>
+<text transform="translate(482.0,304) rotate(-45)" text-anchor="end" class="axis">Nordeste</text>
+<rect x="568.8" y="160.1" width="157.6" height="117.9" rx="6" fill="#8b5cf6"></rect>
+<text x="647.6" y="152.1" text-anchor="middle" class="value-label">8,00</text>
+<text transform="translate(647.6,304) rotate(-45)" text-anchor="end" class="axis">Sul</text>
+<rect x="734.4" y="163.7" width="157.6" height="114.3" rx="6" fill="#ffd166"></rect>
+<text x="813.2" y="155.7" text-anchor="middle" class="value-label">7,75</text>
+<text transform="translate(813.2,304) rotate(-45)" text-anchor="end" class="axis">Norte</text>
+<text x="460.0" y="388" text-anchor="middle" class="axis-title">Região</text>
+<text x="18" y="200.0" transform="rotate(-90 18 200.0)" text-anchor="middle" class="axis-title">Grau médio</text>
+</svg><div class="legend"><div class="legend-title">Legenda de cores — regiões</div>
+<div class="legend-item"><span class="swatch" style="background:#4cc9f0"></span><b>Centro-Oeste</b><span>2 aeroporto(s)</span></div>
+<div class="legend-item"><span class="swatch" style="background:#f72585"></span><b>Nordeste</b><span>6 aeroporto(s)</span></div>
+<div class="legend-item"><span class="swatch" style="background:#ffd166"></span><b>Norte</b><span>4 aeroporto(s)</span></div>
+<div class="legend-item"><span class="swatch" style="background:#06d6a0"></span><b>Sudeste</b><span>5 aeroporto(s)</span></div>
+<div class="legend-item"><span class="swatch" style="background:#8b5cf6"></span><b>Sul</b><span>3 aeroporto(s)</span></div>
+</div></div><div><svg class="chart" viewBox="0 0 860 600" role="img" aria-label="Conexões entre regiões">
+<rect width="860" height="600" rx="18" fill="#101010" stroke="#2a2a2a"/>
+<text x="430.0" y="30" text-anchor="middle" class="chart-title">Conexões entre regiões</text>
+<text x="140" y="133.6" text-anchor="end" class="axis">Centro-Oeste</text>
+<text transform="translate(217.6,752.0) rotate(45)" text-anchor="start" class="axis">Centro-Oeste</text>
+<text x="140" y="268.8" text-anchor="end" class="axis">Nordeste</text>
+<text transform="translate(352.8,752.0) rotate(45)" text-anchor="start" class="axis">Nordeste</text>
+<text x="140" y="404.0" text-anchor="end" class="axis">Norte</text>
+<text transform="translate(488.0,752.0) rotate(45)" text-anchor="start" class="axis">Norte</text>
+<text x="140" y="539.2" text-anchor="end" class="axis">Sudeste</text>
+<text transform="translate(623.2,752.0) rotate(45)" text-anchor="start" class="axis">Sudeste</text>
+<text x="140" y="674.4" text-anchor="end" class="axis">Sul</text>
+<text transform="translate(758.4,752.0) rotate(45)" text-anchor="start" class="axis">Sul</text>
+<rect x="150.0" y="62.0" width="134.2" height="134.2" fill="#0ea5e9"></rect>
+<rect x="285.2" y="62.0" width="134.2" height="134.2" fill="#38bdf8"></rect>
+<rect x="420.4" y="62.0" width="134.2" height="134.2" fill="#0ea5e9"></rect>
+<rect x="555.6" y="62.0" width="134.2" height="134.2" fill="#38bdf8"></rect>
+<rect x="690.8" y="62.0" width="134.2" height="134.2" fill="#0ea5e9"></rect>
+<rect x="150.0" y="197.2" width="134.2" height="134.2" fill="#38bdf8"></rect>
+<rect x="285.2" y="197.2" width="134.2" height="134.2" fill="#38bdf8"></rect>
+<rect x="420.4" y="197.2" width="134.2" height="134.2" fill="#38bdf8"></rect>
+<rect x="555.6" y="197.2" width="134.2" height="134.2" fill="#f472b6"></rect>
+<rect x="690.8" y="197.2" width="134.2" height="134.2" fill="#0ea5e9"></rect>
+<rect x="150.0" y="332.4" width="134.2" height="134.2" fill="#0ea5e9"></rect>
+<rect x="285.2" y="332.4" width="134.2" height="134.2" fill="#38bdf8"></rect>
+<rect x="420.4" y="332.4" width="134.2" height="134.2" fill="#0ea5e9"></rect>
+<rect x="555.6" y="332.4" width="134.2" height="134.2" fill="#67e8f9"></rect>
+<rect x="690.8" y="332.4" width="134.2" height="134.2" fill="#0ea5e9"></rect>
+<rect x="150.0" y="467.6" width="134.2" height="134.2" fill="#38bdf8"></rect>
+<rect x="285.2" y="467.6" width="134.2" height="134.2" fill="#f472b6"></rect>
+<rect x="420.4" y="467.6" width="134.2" height="134.2" fill="#67e8f9"></rect>
+<rect x="555.6" y="467.6" width="134.2" height="134.2" fill="#38bdf8"></rect>
+<rect x="690.8" y="467.6" width="134.2" height="134.2" fill="#38bdf8"></rect>
+<rect x="150.0" y="602.8" width="134.2" height="134.2" fill="#0ea5e9"></rect>
+<rect x="285.2" y="602.8" width="134.2" height="134.2" fill="#0ea5e9"></rect>
+<rect x="420.4" y="602.8" width="134.2" height="134.2" fill="#0ea5e9"></rect>
+<rect x="555.6" y="602.8" width="134.2" height="134.2" fill="#38bdf8"></rect>
+<rect x="690.8" y="602.8" width="134.2" height="134.2" fill="#0ea5e9"></rect>
+</svg><div class="legend"><div class="legend-title">Legenda de intensidade</div>
+<div class="legend-item"><span class="swatch" style="background:#0ea5e9"></span><b>Azul</b><span>menos conexões</span></div>
+<div class="legend-item"><span class="swatch" style="background:#f472b6"></span><b>Roxo/rosa</b><span>mais conexões</span></div>
+</div></div></div></section>
+<section id="pesos" class="section"><h2>3. Tipos de conexão e pesos</h2><p>Os tipos de conexão explicam a natureza das arestas. Já os pesos representam o custo usado pelos algoritmos de caminho mínimo: quanto menor o peso, mais barata/curta é a transição.</p><div class="grid2"><div><svg class="chart" viewBox="0 0 920 400" role="img" aria-label="Tipos de conexão">
+<rect width="920" height="400" rx="18" fill="#101010" stroke="#2a2a2a"/>
+<text x="460.0" y="30" text-anchor="middle" class="chart-title">Tipos de conexão</text>
+<line x1="72" x2="892" y1="278.0" y2="278.0" class="grid"/>
+<text x="62" y="282.0" text-anchor="end" class="axis">0,00</text>
+<line x1="72" x2="892" y1="220.5" y2="220.5" class="grid"/>
+<text x="62" y="224.5" text-anchor="end" class="axis">15,50</text>
+<line x1="72" x2="892" y1="163.0" y2="163.0" class="grid"/>
+<text x="62" y="167.0" text-anchor="end" class="axis">31,00</text>
+<line x1="72" x2="892" y1="105.5" y2="105.5" class="grid"/>
+<text x="62" y="109.5" text-anchor="end" class="axis">46,50</text>
+<line x1="72" x2="892" y1="48.0" y2="48.0" class="grid"/>
+<text x="62" y="52.0" text-anchor="end" class="axis">62,00</text>
+<rect x="72.0" y="48.0" width="268.0" height="230.0" rx="6" fill="#4cc9f0"></rect>
+<text x="206.0" y="40.0" text-anchor="middle" class="value-label">62,00</text>
+<text transform="translate(206.0,304) rotate(-45)" text-anchor="end" class="axis">nacional</text>
+<rect x="348.0" y="155.6" width="268.0" height="122.4" rx="6" fill="#f72585"></rect>
+<text x="482.0" y="147.6" text-anchor="middle" class="value-label">33,00</text>
+<text transform="translate(482.0,304) rotate(-45)" text-anchor="end" class="axis">hub</text>
+<rect x="624.0" y="207.5" width="268.0" height="70.5" rx="6" fill="#ffd166"></rect>
+<text x="758.0" y="199.5" text-anchor="middle" class="value-label">19,00</text>
+<text transform="translate(758.0,304) rotate(-45)" text-anchor="end" class="axis">regional</text>
+<text x="460.0" y="388" text-anchor="middle" class="axis-title">Tipo</text>
+<text x="18" y="200.0" transform="rotate(-90 18 200.0)" text-anchor="middle" class="axis-title">Quantidade de arestas</text>
+</svg><div class="legend"><div class="legend-title">Legenda</div>
+<div class="legend-item"><span class="swatch" style="background:#4cc9f0"></span><b>Cores variadas</b><span>diferenciam visualmente as barras; valores estão nos rótulos e eixos</span></div>
+</div></div><div><svg class="chart" viewBox="0 0 920 400" role="img" aria-label="Distribuição dos pesos">
+<rect width="920" height="400" rx="18" fill="#101010" stroke="#2a2a2a"/>
+<text x="460.0" y="30" text-anchor="middle" class="chart-title">Distribuição dos pesos</text>
+<line x1="72" x2="892" y1="334.0" y2="334.0" class="grid"/>
+<text x="62" y="338.0" text-anchor="end" class="axis">0,00</text>
+<line x1="72" x2="892" y1="262.5" y2="262.5" class="grid"/>
+<text x="62" y="266.5" text-anchor="end" class="axis">9,00</text>
+<line x1="72" x2="892" y1="191.0" y2="191.0" class="grid"/>
+<text x="62" y="195.0" text-anchor="end" class="axis">18,00</text>
+<line x1="72" x2="892" y1="119.5" y2="119.5" class="grid"/>
+<text x="62" y="123.5" text-anchor="end" class="axis">27,00</text>
+<line x1="72" x2="892" y1="48.0" y2="48.0" class="grid"/>
+<text x="62" y="52.0" text-anchor="end" class="axis">36,00</text>
+<rect x="72.0" y="318.1" width="110.3" height="15.9" rx="6" fill="#4cc9f0"></rect>
+<text x="127.1" y="310.1" text-anchor="middle" class="value-label">2,00</text>
+<text x="127.1" y="366" text-anchor="middle" class="axis">0.00–0.75</text>
+<rect x="190.3" y="318.1" width="110.3" height="15.9" rx="6" fill="#f72585"></rect>
+<text x="245.4" y="310.1" text-anchor="middle" class="value-label">2,00</text>
+<text x="245.4" y="366" text-anchor="middle" class="axis">0.75–1.00</text>
+<rect x="308.6" y="222.8" width="110.3" height="111.2" rx="6" fill="#ffd166"></rect>
+<text x="363.7" y="214.8" text-anchor="middle" class="value-label">14,00</text>
+<text x="363.7" y="366" text-anchor="middle" class="axis">1.00–1.25</text>
+<rect x="426.9" y="254.6" width="110.3" height="79.4" rx="6" fill="#06d6a0"></rect>
+<text x="482.0" y="246.6" text-anchor="middle" class="value-label">10,00</text>
+<text x="482.0" y="366" text-anchor="middle" class="axis">1.25–1.50</text>
+<rect x="545.1" y="167.2" width="110.3" height="166.8" rx="6" fill="#8b5cf6"></rect>
+<text x="600.3" y="159.2" text-anchor="middle" class="value-label">21,00</text>
+<text x="600.3" y="366" text-anchor="middle" class="axis">1.50–2.00</text>
+<rect x="663.4" y="103.6" width="110.3" height="230.4" rx="6" fill="#ff7a00"></rect>
+<text x="718.6" y="95.6" text-anchor="middle" class="value-label">29,00</text>
+<text x="718.6" y="366" text-anchor="middle" class="axis">2.00–3.00</text>
+<rect x="781.7" y="48.0" width="110.3" height="286.0" rx="6" fill="#22c55e"></rect>
+<text x="836.9" y="40.0" text-anchor="middle" class="value-label">36,00</text>
+<text x="836.9" y="366" text-anchor="middle" class="axis">3.00+</text>
+<text x="460.0" y="388" text-anchor="middle" class="axis-title">Faixa de peso</text>
+<text x="18" y="200.0" transform="rotate(-90 18 200.0)" text-anchor="middle" class="axis-title">Quantidade de arestas</text>
+</svg><div class="legend"><div class="legend-title">Legenda</div>
+<div class="legend-item"><span class="swatch" style="background:#4cc9f0"></span><b>Cores variadas</b><span>diferenciam visualmente as barras; valores estão nos rótulos e eixos</span></div>
+</div></div></div></section>
+<section id="rede" class="section"><h2>4. Visualização do grafo completo</h2><p>Esta visualização usa todos os <strong>20 aeroportos</strong> e todas as <strong>114 conexões únicas</strong>. A cor do nó representa a região, o tamanho representa o grau e o caminho mínimo aparece destacado em amarelo.</p><svg class="chart" viewBox="0 0 1000 680" role="img" aria-label="Grafo completo de aeroportos">
+<rect width="1000" height="680" rx="18" fill="#101010" stroke="#2a2a2a"/>
+<text x="500.0" y="30" text-anchor="middle" class="chart-title">Grafo completo de aeroportos</text>
+<text x="764.5" y="532.2" text-anchor="middle" class="axis-title" fill="#4cc9f0">Centro-Oeste</text>
+<text x="399.0" y="651.0" text-anchor="middle" class="axis-title" fill="#f72585">Nordeste</text>
+<text x="173.0" y="340.0" text-anchor="middle" class="axis-title" fill="#ffd166">Norte</text>
+<text x="399.0" y="29.0" text-anchor="middle" class="axis-title" fill="#06d6a0">Sudeste</text>
+<text x="764.5" y="147.8" text-anchor="middle" class="axis-title" fill="#8b5cf6">Sul</text>
+<line x1="529.2" y1="477.5" x2="422.4" y2="514.4" stroke="#52525b" stroke-width="1.3" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="500.0" y2="508.9" stroke="#52525b" stroke-width="1.3" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="381.5" y2="503.1" stroke="#52525b" stroke-width="1.1" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="467.2" y2="494.1" stroke="#52525b" stroke-width="0.8" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="344.9" y2="479.7" stroke="#52525b" stroke-width="1.8" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="610.3" y2="375.8" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="427.1" y2="225.1" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="490.6" y2="190.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="415.5" y2="260.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="594.9" y2="175.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="694.3" y2="298.7" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="300.7" y2="371.6" stroke="#f5c518" stroke-width="3.2" opacity="0.95"/>
+<line x1="529.2" y1="477.5" x2="338.1" y2="422.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="539.3" y2="133.9" stroke="#52525b" stroke-width="2.3" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="628.3" y2="516.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="529.2" y1="477.5" x2="464.0" y2="229.2" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="422.4" y2="514.4" stroke="#52525b" stroke-width="1.8" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="381.5" y2="503.1" stroke="#52525b" stroke-width="1.5" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="467.2" y2="494.1" stroke="#52525b" stroke-width="1.5" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="427.1" y2="225.1" stroke="#52525b" stroke-width="2.2" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="610.3" y2="375.8" stroke="#52525b" stroke-width="1.9" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="490.6" y2="190.5" stroke="#52525b" stroke-width="2.1" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="415.5" y2="260.6" stroke="#52525b" stroke-width="1.6" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="464.0" y2="229.2" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="539.3" y2="133.9" stroke="#52525b" stroke-width="1.6" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="628.3" y2="516.5" stroke="#52525b" stroke-width="2.1" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="683.2" y2="206.9" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="594.9" y2="175.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="500.0" y1="508.9" x2="338.1" y2="422.5" stroke="#52525b" stroke-width="1.6" opacity="0.32"/>
+<line x1="422.4" y1="514.4" x2="381.5" y2="503.1" stroke="#52525b" stroke-width="1.0" opacity="0.32"/>
+<line x1="422.4" y1="514.4" x2="344.9" y2="479.7" stroke="#52525b" stroke-width="1.1" opacity="0.32"/>
+<line x1="422.4" y1="514.4" x2="427.1" y2="225.1" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="422.4" y1="514.4" x2="610.3" y2="375.8" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="422.4" y1="514.4" x2="490.6" y2="190.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="422.4" y1="514.4" x2="415.5" y2="260.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="422.4" y1="514.4" x2="464.0" y2="229.2" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="422.4" y1="514.4" x2="300.7" y2="371.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="422.4" y1="514.4" x2="338.1" y2="422.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="381.5" y1="503.1" x2="427.1" y2="225.1" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="381.5" y1="503.1" x2="610.3" y2="375.8" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="381.5" y1="503.1" x2="490.6" y2="190.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="381.5" y1="503.1" x2="415.5" y2="260.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="381.5" y1="503.1" x2="464.0" y2="229.2" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="381.5" y1="503.1" x2="338.1" y2="422.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="467.2" y1="494.1" x2="427.1" y2="225.1" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="467.2" y1="494.1" x2="610.3" y2="375.8" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="467.2" y1="494.1" x2="490.6" y2="190.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="467.2" y1="494.1" x2="415.5" y2="260.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="467.2" y1="494.1" x2="464.0" y2="229.2" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="467.2" y1="494.1" x2="539.3" y2="133.9" stroke="#52525b" stroke-width="2.3" opacity="0.32"/>
+<line x1="467.2" y1="494.1" x2="628.3" y2="516.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="467.2" y1="494.1" x2="594.9" y2="175.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="467.2" y1="494.1" x2="300.7" y2="371.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="467.2" y1="494.1" x2="338.1" y2="422.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="344.9" y1="479.7" x2="427.1" y2="225.1" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="344.9" y1="479.7" x2="610.3" y2="375.8" stroke="#52525b" stroke-width="2.2" opacity="0.32"/>
+<line x1="344.9" y1="479.7" x2="415.5" y2="260.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="344.9" y1="479.7" x2="338.1" y2="422.5" stroke="#52525b" stroke-width="1.3" opacity="0.32"/>
+<line x1="427.1" y1="225.1" x2="490.6" y2="190.5" stroke="#52525b" stroke-width="1.0" opacity="0.32"/>
+<line x1="427.1" y1="225.1" x2="415.5" y2="260.6" stroke="#52525b" stroke-width="1.1" opacity="0.32"/>
+<line x1="427.1" y1="225.1" x2="539.3" y2="133.9" stroke="#52525b" stroke-width="1.3" opacity="0.32"/>
+<line x1="427.1" y1="225.1" x2="610.3" y2="375.8" stroke="#52525b" stroke-width="1.6" opacity="0.32"/>
+<line x1="427.1" y1="225.1" x2="628.3" y2="516.5" stroke="#52525b" stroke-width="1.4" opacity="0.32"/>
+<line x1="427.1" y1="225.1" x2="683.2" y2="206.9" stroke="#52525b" stroke-width="0.9" opacity="0.32"/>
+<line x1="427.1" y1="225.1" x2="694.3" y2="298.7" stroke="#52525b" stroke-width="1.1" opacity="0.32"/>
+<line x1="427.1" y1="225.1" x2="594.9" y2="175.6" stroke="#52525b" stroke-width="1.6" opacity="0.32"/>
+<line x1="427.1" y1="225.1" x2="300.7" y2="371.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="427.1" y1="225.1" x2="338.1" y2="422.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="427.1" y1="225.1" x2="287.6" y2="306.4" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="427.1" y1="225.1" x2="286.0" y2="231.0" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="464.0" y1="229.2" x2="490.6" y2="190.5" stroke="#52525b" stroke-width="1.0" opacity="0.32"/>
+<line x1="464.0" y1="229.2" x2="415.5" y2="260.6" stroke="#52525b" stroke-width="1.1" opacity="0.32"/>
+<line x1="464.0" y1="229.2" x2="539.3" y2="133.9" stroke="#52525b" stroke-width="1.3" opacity="0.32"/>
+<line x1="464.0" y1="229.2" x2="610.3" y2="375.8" stroke="#52525b" stroke-width="1.6" opacity="0.32"/>
+<line x1="464.0" y1="229.2" x2="628.3" y2="516.5" stroke="#52525b" stroke-width="1.4" opacity="0.32"/>
+<line x1="464.0" y1="229.2" x2="683.2" y2="206.9" stroke="#52525b" stroke-width="0.9" opacity="0.32"/>
+<line x1="464.0" y1="229.2" x2="694.3" y2="298.7" stroke="#52525b" stroke-width="1.1" opacity="0.32"/>
+<line x1="464.0" y1="229.2" x2="594.9" y2="175.6" stroke="#52525b" stroke-width="1.6" opacity="0.32"/>
+<line x1="464.0" y1="229.2" x2="300.7" y2="371.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="464.0" y1="229.2" x2="338.1" y2="422.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="464.0" y1="229.2" x2="287.6" y2="306.4" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="464.0" y1="229.2" x2="286.0" y2="231.0" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="490.6" y1="190.5" x2="415.5" y2="260.6" stroke="#52525b" stroke-width="1.0" opacity="0.32"/>
+<line x1="490.6" y1="190.5" x2="539.3" y2="133.9" stroke="#52525b" stroke-width="1.1" opacity="0.32"/>
+<line x1="490.6" y1="190.5" x2="610.3" y2="375.8" stroke="#52525b" stroke-width="1.8" opacity="0.32"/>
+<line x1="490.6" y1="190.5" x2="628.3" y2="516.5" stroke="#52525b" stroke-width="1.7" opacity="0.32"/>
+<line x1="490.6" y1="190.5" x2="683.2" y2="206.9" stroke="#52525b" stroke-width="1.2" opacity="0.32"/>
+<line x1="490.6" y1="190.5" x2="694.3" y2="298.7" stroke="#52525b" stroke-width="1.6" opacity="0.32"/>
+<line x1="490.6" y1="190.5" x2="594.9" y2="175.6" stroke="#52525b" stroke-width="2.0" opacity="0.32"/>
+<line x1="490.6" y1="190.5" x2="300.7" y2="371.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="490.6" y1="190.5" x2="338.1" y2="422.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="415.5" y1="260.6" x2="539.3" y2="133.9" stroke="#52525b" stroke-width="1.0" opacity="0.32"/>
+<line x1="415.5" y1="260.6" x2="610.3" y2="375.8" stroke="#52525b" stroke-width="1.3" opacity="0.32"/>
+<line x1="415.5" y1="260.6" x2="628.3" y2="516.5" stroke="#52525b" stroke-width="1.4" opacity="0.32"/>
+<line x1="415.5" y1="260.6" x2="683.2" y2="206.9" stroke="#52525b" stroke-width="1.7" opacity="0.32"/>
+<line x1="415.5" y1="260.6" x2="694.3" y2="298.7" stroke="#52525b" stroke-width="1.9" opacity="0.32"/>
+<line x1="415.5" y1="260.6" x2="594.9" y2="175.6" stroke="#52525b" stroke-width="2.2" opacity="0.32"/>
+<line x1="415.5" y1="260.6" x2="300.7" y2="371.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="415.5" y1="260.6" x2="338.1" y2="422.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="415.5" y1="260.6" x2="287.6" y2="306.4" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="415.5" y1="260.6" x2="286.0" y2="231.0" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="539.3" y1="133.9" x2="610.3" y2="375.8" stroke="#52525b" stroke-width="1.8" opacity="0.32"/>
+<line x1="610.3" y1="375.8" x2="628.3" y2="516.5" stroke="#52525b" stroke-width="0.8" opacity="0.32"/>
+<line x1="610.3" y1="375.8" x2="683.2" y2="206.9" stroke="#52525b" stroke-width="1.9" opacity="0.32"/>
+<line x1="610.3" y1="375.8" x2="694.3" y2="298.7" stroke="#52525b" stroke-width="2.2" opacity="0.32"/>
+<line x1="610.3" y1="375.8" x2="594.9" y2="175.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="610.3" y1="375.8" x2="300.7" y2="371.6" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="610.3" y1="375.8" x2="338.1" y2="422.5" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="610.3" y1="375.8" x2="287.6" y2="306.4" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="610.3" y1="375.8" x2="286.0" y2="231.0" stroke="#52525b" stroke-width="2.4" opacity="0.32"/>
+<line x1="683.2" y1="206.9" x2="594.9" y2="175.6" stroke="#52525b" stroke-width="1.2" opacity="0.32"/>
+<line x1="694.3" y1="298.7" x2="594.9" y2="175.6" stroke="#52525b" stroke-width="1.1" opacity="0.32"/>
+<line x1="300.7" y1="371.6" x2="287.6" y2="306.4" stroke="#52525b" stroke-width="1.5" opacity="0.32"/>
+<line x1="300.7" y1="371.6" x2="286.0" y2="231.0" stroke="#52525b" stroke-width="1.6" opacity="0.32"/>
+<circle cx="529.2" cy="477.5" r="20.9" fill="#f5c518" stroke="#f2f2f2" stroke-width="1.4"/>
+<text x="529.2" y="510.5" text-anchor="middle" class="node-label">REC</text>
+<circle cx="500.0" cy="508.9" r="16.6" fill="#f72585" stroke="#050505" stroke-width="1.4"/>
+<text x="500.0" y="537.5" text-anchor="middle" class="node-label">SSA</text>
+<circle cx="422.4" cy="514.4" r="14.5" fill="#f72585" stroke="#050505" stroke-width="1.4"/>
+<text x="422.4" y="540.9" text-anchor="middle" class="node-label">FOR</text>
+<circle cx="381.5" cy="503.1" r="13.2" fill="#f72585" stroke="#050505" stroke-width="1.4"/>
+<text x="381.5" y="528.3" text-anchor="middle" class="node-label">NAT</text>
+<circle cx="467.2" cy="494.1" r="15.2" fill="#f72585" stroke="#050505" stroke-width="1.4"/>
+<text x="467.2" y="521.3" text-anchor="middle" class="node-label">JPA</text>
+<circle cx="427.1" cy="225.1" r="19.3" fill="#06d6a0" stroke="#050505" stroke-width="1.4"/>
+<text x="427.1" y="256.4" text-anchor="middle" class="node-label">GRU</text>
+<circle cx="464.0" cy="229.2" r="18.6" fill="#06d6a0" stroke="#050505" stroke-width="1.4"/>
+<text x="464.0" y="259.9" text-anchor="middle" class="node-label">CGH</text>
+<circle cx="490.6" cy="190.5" r="17.9" fill="#06d6a0" stroke="#050505" stroke-width="1.4"/>
+<text x="490.6" y="220.4" text-anchor="middle" class="node-label">GIG</text>
+<circle cx="415.5" cy="260.6" r="20.0" fill="#06d6a0" stroke="#050505" stroke-width="1.4"/>
+<text x="415.5" y="292.6" text-anchor="middle" class="node-label">CNF</text>
+<circle cx="539.3" cy="133.9" r="12.5" fill="#06d6a0" stroke="#050505" stroke-width="1.4"/>
+<text x="539.3" y="158.3" text-anchor="middle" class="node-label">VIX</text>
+<circle cx="610.3" cy="375.8" r="20.0" fill="#4cc9f0" stroke="#050505" stroke-width="1.4"/>
+<text x="610.3" y="407.8" text-anchor="middle" class="node-label">BSB</text>
+<circle cx="628.3" cy="516.5" r="12.5" fill="#4cc9f0" stroke="#050505" stroke-width="1.4"/>
+<text x="628.3" y="541.0" text-anchor="middle" class="node-label">GYN</text>
+<circle cx="683.2" cy="206.9" r="11.8" fill="#8b5cf6" stroke="#050505" stroke-width="1.4"/>
+<text x="683.2" y="230.7" text-anchor="middle" class="node-label">CWB</text>
+<circle cx="694.3" cy="298.7" r="11.8" fill="#8b5cf6" stroke="#050505" stroke-width="1.4"/>
+<text x="694.3" y="322.5" text-anchor="middle" class="node-label">FLN</text>
+<circle cx="594.9" cy="175.6" r="13.8" fill="#8b5cf6" stroke="#050505" stroke-width="1.4"/>
+<text x="594.9" y="201.4" text-anchor="middle" class="node-label">POA</text>
+<circle cx="300.7" cy="371.6" r="16.8" fill="#f5c518" stroke="#f2f2f2" stroke-width="1.4"/>
+<text x="300.7" y="400.4" text-anchor="middle" class="node-label">MAO</text>
+<circle cx="338.1" cy="422.5" r="14.5" fill="#ffd166" stroke="#050505" stroke-width="1.4"/>
+<text x="338.1" y="449.0" text-anchor="middle" class="node-label">BEL</text>
+<circle cx="287.6" cy="306.4" r="10.4" fill="#ffd166" stroke="#050505" stroke-width="1.4"/>
+<text x="287.6" y="328.8" text-anchor="middle" class="node-label">PVH</text>
+<circle cx="286.0" cy="231.0" r="10.4" fill="#ffd166" stroke="#050505" stroke-width="1.4"/>
+<text x="286.0" y="253.4" text-anchor="middle" class="node-label">RBR</text>
+<circle cx="344.9" cy="479.7" r="11.1" fill="#f72585" stroke="#050505" stroke-width="1.4"/>
+<text x="344.9" y="502.8" text-anchor="middle" class="node-label">THE</text>
+</svg><div class="legend"><div class="legend-title">Legenda da rede</div>
+<div class="legend-item"><span class="swatch" style="background:#4cc9f0"></span><b>Cor do nó</b><span>região do aeroporto</span></div>
+<div class="legend-item"><span class="swatch" style="background:#f2f2f2"></span><b>Tamanho do nó</b><span>grau/conectividade</span></div>
+<div class="legend-item"><span class="swatch" style="background:#52525b"></span><b>Linha cinza</b><span>conexão entre aeroportos</span></div>
+<div class="legend-item"><span class="swatch" style="background:#f5c518"></span><b>Linha amarela</b><span>caminho mínimo destacado</span></div>
+</div><div class="legend"><div class="legend-title">Legenda de cores — regiões</div>
+<div class="legend-item"><span class="swatch" style="background:#4cc9f0"></span><b>Centro-Oeste</b><span>2 aeroporto(s)</span></div>
+<div class="legend-item"><span class="swatch" style="background:#f72585"></span><b>Nordeste</b><span>6 aeroporto(s)</span></div>
+<div class="legend-item"><span class="swatch" style="background:#ffd166"></span><b>Norte</b><span>4 aeroporto(s)</span></div>
+<div class="legend-item"><span class="swatch" style="background:#06d6a0"></span><b>Sudeste</b><span>5 aeroporto(s)</span></div>
+<div class="legend-item"><span class="swatch" style="background:#8b5cf6"></span><b>Sul</b><span>3 aeroporto(s)</span></div>
+</div></section>
+<section id="dijkstra" class="section"><h2>5. Caminho mínimo com Dijkstra</h2><p>O caminho mínimo foi calculado entre <strong>REC</strong> e <strong>MAO</strong>. O custo total encontrado foi <strong>4.08</strong>. Esse resultado usa os pesos da base para encontrar a rota de menor custo.</p><div class="table-wrap"><table><thead><tr><th>Etapa</th><th>Origem</th><th>Destino</th><th>Peso</th><th>Tipo</th><th>Justificativa</th></tr></thead><tbody><tr><td>1</td><td>REC</td><td>MAO</td><td>4.08</td><td>nacional</td><td>conexão entre hub regional e aeroporto intermediário</td></tr></tbody></table></div></section>
+<section id="benchmark" class="section"><h2>6. Benchmark dos algoritmos</h2><p>A comparação visual mostra o tempo médio de execução dos quatro algoritmos na rede de aeroportos. BFS e DFS exploram conectividade; Dijkstra e Bellman-Ford consideram pesos.</p><svg class="chart" viewBox="0 0 920 400" role="img" aria-label="Tempo médio de execução por algoritmo">
+<rect width="920" height="400" rx="18" fill="#101010" stroke="#2a2a2a"/>
+<text x="460.0" y="30" text-anchor="middle" class="chart-title">Tempo médio de execução por algoritmo</text>
+<line x1="72" x2="892" y1="334.0" y2="334.0" class="grid"/>
+<text x="62" y="338.0" text-anchor="end" class="axis">0,00</text>
+<line x1="72" x2="892" y1="262.5" y2="262.5" class="grid"/>
+<text x="62" y="266.5" text-anchor="end" class="axis">0,25</text>
+<line x1="72" x2="892" y1="191.0" y2="191.0" class="grid"/>
+<text x="62" y="195.0" text-anchor="end" class="axis">0,50</text>
+<line x1="72" x2="892" y1="119.5" y2="119.5" class="grid"/>
+<text x="62" y="123.5" text-anchor="end" class="axis">0,75</text>
+<line x1="72" x2="892" y1="48.0" y2="48.0" class="grid"/>
+<text x="62" y="52.0" text-anchor="end" class="axis">1,00</text>
+<rect x="72.0" y="330.4" width="199.0" height="3.6" rx="6" fill="#4cc9f0"></rect>
+<text x="171.5" y="322.4" text-anchor="middle" class="value-label">0,01</text>
+<text x="171.5" y="366" text-anchor="middle" class="axis">BFS</text>
+<rect x="279.0" y="326.2" width="199.0" height="7.8" rx="6" fill="#f72585"></rect>
+<text x="378.5" y="318.2" text-anchor="middle" class="value-label">0,03</text>
+<text x="378.5" y="366" text-anchor="middle" class="axis">DFS</text>
+<rect x="486.0" y="316.2" width="199.0" height="17.8" rx="6" fill="#ffd166"></rect>
+<text x="585.5" y="308.2" text-anchor="middle" class="value-label">0,06</text>
+<text x="585.5" y="366" text-anchor="middle" class="axis">Dijkstra</text>
+<rect x="693.0" y="297.0" width="199.0" height="37.0" rx="6" fill="#06d6a0"></rect>
+<text x="792.5" y="289.0" text-anchor="middle" class="value-label">0,13</text>
+<text x="792.5" y="366" text-anchor="middle" class="axis">Bellman-Ford</text>
+<text x="460.0" y="388" text-anchor="middle" class="axis-title">Algoritmo</text>
+<text x="18" y="200.0" transform="rotate(-90 18 200.0)" text-anchor="middle" class="axis-title">Milissegundos</text>
+</svg><div class="legend"><div class="legend-title">Legenda de algoritmos</div>
+<div class="legend-item"><span class="swatch" style="background:#4cc9f0"></span><b>BFS</b><span>Busca em largura; ignora pesos</span></div>
+<div class="legend-item"><span class="swatch" style="background:#f72585"></span><b>DFS</b><span>Busca em profundidade; explora a rede</span></div>
+<div class="legend-item"><span class="swatch" style="background:#ffd166"></span><b>Dijkstra</b><span>Menor caminho com pesos positivos</span></div>
+<div class="legend-item"><span class="swatch" style="background:#06d6a0"></span><b>Bellman-Ford</b><span>Menor caminho com validação de ciclo negativo</span></div>
+</div><div class="table-wrap"><table><thead><tr><th>Algoritmo</th><th>Função</th><th>Tempo médio</th></tr></thead><tbody><tr><td>BFS</td><td>Busca em largura; ignora pesos</td><td>0.01254 ms</td></tr><tr><td>DFS</td><td>Busca em profundidade; explora a rede</td><td>0.02715 ms</td></tr><tr><td>Dijkstra</td><td>Menor caminho com pesos positivos</td><td>0.06227 ms</td></tr><tr><td>Bellman-Ford</td><td>Menor caminho com validação de ciclo negativo</td><td>0.12928 ms</td></tr></tbody></table></div><div class="note">O Bellman-Ford não encontrou ciclo negativo nesta rede de aeroportos, pois os pesos da base são positivos.</div></section>
+<section class="section"><h2>Conclusão da Parte 1</h2><p>A Parte 1 mostra a estrutura do grafo: aeroportos centrais, distribuição de graus, conectividade regional, pesos das rotas e comparação dos algoritmos. Essa base prepara a Parte 2, na qual a visualização passa a ser usada como ferramenta de comunicação analítica.</p></section>
+</main><footer>Gerado a partir dos arquivos aeroportos_data.csv e adjacencias_aeroportos.csv. Esta página representa a <strong>Parte 1</strong> do projeto.</footer>
+</body></html>

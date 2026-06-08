@@ -2,8 +2,8 @@
   "bfs": [
     {
       "origem": "Jurassic Park",
-      "tempo_s": 0.0204588,
-      "tempo": 0.0204588,
+      "tempo_s": 0.007037708,
+      "tempo": 0.007037708,
       "visitados": 3971,
       "primeiros_nos": [
         "Jurassic Park",
@@ -17,16 +17,16 @@
         "Star Wars: Episode III - Revenge of the Sith",
         "Unbreakable"
       ],
-      "tempo_total_cli_s": 4.1654568,
-      "tempo_total_cli": 4.1654568,
-      "tempo_execucao": 0.0204588
+      "tempo_total_cli_s": 1.324013292,
+      "tempo_total_cli": 1.324013292,
+      "tempo_execucao": 0.007037708
     }
   ],
   "dfs": [
     {
       "origem": "Jurassic Park",
-      "tempo_s": 0.0255425,
-      "tempo": 0.0255425,
+      "tempo_s": 0.008697625,
+      "tempo": 0.008697625,
       "visitados": 3971,
       "primeiros_nos": [
         "Jurassic Park",
@@ -40,9 +40,9 @@
         "Flashdance",
         "Lilies of the Field"
       ],
-      "tempo_total_cli_s": 4.7558126,
-      "tempo_total_cli": 4.7558126,
-      "tempo_execucao": 0.0255425
+      "tempo_total_cli_s": 1.351689709,
+      "tempo_total_cli": 1.351689709,
+      "tempo_execucao": 0.008697625
     }
   ],
   "dijkstra": [
@@ -53,8 +53,8 @@
       "custo_total": null,
       "tamanho_caminho": 0,
       "caminho": [],
-      "tempo_s": 0.0598181,
-      "tempo_execucao": 0.0598181
+      "tempo_s": 0.018058,
+      "tempo_execucao": 0.018058
     },
     {
       "origem": "Jurassic Park",
@@ -66,8 +66,8 @@
         "Jurassic Park",
         "Pulp Fiction"
       ],
-      "tempo_s": 0.0035056,
-      "tempo_execucao": 0.0035056
+      "tempo_s": 0.000929625,
+      "tempo_execucao": 0.000929625
     },
     {
       "origem": "Jurassic Park",
@@ -86,8 +86,8 @@
         "Ponyo (Gake no ue no Ponyo)",
         "Departures (Okuribito)"
       ],
-      "tempo_s": 0.0754624,
-      "tempo_execucao": 0.0754624
+      "tempo_s": 0.018034333,
+      "tempo_execucao": 0.018034333
     },
     {
       "origem": "Departures (Okuribito)",
@@ -107,8 +107,8 @@
         "Informant!, The",
         "Heavenly Creatures"
       ],
-      "tempo_s": 0.0715279,
-      "tempo_execucao": 0.0715279
+      "tempo_s": 0.018452,
+      "tempo_execucao": 0.018452
     },
     {
       "origem": "Jurassic Park",
@@ -122,13 +122,13 @@
         "Defiance",
         "Last of the Mohicans, The"
       ],
-      "tempo_s": 0.057787,
-      "tempo_execucao": 0.057787
+      "tempo_s": 0.017227625,
+      "tempo_execucao": 0.017227625
     }
   ],
   "bellman_ford": [
     {
-      "dataset": "data\\dataset_parte2\\artificiais_bellman_ford\\bf_validacao_sem_ciclo.csv",
+      "dataset": "data/dataset_parte2/artificiais_bellman_ford/bf_validacao_sem_ciclo.csv",
       "origem": "Z",
       "ciclo_negativo": false,
       "distancias": {
@@ -137,16 +137,16 @@
         "b": 2.0,
         "c": 2.0
       },
-      "tempo_s": 3.44e-05,
-      "tempo_execucao": 3.44e-05
+      "tempo_s": 9.375e-06,
+      "tempo_execucao": 9.375e-06
     },
     {
-      "dataset": "data\\dataset_parte2\\artificiais_bellman_ford\\bf_validacao_com_ciclo.csv",
+      "dataset": "data/dataset_parte2/artificiais_bellman_ford/bf_validacao_com_ciclo.csv",
       "origem": "a",
       "ciclo_negativo": true,
       "distancias": null,
-      "tempo_s": 1.74e-05,
-      "tempo_execucao": 1.74e-05
+      "tempo_s": 3.625e-06,
+      "tempo_execucao": 3.625e-06
     }
   ],
   "benchmark": {
@@ -158,8 +158,8 @@
     "bfs": [
       {
         "origem": "Jurassic Park",
-        "tempo_s": 0.0204588,
-        "tempo": 0.0204588,
+        "tempo_s": 0.007037708,
+        "tempo": 0.007037708,
         "visitados": 3971,
         "primeiros_nos": [
           "Jurassic Park",
@@ -173,31 +173,31 @@
           "Star Wars: Episode III - Revenge of the Sith",
           "Unbreakable"
         ],
-        "tempo_total_cli_s": 4.1654568,
-        "tempo_total_cli": 4.1654568,
-        "tempo_execucao": 0.0204588,
+        "tempo_total_cli_s": 1.324013292,
+        "tempo_total_cli": 1.324013292,
+        "tempo_execucao": 0.007037708,
         "fonte_registro": "cli"
       },
       {
         "origem": "Forrest Gump",
-        "tempo_s": 0.0218492,
+        "tempo_s": 0.005999208,
         "visitados": 3971,
         "fonte_registro": "tres_fontes",
-        "tempo_execucao": 0.0218492
+        "tempo_execucao": 0.005999208
       },
       {
         "origem": "Pulp Fiction",
-        "tempo_s": 0.0212288,
+        "tempo_s": 0.005591125,
         "visitados": 3971,
         "fonte_registro": "tres_fontes",
-        "tempo_execucao": 0.0212288
+        "tempo_execucao": 0.005591125
       }
     ],
     "dfs": [
       {
         "origem": "Jurassic Park",
-        "tempo_s": 0.0255425,
-        "tempo": 0.0255425,
+        "tempo_s": 0.008697625,
+        "tempo": 0.008697625,
         "visitados": 3971,
         "primeiros_nos": [
           "Jurassic Park",
@@ -211,24 +211,24 @@
           "Flashdance",
           "Lilies of the Field"
         ],
-        "tempo_total_cli_s": 4.7558126,
-        "tempo_total_cli": 4.7558126,
-        "tempo_execucao": 0.0255425,
+        "tempo_total_cli_s": 1.351689709,
+        "tempo_total_cli": 1.351689709,
+        "tempo_execucao": 0.008697625,
         "fonte_registro": "cli"
       },
       {
         "origem": "Forrest Gump",
-        "tempo_s": 0.0251,
+        "tempo_s": 0.008115334,
         "visitados": 3971,
         "fonte_registro": "tres_fontes",
-        "tempo_execucao": 0.0251
+        "tempo_execucao": 0.008115334
       },
       {
         "origem": "Pulp Fiction",
-        "tempo_s": 0.0271465,
+        "tempo_s": 0.007868834,
         "visitados": 3971,
         "fonte_registro": "tres_fontes",
-        "tempo_execucao": 0.0271465
+        "tempo_execucao": 0.007868834
       }
     ],
     "dijkstra": [
@@ -239,8 +239,8 @@
         "custo_total": null,
         "tamanho_caminho": 0,
         "caminho": [],
-        "tempo_s": 0.0598181,
-        "tempo_execucao": 0.0598181
+        "tempo_s": 0.018058,
+        "tempo_execucao": 0.018058
       },
       {
         "origem": "Jurassic Park",
@@ -252,8 +252,8 @@
           "Jurassic Park",
           "Pulp Fiction"
         ],
-        "tempo_s": 0.0035056,
-        "tempo_execucao": 0.0035056
+        "tempo_s": 0.000929625,
+        "tempo_execucao": 0.000929625
       },
       {
         "origem": "Jurassic Park",
@@ -272,8 +272,8 @@
           "Ponyo (Gake no ue no Ponyo)",
           "Departures (Okuribito)"
         ],
-        "tempo_s": 0.0754624,
-        "tempo_execucao": 0.0754624
+        "tempo_s": 0.018034333,
+        "tempo_execucao": 0.018034333
       },
       {
         "origem": "Departures (Okuribito)",
@@ -293,8 +293,8 @@
           "Informant!, The",
           "Heavenly Creatures"
         ],
-        "tempo_s": 0.0715279,
-        "tempo_execucao": 0.0715279
+        "tempo_s": 0.018452,
+        "tempo_execucao": 0.018452
       },
       {
         "origem": "Jurassic Park",
@@ -308,13 +308,13 @@
           "Defiance",
           "Last of the Mohicans, The"
         ],
-        "tempo_s": 0.057787,
-        "tempo_execucao": 0.057787
+        "tempo_s": 0.017227625,
+        "tempo_execucao": 0.017227625
       }
     ],
     "bellman_ford": [
       {
-        "dataset": "data\\dataset_parte2\\artificiais_bellman_ford\\bf_validacao_sem_ciclo.csv",
+        "dataset": "data/dataset_parte2/artificiais_bellman_ford/bf_validacao_sem_ciclo.csv",
         "origem": "Z",
         "ciclo_negativo": false,
         "distancias": {
@@ -323,16 +323,16 @@
           "b": 2.0,
           "c": 2.0
         },
-        "tempo_s": 3.44e-05,
-        "tempo_execucao": 3.44e-05
+        "tempo_s": 9.375e-06,
+        "tempo_execucao": 9.375e-06
       },
       {
-        "dataset": "data\\dataset_parte2\\artificiais_bellman_ford\\bf_validacao_com_ciclo.csv",
+        "dataset": "data/dataset_parte2/artificiais_bellman_ford/bf_validacao_com_ciclo.csv",
         "origem": "a",
         "ciclo_negativo": true,
         "distancias": null,
-        "tempo_s": 1.74e-05,
-        "tempo_execucao": 1.74e-05
+        "tempo_s": 3.625e-06,
+        "tempo_execucao": 3.625e-06
       }
     ]
   },
@@ -564,8 +564,8 @@
             "Social Network, The",
             "Grand Budapest Hotel, The"
           ],
-          "tempo_s": 0.0203575,
-          "tempo_execucao": 0.0203575
+          "tempo_s": 0.005922167,
+          "tempo_execucao": 0.005922167
         },
         "dfs": {
           "origem": "Jurassic Park",
@@ -588,8 +588,8 @@
             "Atlantic City",
             "Seven Days in May"
           ],
-          "tempo_s": 0.0229544,
-          "tempo_execucao": 0.0229544
+          "tempo_s": 0.008190125,
+          "tempo_execucao": 0.008190125
         }
       },
       {
@@ -620,8 +620,8 @@
             "Unbreakable",
             "Toy Story 3"
           ],
-          "tempo_s": 0.0218492,
-          "tempo_execucao": 0.0218492
+          "tempo_s": 0.005999208,
+          "tempo_execucao": 0.005999208
         },
         "dfs": {
           "origem": "Forrest Gump",
@@ -644,8 +644,8 @@
             "Marked for Death",
             "Heartbreak Ridge"
           ],
-          "tempo_s": 0.0251,
-          "tempo_execucao": 0.0251
+          "tempo_s": 0.008115334,
+          "tempo_execucao": 0.008115334
         }
       },
       {
@@ -676,8 +676,8 @@
             "Sin City",
             "Gattaca"
           ],
-          "tempo_s": 0.0212288,
-          "tempo_execucao": 0.0212288
+          "tempo_s": 0.005591125,
+          "tempo_execucao": 0.005591125
         },
         "dfs": {
           "origem": "Pulp Fiction",
@@ -700,11 +700,11 @@
             "What Ever Happened to Baby Jane?",
             "Beneath the Planet of the Apes"
           ],
-          "tempo_s": 0.0271465,
-          "tempo_execucao": 0.0271465
+          "tempo_s": 0.007868834,
+          "tempo_execucao": 0.007868834
         }
       }
     ],
-    "tempo_total_cli_s": 4.6024473
+    "tempo_total_cli_s": 1.471263333
   }
 }
