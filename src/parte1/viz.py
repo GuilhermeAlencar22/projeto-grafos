@@ -72,16 +72,16 @@ def gerar_arvore_percurso(grafo, caminhos, aeroportos=None, output_path="out/arv
             display:flex; align-items:center; gap:16px;
             border-bottom:1px solid #334155; box-shadow:0 2px 8px #0008;
         ">
-            <a href="grafo_interativo.html" style="
+            <a href="../interface/parte1.html" style="
                 color:#94a3b8; text-decoration:none; font-size:13px;
                 background:#0f172a; padding:6px 14px; border-radius:6px;
                 border:1px solid #475569;
             ">← Voltar</a>
-            <a href="../interface/parte1.html" style="
+            <a href="grafo_interativo.html" style="
                 color:#e2e8f0; text-decoration:none; font-size:13px;
                 background:#111827; padding:6px 14px; border-radius:6px;
                 border:1px solid #475569;
-            ">Painel Parte 1</a>
+            ">Grafo Interativo</a>
             <span style="color:#e2e8f0; font-weight:700; font-size:15px;">
                 ⟶ Árvore de Percurso — Caminhos Mínimos
             </span>
@@ -132,7 +132,7 @@ def gerar_arvore_percurso(grafo, caminhos, aeroportos=None, output_path="out/arv
         f.truncate()
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -286,21 +286,6 @@ def gerar_grafo_interativo(grafo, aeroportos, ego_metrics):
                 background:#082f49; padding:6px 14px; border-radius:6px;
                 border:1px solid #06b6d4;
             ">⟶ Árvore de Percurso</a>
-            <a href="histograma.png" style="
-                color:#cbd5e1; text-decoration:none; font-size:13px;
-                background:#111827; padding:6px 12px; border-radius:6px;
-                border:1px solid #334155;
-            ">Histograma</a>
-            <a href="ranking.png" style="
-                color:#cbd5e1; text-decoration:none; font-size:13px;
-                background:#111827; padding:6px 12px; border-radius:6px;
-                border:1px solid #334155;
-            ">Ranking</a>
-            <a href="regioes.png" style="
-                color:#cbd5e1; text-decoration:none; font-size:13px;
-                background:#111827; padding:6px 12px; border-radius:6px;
-                border:1px solid #334155;
-            ">Regiões</a>
 
             <div style="margin-left:auto; display:flex; gap:6px;">
                 <input id="search" placeholder="Buscar aeroporto (ex: GRU)" style="
@@ -674,7 +659,6 @@ def plot_subgrafo_hubs(grafo, aeroportos):
     for h in hubs:
         g = graus[h]
         regiao = aeroportos.get(h, {}).get("regiao", "N/A")
-        # cor varia conforme o grau relativo
         intensidade = g / max_grau
         cor = "#f59e0b" if intensidade > 0.85 else ("#fb923c" if intensidade > 0.6 else "#38bdf8")
         net.add_node(
@@ -732,16 +716,16 @@ def plot_subgrafo_hubs(grafo, aeroportos):
             display:flex; align-items:center; gap:16px;
             border-bottom:1px solid #334155; box-shadow:0 2px 8px #0008;
         ">
-            <a href="grafo_interativo.html" style="
+            <a href="../interface/parte1.html" style="
                 color:#94a3b8; text-decoration:none; font-size:13px;
                 background:#0f172a; padding:6px 14px; border-radius:6px;
                 border:1px solid #475569;
             ">← Voltar</a>
-            <a href="../interface/parte1.html" style="
+            <a href="grafo_interativo.html" style="
                 color:#e2e8f0; text-decoration:none; font-size:13px;
                 background:#111827; padding:6px 14px; border-radius:6px;
                 border:1px solid #475569;
-            ">Painel Parte 1</a>
+            ">Grafo Interativo</a>
             <span style="color:#f59e0b; font-weight:700; font-size:15px;">
                 ★ Subgrafo — Top 8 Hubs
             </span>

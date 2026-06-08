@@ -4,9 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Parte 1 — Rede de Aeroportos | Teoria dos Grafos</title>
-  <link rel="stylesheet" href="styles.css?v=22">
+  <link rel="stylesheet" href="styles.css?v=23">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    /* ── Estilos específicos da Parte 1 (complementam styles.css) ── */
+    
+    :root {
+      --nordeste:    #f97316;
+      --sudeste:     #f43f5e;
+      --centro-oeste:#facc15;
+      --sul:         #4ade80;
+      --norte:       #60a5fa;
+    }
 
     .p1-hero {
       display: grid;
@@ -15,152 +24,241 @@
       align-items: end;
       padding: 36px 0 30px;
     }
-
     .p1-hero-actions {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
     }
-
-    .p1-section {
-      margin-top: 40px;
-    }
-
-    .p1-section-title {
-      margin: 0 0 16px;
-      color: var(--primary);
-      font-size: clamp(20px, 2.5vw, 28px);
-      font-weight: 900;
-    }
-
-    .p1-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .p1-card {
-      padding: 20px;
-      background: var(--panel-flat);
-      border: 1px solid var(--yellow-line);
-      border-radius: 8px;
-      transition: transform 160ms ease, border-color 160ms ease;
-    }
-
-    .p1-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(245, 197, 24, 0.44);
-    }
-
-    .p1-card-label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--primary);
-      font-size: 11px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .p1-card a {
-      color: var(--text);
-      text-decoration: none;
-      font-size: 18px;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-
-    .p1-card a:hover {
-      color: var(--primary);
-    }
-
-    .p1-card p {
-      margin: 10px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .p1-gallery {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 28px;
-    }
-
-    .p1-figure {
-      margin: 0;
-      background: var(--panel-flat);
-      border: 1px solid var(--yellow-line);
-      border-radius: 8px;
-      overflow: hidden;
-      transition: transform 160ms ease, border-color 160ms ease;
-    }
-
-    .p1-figure:hover {
-      transform: translateY(-2px);
-      border-color: rgba(245, 197, 24, 0.44);
-    }
-
-    .p1-figure a {
-      display: block;
-    }
-
-    .p1-figure img {
-      display: block;
-      width: 100%;
-      height: auto;
-      aspect-ratio: 4 / 2.2;
-      object-fit: contain;
-      background: #fff;
-    }
-
-    .p1-figure figcaption {
-      padding: 12px 16px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
     .p1-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 48px;
-      padding: 10px 14px;
-      color: #121212;
-      background: var(--primary);
-      border: 1px solid transparent;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: 800;
-      font-size: 14px;
-      cursor: pointer;
-      transition: filter 140ms ease, transform 140ms ease;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 48px; padding: 10px 14px;
+      color: #121212; background: var(--primary);
+      border: 1px solid transparent; border-radius: 6px;
+      text-decoration: none; font-weight: 800; font-size: 14px;
+      cursor: pointer; transition: filter 140ms ease, transform 140ms ease;
     }
-
     .p1-btn.secondary {
-      color: var(--text);
-      background: var(--panel-flat);
-      border-color: var(--line);
+      color: var(--text); background: var(--panel-flat); border-color: var(--line);
+    }
+    .p1-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+    .avd-tabs {
+      display: flex; gap: 4px; margin-bottom: 28px;
+      border-bottom: 1px solid var(--line); padding-bottom: 0;
+    }
+    .avd-tab-btn {
+      padding: 9px 18px; border: none; border-radius: 6px 6px 0 0;
+      background: transparent; color: var(--muted);
+      font: 700 13px/1 "Segoe UI", sans-serif; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color 130ms, border-color 130ms;
+    }
+    .avd-tab-btn.active { color: var(--primary); border-color: var(--primary); }
+    .avd-tab-btn:hover:not(.active) { color: var(--text); }
+    .avd-pane { display: none; }
+    .avd-pane.active { display: block; }
+
+    .p1-section { margin-top: 40px; }
+    .p1-section-title {
+      margin: 0 0 16px; color: var(--primary);
+      font-size: clamp(20px, 2.5vw, 28px); font-weight: 900;
     }
 
-    .p1-btn:hover {
-      filter: brightness(1.08);
-      transform: translateY(-1px);
+    .p1-gallery { display: grid; grid-template-columns: 1fr; gap: 28px; }
+    .p1-figure {
+      margin: 0; background: var(--panel-flat);
+      border: 1px solid var(--yellow-line); border-radius: 8px; overflow: hidden;
+      transition: transform 160ms ease, border-color 160ms ease;
+    }
+    .p1-figure:hover { transform: translateY(-2px); border-color: rgba(245,197,24,.44); }
+    .p1-figure a { display: block; }
+    .p1-figure img {
+      display: block; width: 100%; height: auto;
+      aspect-ratio: 4/2.2; object-fit: contain; background: #fff;
+    }
+    .p1-figure figcaption {
+      padding: 12px 16px; color: var(--muted); font-size: 13px; line-height: 1.45;
     }
 
-    @media (max-width: 900px) {
+    .avd-stats {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+      margin-bottom: 28px;
+    }
+    .avd-stat {
+      background: var(--panel-flat); border: 1px solid var(--yellow-line);
+      border-radius: 8px; padding: 18px 16px; text-align: center;
+      transition: border-color 160ms;
+    }
+    .avd-stat:hover { border-color: rgba(245,197,24,.44); }
+    .avd-stat strong {
+      display: block; font-size: clamp(22px,2.5vw,34px); font-weight: 900;
+      color: var(--primary); line-height: 1;
+    }
+    .avd-stat span {
+      font-size: 11px; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .06em; margin-top: 5px; display: block;
+    }
+
+    .avd-narrative {
+      background: var(--panel-flat); border: 1px solid var(--yellow-line);
+      border-left: 3px solid var(--primary); border-radius: 8px;
+      padding: 20px 24px; margin-bottom: 28px;
+    }
+    .avd-narrative-label {
+      font-size: 11px; font-weight: 900; color: var(--primary);
+      text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px;
+    }
+    .avd-narrative p { font-size: 14px; line-height: 1.65; color: var(--muted); }
+    .avd-narrative strong { color: var(--text); }
+
+    .avd-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+    .avd-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+    .avd-panel {
+      background: var(--panel-flat); border: 1px solid var(--yellow-line);
+      border-radius: 8px; padding: 20px; overflow: hidden;
+    }
+    .avd-panel-title {
+      font-size: 11px; font-weight: 900; color: var(--primary);
+      text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px;
+    }
+    canvas { display: block; width: 100% !important; }
+
+    .avd-map-wrap {
+      position: relative; background: var(--panel-flat);
+      border: 1px solid var(--yellow-line); border-radius: 8px;
+      overflow: hidden; margin-bottom: 28px; height: 520px;
+    }
+    #avd-leaflet-map { width: 100%; height: 100%; border-radius: 8px; }
+    .avd-map-legend {
+      position: absolute; bottom: 30px; left: 14px; z-index: 1000;
+      background: rgba(23,23,23,.96); border: 1px solid var(--yellow-line);
+      border-radius: 8px; padding: 12px 16px; font-size: 12px; line-height: 1;
+      pointer-events: none;
+    }
+    .avd-map-legend-title {
+      font-weight: 900; font-size: 12px; color: var(--text);
+      margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+    }
+    .avd-legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; color: var(--muted); }
+    .avd-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .avd-map-ctrls {
+      position: absolute; top: 14px; right: 50px; z-index: 1000;
+      display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
+    }
+    .avd-ctrl {
+      padding: 5px 12px; border-radius: 6px; border: 1px solid var(--line);
+      background: rgba(23,23,23,.95); color: var(--muted); font-size: 11px;
+      font-weight: 700; cursor: pointer; transition: all 120ms; font-family: inherit;
+    }
+    .avd-ctrl.on { border-color: var(--primary); color: var(--primary); }
+    .avd-ctrl:hover { border-color: var(--muted); color: var(--text); }
+    .leaflet-container .leaflet-popup-content-wrapper {
+      background: #1f1f1f; color: #fff;
+      border: 1px solid rgba(245,197,24,.3);
+      border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.6);
+    }
+    .leaflet-container .leaflet-popup-tip { background: #1f1f1f; }
+    .leaflet-container .leaflet-popup-content {
+      margin: 12px 14px; font-family: "Segoe UI", sans-serif;
+    }
+    .lf-pop-iata { font-size: 18px; font-weight: 900; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #333; }
+    .lf-pop-row  { font-size: 13px; color: #b5b5b5; margin: 3px 0; }
+    .lf-pop-row strong { color: #fff; }
+    .lf-label {
+      background: transparent; border: none; box-shadow: none;
+      color: #fff; font-size: 11px; font-weight: 700;
+      font-family: "Segoe UI", sans-serif;
+      text-shadow: 0 1px 3px rgba(0,0,0,.9), 0 0 6px rgba(0,0,0,.7);
+      padding: 0; white-space: nowrap;
+    }
+    .lf-label::before { display: none; }
+
+    #avd-tooltip {
+      display: none; position: fixed; z-index: 9999; pointer-events: none;
+      background: var(--panel); border: 1px solid var(--yellow-line); border-radius: 8px;
+      padding: 12px 16px; color: var(--text); font-size: 13px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.6); min-width: 160px; line-height: 1;
+    }
+    #avd-tooltip .tt-id {
+      font-size: 16px; font-weight: 900; margin-bottom: 8px;
+      padding-bottom: 7px; border-bottom: 1px solid var(--line);
+    }
+    #avd-tooltip table { border-collapse: collapse; width: 100%; }
+    #avd-tooltip td { padding: 3px 0; }
+    #avd-tooltip td:first-child { color: var(--muted); padding-right: 14px; }
+    #avd-tooltip td:last-child { font-weight: 700; }
+
+    .avd-route-selector { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .avd-route-btn {
+      padding: 7px 16px; border-radius: 6px; border: 1px solid var(--line);
+      background: var(--panel-flat); color: var(--muted); font-size: 13px;
+      font-weight: 700; cursor: pointer; transition: all 130ms; font-family: inherit;
+    }
+    .avd-route-btn.active {
+      border-color: var(--primary); color: var(--primary);
+      background: rgba(245,197,24,.08);
+    }
+    .avd-route-btn:hover:not(.active) { border-color: var(--muted); color: var(--text); }
+    .avd-route-info {
+      background: var(--panel-flat); border: 1px solid var(--yellow-line);
+      border-radius: 8px; padding: 20px; margin-bottom: 20px;
+    }
+    .avd-route-path { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .avd-node {
+      padding: 5px 13px; border-radius: 6px; font-weight: 800; font-size: 14px;
+    }
+    .avd-node.start { background: rgba(46,204,113,.12); color: var(--success); border: 1px solid var(--success); }
+    .avd-node.end   { background: rgba(255,77,77,.12);   color: var(--danger);  border: 1px solid var(--danger); }
+    .avd-node.mid   { background: rgba(245,197,24,.1);   color: var(--primary); border: 1px solid var(--primary); }
+    .avd-arrow { color: var(--muted); font-size: 16px; }
+    .avd-route-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+    .avd-route-stat strong { display: block; font-size: 18px; font-weight: 900; color: var(--text); }
+    .avd-route-stat span   { font-size: 11px; color: var(--muted); }
+    .avd-route-expl {
+      font-size: 13px; color: var(--muted); line-height: 1.65;
+      margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line);
+    }
+    .avd-route-map {
+      position: relative; background: var(--panel-flat);
+      border: 1px solid var(--yellow-line); border-radius: 8px;
+      overflow: hidden; height: 440px;
+    }
+    #avd-route-svg { width: 100%; height: 100%; }
+
+    .avd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .avd-table th {
+      padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 900;
+      color: var(--muted); text-transform: uppercase; letter-spacing: .06em;
+      border-bottom: 1px solid var(--line);
+    }
+    .avd-table td { padding: 9px 12px; border-bottom: 1px solid rgba(58,58,58,.4); }
+    .avd-table tr:last-child td { border-bottom: none; }
+    .avd-table tr:hover td { background: rgba(245,197,24,.03); }
+    .avd-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 12px;
+      font-size: 11px; font-weight: 700;
+    }
+    .avd-bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .avd-bar-bg { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+    .avd-bar-fill { height: 100%; border-radius: 3px; }
+
+    @media (max-width: 960px) {
       .p1-hero { grid-template-columns: 1fr; }
-      .p1-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .p1-hero-actions { grid-template-columns: 1fr; }
+      .avd-2col, .avd-3col { grid-template-columns: 1fr; }
+      .avd-stats { grid-template-columns: repeat(3,1fr); }
+      .avd-map-wrap, .avd-route-map { height: 360px; }
     }
-
     @media (max-width: 600px) {
-      .p1-grid { grid-template-columns: 1fr; }
+      .avd-stats { grid-template-columns: repeat(2,1fr); }
     }
   </style>
 </head>
 <body>
+
+  <div id="avd-tooltip">
+    <div class="tt-id" id="avd-tt-id"></div>
+    <table id="avd-tt-table"></table>
+  </div>
 
   <header class="topbar">
     <div class="brand">
@@ -172,8 +270,8 @@
     </div>
     <nav class="nav">
       <a class="is-active" href="#">aeroportos</a>
-      <a href="index.html" data-view="grafos">parte 2</a>
-      <a href="../index.html" style="opacity:0.65;border-left:1px solid var(--line);padding-left:1rem;margin-left:0.5rem;">← início</a>
+      <a href="index.html">parte 2</a>
+      <a href="../index.html" style="opacity:.65;border-left:1px solid var(--line);padding-left:1rem;margin-left:.5rem;">← início</a>
     </nav>
   </header>
 
@@ -181,67 +279,203 @@
 
     <section class="p1-hero">
       <div>
-        <p class="eyebrow">rede de aeroportos</p>
-        <h2 style="margin:0 0 14px;font-size:clamp(28px,4vw,52px);line-height:1.05;">Rotas, Uubs e Métricas do Grafo</h2>
-        <p style="margin:0;color:var(--muted);font-size:16px;line-height:1.6;max-width:540px;">
-          A Parte 1 modela aeroportos brasileiros como vértices e conexões diretas como arestas ponderadas.
-          Esta página reúne os HTMLs e gráficos gerados em <code style="font-size:13px;color:var(--primary);">out/</code>.
+        <p class="eyebrow">parte 1 — rede de aeroportos</p>
+        <h2 style="margin:0 0 16px;font-size:clamp(28px,4vw,52px);line-height:1.05;">
+          19 Aeroportos.<br>
+          <span style="color:var(--primary);">Algoritmos do Zero.</span><br>
+          Uma Rede Real.
+        </h2>
+        <p style="margin:0 0 10px;color:var(--muted);font-size:16px;line-height:1.6;max-width:560px;">
+          Modelamos a malha aérea brasileira como um grafo ponderado — cada aeroporto é um vértice, cada rota é uma aresta com custo calculado a partir de critérios regionais e de conectividade.
+        </p>
+        <p style="margin:0;color:var(--muted);font-size:16px;line-height:1.6;max-width:560px;">
+          BFS, DFS e Dijkstra implementados em Python puro, sem nenhuma biblioteca de grafos. Explore o grafo, veja os caminhos mínimos e analise os hubs da rede.
         </p>
       </div>
-      <nav class="p1-hero-actions" aria-label="ações principais" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
-        <a class="p1-btn" href="../out/grafo_interativo.html">abrir grafo</a>
-        <a class="p1-btn secondary" href="../out/arvore_percurso.html">percurso REC → POA</a>
-        <a class="p1-btn secondary" href="../out/arvore_percurso_gru_mao.html">percurso GRU → MAO</a>
-        <a class="p1-btn secondary" href="../out/subgrafo_hubs.html">subgrafo hubs</a>
+      <nav class="p1-hero-actions" aria-label="ações principais">
+        <a class="p1-btn" href="../out/grafo_interativo.html" style="grid-column:span 2;">
+          ✈ Explorar o Grafo Interativo
+        </a>
+        <a class="p1-btn secondary" href="../out/arvore_percurso.html">⟶ Recife → Porto Alegre</a>
+        <a class="p1-btn secondary" href="../out/arvore_percurso_gru_mao.html">⟶ Manaus → São Paulo</a>
+        <a class="p1-btn secondary" href="../out/subgrafo_hubs.html" style="grid-column:span 2;">★ Ver os Principais Hubs da Rede</a>
       </nav>
     </section>
 
-    <section class="p1-section">
-      <h2 class="p1-section-title">Arquivos Principais</h2>
-      <div class="p1-grid">
-        <article class="p1-card">
-          <span class="p1-card-label">métricas</span>
-          <a href="../out/global.json">global.json</a>
-          <p>Ordem, tamanho e densidade do grafo de aeroportos.</p>
-        </article>
-        <article class="p1-card">
-          <span class="p1-card-label">rotas</span>
-          <a href="../out/distancias_rotas.csv">distancias_rotas.csv</a>
-          <p>Caminhos mínimos calculados com Dijkstra.</p>
-        </article>
-        <article class="p1-card">
-          <span class="p1-card-label">rankings</span>
-          <a href="../out/rankings.json">rankings.json</a>
-          <p>Aeroportos mais conectados e maior densidade local.</p>
-        </article>
-        <article class="p1-card">
-          <span class="p1-card-label">relatório AVD</span>
-          <a href="../out/avd_relatorio.html">avd_relatorio.html</a>
-          <p>Análise visual com métricas, gráficos e tabelas regionais.</p>
-        </article>
+         AVD — ANÁLISE E VISUALIZAÇÃO DE DADOS
+    <section class="p1-section" style="margin-top:56px;">
+      <h2 class="p1-section-title">Análise e Visualização de Dados</h2>
+      <p style="margin:0 0 24px;color:var(--muted);font-size:14px;line-height:1.6;max-width:720px;">
+        Dashboards interativos com Gestalt, storytelling analítico e hierarquia visual — Similaridade, Figura-Fundo, Conectividade e Região Comum aplicados à malha aérea brasileira.
+      </p>
+
+      <div class="avd-tabs">
+        <button type="button" class="avd-tab-btn active" onclick="avdTab('estrutura',this)">Estrutura</button>
+        <button type="button" class="avd-tab-btn" onclick="avdTab('mapa',this)">Mapa</button>
+        <button type="button" class="avd-tab-btn" onclick="avdTab('regional',this)">Regional</button>
+        <button type="button" class="avd-tab-btn" onclick="avdTab('rotas',this)">Caminhos Mínimos</button>
       </div>
+
+      <div id="avd-pane-estrutura" class="avd-pane active">
+
+        <div class="avd-stats">
+          <div class="avd-stat"><strong>20</strong><span>Vértices (|V|)</span></div>
+          <div class="avd-stat"><strong>114</strong><span>Arestas (|E|)</span></div>
+          <div class="avd-stat"><strong>0,60</strong><span>Densidade</span></div>
+          <div class="avd-stat"><strong>1</strong><span>Componente</span></div>
+          <div class="avd-stat"><strong>11,4</strong><span>Grau médio</span></div>
+        </div>
+
+        <div class="avd-narrative">
+          <div class="avd-narrative-label">🔍 Storytelling Exploratório</div>
+          <p>Com <strong>densidade de 0,60</strong>, a rede é significativamente densa — em um grafo completo de 20 vértices existiriam 190 arestas; aqui existem 114. O grafo é <strong>conexo</strong> (componente única): é possível viajar entre qualquer par de aeroportos. O grau médio de <strong>11,4 conexões por aeroporto</strong> revela uma rede bem integrada, com forte concentração nos hubs nacionais <strong>BSB e GRU</strong>.</p>
+        </div>
+
+        <div class="avd-2col">
+          <div class="avd-panel">
+            <div class="avd-panel-title">Distribuição de Graus</div>
+            <canvas id="avd-hist" height="220"></canvas>
+          </div>
+          <div class="avd-panel">
+            <div class="avd-panel-title">Top 10 — Aeroportos Mais Conectados</div>
+            <canvas id="avd-rank" height="220"></canvas>
+          </div>
+        </div>
+
+        <div class="avd-panel">
+          <div class="avd-panel-title">Ego-Network por Aeroporto</div>
+          <div style="overflow-x:auto;">
+            <table class="avd-table">
+              <thead>
+                <tr>
+                  <th>Aeroporto</th>
+                  <th>Região</th>
+                  <th>Grau</th>
+                  <th>Ordem Ego</th>
+                  <th>Tamanho Ego</th>
+                  <th>Densidade Ego</th>
+                  <th>Nível</th>
+                </tr>
+              </thead>
+              <tbody id="avd-ego-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="avd-pane-mapa" class="avd-pane">
+
+        <div class="avd-narrative">
+          <div class="avd-narrative-label">🗺 Gestalt — Região Comum, Similaridade, Figura-Fundo</div>
+          <p>Cada aeroporto posicionado em sua localização geográfica real. <strong>Cor = região</strong> (Similaridade). <strong>Hulls tracejados</strong> agrupam visualmente cada região (Região Comum). Fundo escuro destaca os nós (Figura-Fundo). O tamanho do nó reflete o grau — hubs maiores, periféricos menores.</p>
+        </div>
+
+        <div class="avd-map-wrap">
+          <div id="avd-leaflet-map"></div>
+          <div class="avd-map-ctrls">
+            <button type="button" class="avd-ctrl on" id="avd-btn-edges" onclick="avdToggleEdges()">Arestas</button>
+            <button type="button" class="avd-ctrl"    id="avd-btn-hubs"  onclick="avdFilterHubs()">Só Hubs</button>
+          </div>
+          <div class="avd-map-legend">
+            <div class="avd-map-legend-title">Regiões</div>
+            <div class="avd-legend-row"><span class="avd-legend-dot" style="background:#f97316"></span>Nordeste</div>
+            <div class="avd-legend-row"><span class="avd-legend-dot" style="background:#f43f5e"></span>Sudeste</div>
+            <div class="avd-legend-row"><span class="avd-legend-dot" style="background:#facc15"></span>Centro-Oeste</div>
+            <div class="avd-legend-row"><span class="avd-legend-dot" style="background:#4ade80"></span>Sul</div>
+            <div class="avd-legend-row"><span class="avd-legend-dot" style="background:#60a5fa"></span>Norte</div>
+            <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line);color:var(--muted);font-size:11px;line-height:1.5;">
+              Tamanho = grau<br>Clique para detalhes
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="avd-pane-regional" class="avd-pane">
+
+        <div class="avd-narrative">
+          <div class="avd-narrative-label">🔍 Storytelling Exploratório — Distribuição Regional</div>
+          <p>O <strong>Sudeste</strong> lidera com a maior densidade interna (0,90) — seus 5 aeroportos estão quase todos interligados. O <strong>Nordeste</strong>, com 6 aeroportos, supera a média nacional de grau. A região <strong>Norte</strong> tem a menor densidade interna (0,33), reflexo das distâncias continentais entre Manaus, Belém, Porto Velho e Rio Branco.</p>
+        </div>
+
+        <div class="avd-3col">
+          <div class="avd-panel">
+            <div class="avd-panel-title">Grau Médio por Região</div>
+            <canvas id="avd-grau-reg" height="200"></canvas>
+          </div>
+          <div class="avd-panel">
+            <div class="avd-panel-title">Aeroportos por Região</div>
+            <canvas id="avd-count-reg" height="200"></canvas>
+          </div>
+          <div class="avd-panel">
+            <div class="avd-panel-title">Densidade Interna</div>
+            <canvas id="avd-dens-reg" height="200"></canvas>
+          </div>
+        </div>
+
+        <div class="avd-panel">
+          <div class="avd-panel-title">Tabela Regional Detalhada</div>
+          <div style="overflow-x:auto;">
+            <table class="avd-table">
+              <thead>
+                <tr>
+                  <th>Região</th><th>Aeroportos</th><th>Arestas internas</th>
+                  <th>Densidade interna</th><th>Grau médio</th><th>Maior hub</th>
+                </tr>
+              </thead>
+              <tbody id="avd-reg-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="avd-pane-rotas" class="avd-pane">
+
+        <div class="avd-narrative">
+          <div class="avd-narrative-label">📍 Storytelling Explanatório — Dijkstra</div>
+          <p>Visualização do caminho mínimo encontrado pelo Dijkstra. Selecione uma rota para ver o caminho destacado, o custo total e a explicação automática de por que aquele trajeto foi escolhido.</p>
+        </div>
+
+        <div class="avd-route-selector">
+          <button type="button" class="avd-route-btn active" onclick="avdSelectRoute(0,this)">⟶ Recife → Porto Alegre</button>
+          <button type="button" class="avd-route-btn"        onclick="avdSelectRoute(1,this)">⟶ Manaus → São Paulo</button>
+          <button type="button" class="avd-route-btn"        onclick="avdSelectRoute(2,this)">⟶ Recife → Brasília</button>
+          <button type="button" class="avd-route-btn"        onclick="avdSelectRoute(3,this)">⟶ Fortaleza → Rio</button>
+          <button type="button" class="avd-route-btn"        onclick="avdSelectRoute(4,this)">⟶ Salvador → Curitiba</button>
+        </div>
+
+        <div class="avd-route-info" id="avd-route-info"></div>
+
+        <div class="avd-route-map">
+          <svg id="avd-route-svg" viewBox="0 0 800 440"></svg>
+        </div>
+
+      </div>
+
     </section>
 
     <section class="p1-section">
-      <h2 class="p1-section-title">Gráficos Analíticos</h2>
+      <h2 class="p1-section-title">Análise Visual da Rede</h2>
       <div class="p1-gallery">
         <figure class="p1-figure">
-          <a href="../out/histograma.png">
+          <a href="../out/histograma.png" target="_blank">
             <img src="../out/histograma.png" alt="histograma de graus">
           </a>
-          <figcaption>Distribuição de graus dos aeroportos.</figcaption>
+          <figcaption><strong style="color:var(--text);">Distribuição de graus</strong> — Quantas conexões cada aeroporto possui. Revela a concentração de conectividade nos hubs e a cauda longa dos aeroportos regionais.</figcaption>
         </figure>
         <figure class="p1-figure">
-          <a href="../out/ranking.png">
+          <a href="../out/ranking.png" target="_blank">
             <img src="../out/ranking.png" alt="ranking de aeroportos">
           </a>
-          <figcaption>Ranking visual dos aeroportos mais conectados.</figcaption>
+          <figcaption><strong style="color:var(--text);">Ranking dos aeroportos mais conectados</strong> — Os vértices com maior grau funcionam como pontos de passagem obrigatórios. Cortar um hub desconectaria grande parte do grafo.</figcaption>
         </figure>
         <figure class="p1-figure">
-          <a href="../out/regioes.png">
+          <a href="../out/regioes.png" target="_blank">
             <img src="../out/regioes.png" alt="comparação por regiões">
           </a>
-          <figcaption>Comparação do grau médio por região.</figcaption>
+          <figcaption><strong style="color:var(--text);">Conectividade por região</strong> — Comparação do grau médio entre Norte, Nordeste, Sudeste, Sul e Centro-Oeste. Evidencia desequilíbrios na cobertura da malha aérea brasileira.</figcaption>
         </figure>
       </div>
     </section>
@@ -249,8 +483,449 @@
   </main>
 
   <footer style="text-align:center;padding:32px 20px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);margin-top:56px;">
-    Projeto Final — Teoria dos Grafos &nbsp;·&nbsp; Python puro · PyVis · Matplotlib · Pandas
+    Projeto Final — Teoria dos Grafos &nbsp;·&nbsp; Algoritmos implementados do zero &nbsp;·&nbsp; PyVis · Matplotlib · Pandas
   </footer>
 
+<script>
+/* ════════════════════════════════════
+   DADOS
+   ════════════════════════════════════ */
+const AERO = {
+  REC:{cidade:"Recife",         regiao:"Nordeste",     lat:-8.1,  lon:-34.9},
+  SSA:{cidade:"Salvador",       regiao:"Nordeste",     lat:-12.9, lon:-38.3},
+  FOR:{cidade:"Fortaleza",      regiao:"Nordeste",     lat:-3.8,  lon:-38.5},
+  NAT:{cidade:"Natal",          regiao:"Nordeste",     lat:-5.8,  lon:-35.2},
+  JPA:{cidade:"João Pessoa",    regiao:"Nordeste",     lat:-7.1,  lon:-34.9},
+  THE:{cidade:"Teresina",       regiao:"Nordeste",     lat:-5.0,  lon:-42.8},
+  GRU:{cidade:"São Paulo",      regiao:"Sudeste",      lat:-23.4, lon:-46.5},
+  CGH:{cidade:"SP-Congonhas",   regiao:"Sudeste",      lat:-23.6, lon:-46.7},
+  GIG:{cidade:"Rio de Janeiro", regiao:"Sudeste",      lat:-22.8, lon:-43.2},
+  CNF:{cidade:"Belo Horizonte", regiao:"Sudeste",      lat:-19.6, lon:-43.9},
+  VIX:{cidade:"Vitória",        regiao:"Sudeste",      lat:-20.3, lon:-40.3},
+  BSB:{cidade:"Brasília",       regiao:"Centro-Oeste", lat:-15.9, lon:-47.9},
+  GYN:{cidade:"Goiânia",        regiao:"Centro-Oeste", lat:-16.6, lon:-49.2},
+  CWB:{cidade:"Curitiba",       regiao:"Sul",          lat:-25.5, lon:-49.2},
+  FLN:{cidade:"Florianópolis",  regiao:"Sul",          lat:-27.7, lon:-48.5},
+  POA:{cidade:"Porto Alegre",   regiao:"Sul",          lat:-30.0, lon:-51.2},
+  MAO:{cidade:"Manaus",         regiao:"Norte",        lat:-3.1,  lon:-60.0},
+  BEL:{cidade:"Belém",          regiao:"Norte",        lat:-1.4,  lon:-48.5},
+  PVH:{cidade:"Porto Velho",    regiao:"Norte",        lat:-8.7,  lon:-63.9},
+  RBR:{cidade:"Rio Branco",     regiao:"Norte",        lat:-9.9,  lon:-67.8},
+};
+
+const GRAUS = {BSB:19,CNF:19,GRU:18,CGH:17,REC:16,GIG:16,SSA:14,JPA:12,FOR:11,BEL:11,POA:10,MAO:10,NAT:9,VIX:8,GYN:8,FLN:7,CWB:7,THE:6,PVH:5,RBR:5};
+
+const EGO = [
+  {a:"BSB",grau:19,ordem:20,tam:114,dens:0.600},{a:"CNF",grau:19,ordem:20,tam:114,dens:0.600},
+  {a:"GRU",grau:18,ordem:19,tam:97, dens:0.567},{a:"CGH",grau:17,ordem:18,tam:91, dens:0.595},
+  {a:"REC",grau:16,ordem:17,tam:97, dens:0.713},{a:"GIG",grau:16,ordem:17,tam:98, dens:0.721},
+  {a:"SSA",grau:14,ordem:15,tam:83, dens:0.790},{a:"JPA",grau:12,ordem:13,tam:66, dens:0.846},
+  {a:"FOR",grau:11,ordem:12,tam:57, dens:0.864},{a:"BEL",grau:11,ordem:12,tam:58, dens:0.879},
+  {a:"POA",grau:10,ordem:11,tam:49, dens:0.891},{a:"MAO",grau:10,ordem:11,tam:44, dens:0.800},
+  {a:"NAT",grau:9, ordem:10,tam:44, dens:0.978},{a:"VIX",grau:8, ordem:9, tam:35, dens:0.972},
+  {a:"GYN",grau:8, ordem:9, tam:35, dens:0.972},{a:"FLN",grau:7, ordem:8, tam:27, dens:0.964},
+  {a:"CWB",grau:7, ordem:8, tam:27, dens:0.964},{a:"THE",grau:6, ordem:7, tam:21, dens:1.000},
+  {a:"PVH",grau:5, ordem:6, tam:14, dens:0.933},{a:"RBR",grau:5, ordem:6, tam:14, dens:0.933},
+];
+
+const ARESTAS = [
+  ["REC","FOR",1.33],["REC","SSA",1.33],["REC","NAT",1.08],["REC","JPA",0.67],["REC","THE",1.75],
+  ["REC","BSB",2.58],["REC","GRU",3.16],["REC","GIG",2.91],["REC","CNF",2.5],["REC","POA",4.33],
+  ["REC","FLN",3.83],["REC","MAO",4.08],["REC","BEL",2.66],["REC","VIX",2.33],["REC","GYN",2.75],["REC","CGH",3.25],
+  ["SSA","FOR",1.75],["SSA","NAT",1.5],["SSA","JPA",1.5],["SSA","GRU",2.25],["SSA","BSB",1.91],
+  ["SSA","GIG",2.08],["SSA","CNF",1.58],["SSA","CGH",2.41],["SSA","VIX",1.58],["SSA","GYN",2.08],
+  ["SSA","CWB",3.0],["SSA","POA",3.83],["SSA","BEL",1.58],
+  ["FOR","NAT",1.0],["FOR","THE",1.08],["FOR","GRU",3.25],["FOR","BSB",2.67],["FOR","GIG",3.33],
+  ["FOR","CNF",2.75],["FOR","CGH",3.67],["FOR","MAO",3.41],["FOR","BEL",2.75],
+  ["NAT","GRU",3.33],["NAT","BSB",2.66],["NAT","GIG",3.25],["NAT","CNF",2.75],["NAT","CGH",3.5],["NAT","BEL",2.75],
+  ["JPA","GRU",3.25],["JPA","BSB",2.75],["JPA","GIG",3.0],["JPA","CNF",2.66],["JPA","CGH",3.41],
+  ["JPA","VIX",2.33],["JPA","GYN",2.75],["JPA","POA",4.33],["JPA","MAO",4.08],["JPA","BEL",2.66],
+  ["THE","GRU",3.0],["THE","BSB",2.16],["THE","CNF",2.5],["THE","BEL",1.33],
+  ["GRU","GIG",1.0],["GRU","CNF",1.08],["GRU","VIX",1.33],["GRU","BSB",1.58],["GRU","GYN",1.41],
+  ["GRU","CWB",0.91],["GRU","FLN",1.08],["GRU","POA",1.58],["GRU","MAO",3.75],["GRU","BEL",3.33],
+  ["GRU","PVH",3.66],["GRU","RBR",3.91],
+  ["CGH","GIG",1.0],["CGH","CNF",1.08],["CGH","VIX",1.33],["CGH","BSB",1.58],["CGH","GYN",1.41],
+  ["CGH","CWB",0.91],["CGH","FLN",1.08],["CGH","POA",1.58],["CGH","MAO",3.75],["CGH","BEL",3.33],
+  ["CGH","PVH",3.66],["CGH","RBR",3.91],
+  ["GIG","CNF",1.0],["GIG","VIX",1.08],["GIG","BSB",1.75],["GIG","GYN",1.66],["GIG","CWB",1.16],
+  ["GIG","FLN",1.58],["GIG","POA",2.0],["GIG","MAO",4.0],["GIG","BEL",3.5],
+  ["CNF","VIX",1.0],["CNF","BSB",1.33],["CNF","GYN",1.41],["CNF","CWB",1.66],["CNF","FLN",1.91],
+  ["CNF","POA",2.25],["CNF","MAO",3.66],["CNF","BEL",3.08],["CNF","PVH",3.5],["CNF","RBR",4.0],
+  ["VIX","BSB",1.83],
+  ["BSB","GYN",0.41],["BSB","CWB",1.91],["BSB","FLN",2.25],["BSB","POA",2.58],
+  ["BSB","MAO",3.0],["BSB","BEL",2.5],["BSB","PVH",2.91],["BSB","RBR",3.33],
+  ["CWB","POA",1.25],["FLN","POA",1.08],["MAO","PVH",1.5],["MAO","RBR",1.55],
+];
+
+const COR_REG = {
+  "Nordeste":"#f97316","Sudeste":"#f43f5e",
+  "Centro-Oeste":"#facc15","Sul":"#4ade80","Norte":"#60a5fa"
+};
+const REGIOES_AGR = {
+  "Nordeste":    {aeroportos:["REC","SSA","FOR","NAT","JPA","THE"], arestas:10, dens:0.667},
+  "Sudeste":     {aeroportos:["GRU","CGH","GIG","CNF","VIX"],       arestas:9,  dens:0.900},
+  "Centro-Oeste":{aeroportos:["BSB","GYN"],                          arestas:1,  dens:1.000},
+  "Sul":         {aeroportos:["CWB","FLN","POA"],                    arestas:2,  dens:0.667},
+  "Norte":       {aeroportos:["MAO","BEL","PVH","RBR"],              arestas:2,  dens:0.333},
+};
+const ROTAS_DATA = [
+  {label:"Recife → Porto Alegre", origem:"REC",destino:"POA",custo:4.33,caminho:["REC","POA"],
+   expl:'O Dijkstra encontrou conexão <strong style="color:var(--text)">direta</strong> de Recife (REC) a Porto Alegre (POA) com custo de <strong style="color:var(--text)">4,33h</strong>. Com densidade 0,60 a rede admite rotas longas diretas sem escala em hubs intermediários como GRU.'},
+  {label:"Manaus → São Paulo",    origem:"MAO",destino:"GRU",custo:3.75,caminho:["MAO","GRU"],
+   expl:'Conexão direta de Manaus (MAO) a Guarulhos (GRU) com custo <strong style="color:var(--text)">3,75h</strong>. O hub GRU (grau 18) é o segundo mais conectado da rede, justificando a viabilidade de rotas diretas mesmo a partir de cidades amazônicas.'},
+  {label:"Recife → Brasília",     origem:"REC",destino:"BSB",custo:2.58,caminho:["REC","BSB"],
+   expl:'REC → BSB direto com custo <strong style="color:var(--text)">2,58h</strong>. BSB tem grau 19 (maior da rede) e funciona como o grande concentrador nacional. A rota é classificada como "hub" no dataset, refletindo a centralidade de Brasília.'},
+  {label:"Fortaleza → Rio",       origem:"FOR",destino:"GIG",custo:3.33,caminho:["FOR","GIG"],
+   expl:'Fortaleza (FOR) conecta-se diretamente ao Galeão (GIG) com custo <strong style="color:var(--text)">3,33h</strong>. GIG tem grau 16 e é um dos três super-hubs (junto com GRU e BSB). Rota direta evita escala em São Paulo.'},
+  {label:"Salvador → Curitiba",   origem:"SSA",destino:"CWB",custo:3.00,caminho:["SSA","CWB"],
+   expl:'Salvador (SSA) liga-se diretamente a Curitiba (CWB) com custo <strong style="color:var(--text)">3,00h</strong>. SSA tem grau 14 e densidade de ego-network 0,79, o que viabiliza conexões longas sem escalas cruzando Nordeste → Sudeste → Sul.'},
+];
+
+/* ════════════════════════════════════
+   HELPERS
+   ════════════════════════════════════ */
+function nivelCor(iata) {
+  const g = GRAUS[iata]||0;
+  if(g>=19) return "#f43f5e";
+  if(g>=16) return "#f97316";
+  if(g>=10) return "#facc15";
+  if(g>=7)  return "#4ade80";
+  return "#60a5fa";
+}
+function nivelLabel(iata) {
+  const g = GRAUS[iata]||0;
+  if(g>=19) return "Super Hub";
+  if(g>=16) return "Hub Regional";
+  if(g>=10) return "Intermediário";
+  if(g>=7)  return "Regional";
+  return "Periférico";
+}
+function latLon(lat,lon,W,H) {
+  const latMin=-35,latMax=5,lonMin=-74,lonMax=-33,pad=52;
+  return [
+    pad+((lon-lonMin)/(lonMax-lonMin))*(W-pad*2),
+    pad+((latMax-lat)/(latMax-latMin))*(H-pad*2)
+  ];
+}
+
+document.addEventListener("mousemove",e=>{
+  const tt=document.getElementById("avd-tooltip"); if(!tt) return;
+  tt.style.left=(e.clientX+16)+"px"; tt.style.top=(e.clientY+16)+"px";
+});
+
+function avdTab(id,btn){
+  document.querySelectorAll(".avd-pane").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".avd-tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("avd-pane-"+id).classList.add("active");
+  btn.classList.add("active");
+  if(id==="mapa"    && !mapOk)      { mapOk=true;      renderMap(); }
+  if(id==="regional"&& !regOk)      { regOk=true;      initRegional(); }
+  if(id==="rotas"   && !rotaOk)     { rotaOk=true;     avdSelectRoute(0,document.querySelector(".avd-route-btn")); }
+}
+
+/* ════════════════════════════════════
+   CHARTS (canvas 2D sem deps)
+   ════════════════════════════════════ */
+function drawBar(id,labels,values,colors,opts={}){
+  const canvas=document.getElementById(id); if(!canvas) return;
+  const ctx=canvas.getContext("2d");
+  const W=canvas.offsetWidth||canvas.parentElement?.offsetWidth||400;
+  const H=parseInt(canvas.getAttribute("height"))||220;
+  canvas.width=W; canvas.height=H;
+  const pad={top:28,right:12,bottom:opts.bp||44,left:40};
+  const cW=W-pad.left-pad.right, cH=H-pad.top-pad.bottom;
+  const maxV=Math.max(...values)*1.15;
+  ctx.clearRect(0,0,W,H);
+  // grid
+  for(let i=0;i<=4;i++){
+    const y=pad.top+cH-(i/4)*cH;
+    ctx.strokeStyle="#2a2a2a"; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+cW,y); ctx.stroke();
+    ctx.fillStyle="#5a6a7a"; ctx.font="10px Segoe UI"; ctx.textAlign="right";
+    ctx.fillText(((i/4)*maxV).toFixed(opts.dec||0),pad.left-4,y+4);
+  }
+  const gap=cW/labels.length, bw=gap*.62;
+  labels.forEach((lbl,i)=>{
+    const x=pad.left+gap*i+gap*.19;
+    const bh=(values[i]/maxV)*cH, by=pad.top+cH-bh;
+    const c=Array.isArray(colors)?colors[i]:colors;
+    ctx.fillStyle=c;
+    if(ctx.roundRect) ctx.roundRect(x,by,bw,bh,[3,3,0,0]); else ctx.rect(x,by,bw,bh);
+    ctx.fill();
+    ctx.fillStyle="#e0e0e0"; ctx.font="bold 10px Segoe UI"; ctx.textAlign="center";
+    ctx.fillText(values[i].toFixed(opts.dec||0),x+bw/2,by-5);
+    ctx.fillStyle="#666"; ctx.font="10px Segoe UI"; ctx.textAlign="center";
+    const sl=opts.short?lbl.substring(0,5):lbl;
+    ctx.fillText(sl,x+bw/2,pad.top+cH+14);
+  });
+  if(opts.avg){
+    const ay=pad.top+cH-(opts.avg/maxV)*cH;
+    ctx.strokeStyle="#4cc9f0"; ctx.lineWidth=1.4; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(pad.left,ay); ctx.lineTo(pad.left+cW,ay); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle="#4cc9f0"; ctx.font="10px Segoe UI"; ctx.textAlign="right";
+    ctx.fillText("Média: "+opts.avg.toFixed(1),pad.left+cW,ay-5);
+  }
+}
+
+/* ════════════════════════════════════
+   PANE ESTRUTURA
+   ════════════════════════════════════ */
+function initEstrutura(){
+  const sorted=Object.entries(GRAUS).sort((a,b)=>b[1]-a[1]);
+  const avg=Object.values(GRAUS).reduce((a,b)=>a+b,0)/20;
+  drawBar("avd-hist",sorted.map(x=>x[0]),sorted.map(x=>x[1]),sorted.map(x=>nivelCor(x[0])),{avg,bp:44,short:false});
+  const top10=sorted.slice(0,10);
+  drawBar("avd-rank",top10.map(x=>x[0]),top10.map(x=>x[1]),top10.map(x=>nivelCor(x[0])),{avg,bp:36});
+
+  const NIVEL_LABEL_MAP={"#f43f5e":"Super Hub","#f97316":"Hub Regional","#facc15":"Intermediário","#4ade80":"Regional","#60a5fa":"Periférico"};
+  const tb=document.getElementById("avd-ego-tbody"); tb.innerHTML="";
+  EGO.forEach(d=>{
+    const cor=nivelCor(d.a), reg=AERO[d.a]?.regiao||"", cReg=COR_REG[reg]||"#888";
+    tb.innerHTML+=`<tr>
+      <td><strong style="color:${cor}">${d.a}</strong> <span style="color:var(--muted);font-size:12px;">${AERO[d.a]?.cidade||""}</span></td>
+      <td><span class="avd-badge" style="background:${cReg}22;color:${cReg}">${reg}</span></td>
+      <td><strong>${d.grau}</strong></td><td>${d.ordem}</td><td>${d.tam}</td>
+      <td>
+        <div class="avd-bar-wrap">
+          <div class="avd-bar-bg"><div class="avd-bar-fill" style="width:${(d.dens*100).toFixed(0)}%;background:${cor}"></div></div>
+          <span style="font-size:12px;width:36px;text-align:right">${d.dens.toFixed(3)}</span>
+        </div>
+      </td>
+      <td><span class="avd-badge" style="background:${cor}22;color:${cor}">${nivelLabel(d.a)}</span></td>
+    </tr>`;
+  });
+}
+
+/* ════════════════════════════════════
+   PANE MAPA
+   ════════════════════════════════════ */
+/* ════════════════════════════════════
+   PANE MAPA — Leaflet
+   ════════════════════════════════════ */
+let mapOk=false, lfMap=null, edgeLayer=null, markerLayer=null, showEdges=true, onlyHubs=false;
+
+function renderMap(){
+  const el=document.getElementById("avd-leaflet-map"); if(!el) return;
+
+  // Inicializa o mapa uma única vez
+  if(!lfMap){
+    lfMap = L.map("avd-leaflet-map",{
+      center: [-14, -52], zoom: 4,
+      zoomControl: true, attributionControl: false,
+    });
+    // Tile escuro CartoDB Dark Matter
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{
+      maxZoom: 10, minZoom: 3,
+    }).addTo(lfMap);
+    L.control.attribution({prefix:false}).addTo(lfMap);
+  }
+
+  // Limpa camadas anteriores
+  if(edgeLayer)  { lfMap.removeLayer(edgeLayer);  edgeLayer=null;  }
+  if(markerLayer){ lfMap.removeLayer(markerLayer); markerLayer=null; }
+
+  const maxG = Math.max(...Object.values(GRAUS));
+
+  // ── Arestas ──────────────────────────────────────────────────
+  edgeLayer = L.layerGroup();
+  ARESTAS.forEach(([u,v])=>{
+    const au=AERO[u], av=AERO[v]; if(!au||!av) return;
+    if(onlyHubs && (GRAUS[u]<10||GRAUS[v]<10)) return;
+    const strong = GRAUS[u]>=16 && GRAUS[v]>=16;
+    L.polyline([[au.lat,au.lon],[av.lat,av.lon]],{
+      color:   strong ? "#2a4a6a" : "#192535",
+      weight:  strong ? 1.6 : 0.8,
+      opacity: strong ? 0.7 : 0.35,
+    }).addTo(edgeLayer);
+  });
+  if(showEdges) edgeLayer.addTo(lfMap);
+
+  // ── Marcadores ───────────────────────────────────────────────
+  markerLayer = L.layerGroup();
+
+  Object.entries(AERO).forEach(([iata,d])=>{
+    const g = GRAUS[iata]||5;
+    if(onlyHubs && g<10) return;
+    const cor   = COR_REG[d.regiao]||"#888";
+    const r     = 7 + (g/maxG)*16;
+    const nivel = nivelLabel(iata);
+    const egoD  = (EGO.find(e=>e.a===iata)?.dens||0).toFixed(3);
+
+    const marker = L.circleMarker([d.lat,d.lon],{
+      radius:      r,
+      fillColor:   cor,
+      color:       g>=16 ? "rgba(255,255,255,0.5)" : cor,
+      weight:      g>=16 ? 2 : 1,
+      fillOpacity: 0.9,
+    });
+
+    marker.bindPopup(`
+      <div class="lf-pop-iata" style="color:${cor}">${iata}</div>
+      <div class="lf-pop-row">${d.cidade}</div>
+      <div class="lf-pop-row" style="margin-top:8px">
+        <strong>Região</strong> ${d.regiao}
+      </div>
+      <div class="lf-pop-row"><strong>Grau</strong> ${g}</div>
+      <div class="lf-pop-row"><strong>Nível</strong> ${nivel}</div>
+      <div class="lf-pop-row"><strong>Dens. ego</strong> ${egoD}</div>
+    `, { maxWidth: 200 });
+
+    // Tooltip permanente com o código IATA
+    marker.bindTooltip(iata, {
+      permanent: true, direction: "top", offset: [0, -(r+4)],
+      className: "lf-label",
+    });
+
+    marker.addTo(markerLayer);
+  });
+  markerLayer.addTo(lfMap);
+}
+
+function avdToggleEdges(){
+  showEdges=!showEdges;
+  document.getElementById("avd-btn-edges").classList.toggle("on",showEdges);
+  if(!lfMap||!edgeLayer) return;
+  if(showEdges) edgeLayer.addTo(lfMap); else lfMap.removeLayer(edgeLayer);
+}
+function avdFilterHubs(){
+  onlyHubs=!onlyHubs;
+  document.getElementById("avd-btn-hubs").classList.toggle("on",onlyHubs);
+  renderMap();
+}
+
+/* ════════════════════════════════════
+   PANE REGIONAL
+   ════════════════════════════════════ */
+let regOk=false;
+function initRegional(){
+  const regs=Object.keys(REGIOES_AGR), cors=regs.map(r=>COR_REG[r]);
+  const grauMed=regs.map(r=>{ const a=REGIOES_AGR[r].aeroportos; return a.reduce((s,k)=>s+(GRAUS[k]||0),0)/a.length; });
+  const counts=regs.map(r=>REGIOES_AGR[r].aeroportos.length);
+  const dens=regs.map(r=>REGIOES_AGR[r].dens);
+  drawBar("avd-grau-reg",regs,grauMed,cors,{dec:1,short:true});
+  drawBar("avd-count-reg",regs,counts,cors,{short:true});
+  drawBar("avd-dens-reg",regs,dens,cors,{dec:2,short:true});
+
+  const tb=document.getElementById("avd-reg-tbody"); tb.innerHTML="";
+  Object.entries(REGIOES_AGR).forEach(([reg,d])=>{
+    const cor=COR_REG[reg];
+    const grau=(d.aeroportos.reduce((s,a)=>s+(GRAUS[a]||0),0)/d.aeroportos.length).toFixed(1);
+    const maior=d.aeroportos.reduce((b,a)=>(GRAUS[a]||0)>(GRAUS[b]||0)?a:b);
+    tb.innerHTML+=`<tr>
+      <td><span class="avd-badge" style="background:${cor}22;color:${cor}">${reg}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${d.aeroportos.join(", ")}</td>
+      <td>${d.arestas}</td>
+      <td>
+        <div class="avd-bar-wrap">
+          <div class="avd-bar-bg"><div class="avd-bar-fill" style="width:${(d.dens*100).toFixed(0)}%;background:${cor}"></div></div>
+          <span style="font-size:12px;width:36px;text-align:right">${d.dens.toFixed(3)}</span>
+        </div>
+      </td>
+      <td>${grau}</td>
+      <td><strong style="color:${nivelCor(maior)}">${maior}</strong> <span style="color:var(--muted);font-size:12px;">(grau ${GRAUS[maior]})</span></td>
+    </tr>`;
+  });
+}
+
+/* ════════════════════════════════════
+   PANE ROTAS
+   ════════════════════════════════════ */
+let rotaOk=false;
+function avdSelectRoute(i,btn){
+  document.querySelectorAll(".avd-route-btn").forEach(b=>b.classList.remove("active"));
+  if(btn) btn.classList.add("active");
+  const r=ROTAS_DATA[i];
+  const pathHtml=r.caminho.map((a,j)=>{
+    const cls=j===0?"start":j===r.caminho.length-1?"end":"mid";
+    return `<span class="avd-node ${cls}">${a}</span>${j<r.caminho.length-1?'<span class="avd-arrow">→</span>':""}`;
+  }).join("");
+  document.getElementById("avd-route-info").innerHTML=`
+    <div class="avd-route-path">${pathHtml}</div>
+    <div class="avd-route-stats">
+      <div class="avd-route-stat"><strong>${r.custo.toFixed(2)}h</strong><span>Custo total</span></div>
+      <div class="avd-route-stat"><strong>${r.caminho.length-1}</strong><span>Salto(s)</span></div>
+      <div class="avd-route-stat"><strong>Dijkstra</strong><span>Algoritmo</span></div>
+    </div>
+    <div class="avd-route-expl">${r.expl}</div>
+  `;
+  renderRouteSVG(r);
+}
+function renderRouteSVG(r){
+  const svg=document.getElementById("avd-route-svg"); if(!svg) return;
+  const W=800,H=440; svg.innerHTML="";
+  const bg=document.createElementNS("http://www.w3.org/2000/svg","rect");
+  bg.setAttribute("width",W); bg.setAttribute("height",H); bg.setAttribute("fill","#0e1018");
+  svg.appendChild(bg);
+  const pos={};
+  Object.entries(AERO).forEach(([k,d])=>{ pos[k]=latLon(d.lat,d.lon,W,H); });
+  const routeSet=new Set(r.caminho);
+  ARESTAS.forEach(([u,v])=>{
+    const [x1,y1]=pos[u]||[0,0],[x2,y2]=pos[v]||[0,0];
+    const l=document.createElementNS("http://www.w3.org/2000/svg","line");
+    l.setAttribute("x1",x1);l.setAttribute("y1",y1);l.setAttribute("x2",x2);l.setAttribute("y2",y2);
+    l.setAttribute("stroke","#1a2535"); l.setAttribute("stroke-width","0.6"); l.setAttribute("stroke-opacity","0.3");
+    svg.appendChild(l);
+  });
+  for(let i=0;i<r.caminho.length-1;i++){
+    const [x1,y1]=pos[r.caminho[i]]||[0,0],[x2,y2]=pos[r.caminho[i+1]]||[0,0];
+    const glow=document.createElementNS("http://www.w3.org/2000/svg","line");
+    glow.setAttribute("x1",x1);glow.setAttribute("y1",y1);glow.setAttribute("x2",x2);glow.setAttribute("y2",y2);
+    glow.setAttribute("stroke","#f5c518"); glow.setAttribute("stroke-width","10"); glow.setAttribute("stroke-opacity","0.12");
+    svg.appendChild(glow);
+    const ll=document.createElementNS("http://www.w3.org/2000/svg","line");
+    ll.setAttribute("x1",x1);ll.setAttribute("y1",y1);ll.setAttribute("x2",x2);ll.setAttribute("y2",y2);
+    ll.setAttribute("stroke","#f5c518"); ll.setAttribute("stroke-width","2.5");
+    svg.appendChild(ll);
+    const edge=ARESTAS.find(([a,b])=>(a===r.caminho[i]&&b===r.caminho[i+1])||(a===r.caminho[i+1]&&b===r.caminho[i]));
+    if(edge){
+      const mx=(x1+x2)/2,my=(y1+y2)/2;
+      const bg2=document.createElementNS("http://www.w3.org/2000/svg","rect");
+      bg2.setAttribute("x",mx-18);bg2.setAttribute("y",my-9);bg2.setAttribute("width","36");bg2.setAttribute("height","15");
+      bg2.setAttribute("rx","4");bg2.setAttribute("fill","#171717");svg.appendChild(bg2);
+      const cost=document.createElementNS("http://www.w3.org/2000/svg","text");
+      cost.setAttribute("x",mx);cost.setAttribute("y",my+2);cost.setAttribute("text-anchor","middle");
+      cost.setAttribute("fill","#f5c518");cost.setAttribute("font-size","10");cost.setAttribute("font-weight","700");
+      cost.setAttribute("font-family","Segoe UI, sans-serif");cost.textContent=edge[2].toFixed(2)+"h";
+      svg.appendChild(cost);
+    }
+  }
+  const maxG=Math.max(...Object.values(GRAUS));
+  Object.entries(pos).forEach(([iata,[x,y]])=>{
+    const g=GRAUS[iata]||5, inR=routeSet.has(iata);
+    const r2=inR?10+(g/maxG)*12:5+(g/maxG)*7;
+    const cor=inR?(iata===r.origem?"#2ecc71":iata===r.destino?"#ff4d4d":"#f5c518"):(COR_REG[AERO[iata]?.regiao]||"#888");
+    if(inR){
+      const glow=document.createElementNS("http://www.w3.org/2000/svg","circle");
+      glow.setAttribute("cx",x);glow.setAttribute("cy",y);glow.setAttribute("r",r2+9);
+      glow.setAttribute("fill",cor);glow.setAttribute("fill-opacity","0.12");svg.appendChild(glow);
+    }
+    const c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    c.setAttribute("cx",x);c.setAttribute("cy",y);c.setAttribute("r",r2);
+    c.setAttribute("fill",cor);c.setAttribute("fill-opacity",inR?"1":"0.35");
+    c.setAttribute("stroke",inR?"rgba(255,255,255,.35)":"none");c.setAttribute("stroke-width","1.5");
+    svg.appendChild(c);
+    if(inR||g>=14){
+      const lbl=document.createElementNS("http://www.w3.org/2000/svg","text");
+      lbl.setAttribute("x",x);lbl.setAttribute("y",y-r2-5);lbl.setAttribute("text-anchor","middle");
+      lbl.setAttribute("fill",inR?cor:"#3a4a5a");lbl.setAttribute("font-size",inR?"12":"9");
+      lbl.setAttribute("font-weight","700");lbl.setAttribute("font-family","Segoe UI, sans-serif");
+      lbl.textContent=iata;svg.appendChild(lbl);
+    }
+  });
+}
+
+/* ════════════════════════════════════
+   INIT
+   ════════════════════════════════════ */
+document.addEventListener("DOMContentLoaded",()=>{
+  initEstrutura();
+});
+window.addEventListener("resize",()=>{
+  initEstrutura();
+  if(mapOk) renderMap();
+  if(regOk) initRegional();
+});
+</script>
 </body>
 </html>

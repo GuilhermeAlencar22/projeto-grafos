@@ -27,6 +27,11 @@ out/*
 data/dataset_parte2/imdb/*.tsv.gz
 data/dataset_parte2/movielens/
 
+# ── JSONs gerados para a interface (recriados com build_interface_data/grafo) ──
+interface/data/parte2_grafo.json
+interface/data/parte2_amostra.json
+interface/data/resumo_parte2.json
+
 # ── IDEs e editores ───────────────────────────────────────────────────────────
 .vscode/
 .idea/

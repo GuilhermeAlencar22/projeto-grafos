@@ -200,8 +200,6 @@ function baseEdge(edge, extra = {}) {
   const value = Number(edge.similaridade ?? edge.actors_common ?? 1);
   const color = extra.color ?? "rgba(245, 197, 24, 0.55)";
 
-  // espessura proporcional à similaridade: aresta grossa = filmes muito parecidos
-  // min=1 (sim=2, só gênero) → max=10 (sim=22, quase mesmo elenco)
   const rawWidth = extra.width ?? Math.max(1, Math.min(10, 0.8 + Math.sqrt(value) * 1.9));
 
   return {
@@ -209,8 +207,6 @@ function baseEdge(edge, extra = {}) {
     from: edgeOrigem(edge),
     to: edgeDestino(edge),
     title: edgeTitle(edge),
-    // label só aparece quando o chamador pede explicitamente (ex: Dijkstra, BF)
-    // no modo padrão fica vazio para não poluir o grafo
     label: extra.label ?? "",
     width: rawWidth,
     color: {
@@ -233,7 +229,6 @@ function baseEdge(edge, extra = {}) {
   };
 }
 
-// grau global de cada filme no dataset completo (calculado uma vez)
 let _globalDegree = null;
 function globalDegree() {
   if (_globalDegree) return _globalDegree;
@@ -246,16 +241,13 @@ function globalDegree() {
   return deg;
 }
 
-// tamanho do nó proporcional ao grau global: hubs ficam visivelmente maiores
 function nodeSizeByGlobalDegree(id, minSize = 18, maxSize = 54) {
   const deg = globalDegree().get(id) ?? 1;
-  // log para suavizar a diferença entre hub (grau ~200) e periférico (grau ~2)
   const logDeg = Math.log2(deg + 1);
   const logMax = Math.log2(210);
   return Math.round(minSize + (maxSize - minSize) * (logDeg / logMax));
 }
 
-// cor do nó baseada nos gêneros predominantes do filme
 function nodeColorByGenre(id) {
   const genres = movieGenres(id);
   const genreColors = {
@@ -293,7 +285,6 @@ function makeGraphFromEdges(edges, options = {}) {
 
   return {
     nodes: [...nodes.values()].map((id) => {
-      // usa grau global (do dataset inteiro) para tamanho: hub real fica visível
       const size = nodeSizeByGlobalDegree(id, 20, 52);
       const cor = nodeColorByGenre(id);
       return baseNode(id, {
@@ -465,7 +456,6 @@ function buildAmostraAdjacency() {
 }
 
 function buildGrafoAdjacency() {
-  // retorna cache se ja construido
   if (state._grafoAdj) return state._grafoAdj;
 
   const adj = new Map();
@@ -488,7 +478,6 @@ function dijkstraPath(origem, destino) {
   const dist = new Map([[origem, 0]]);
   const prev = new Map();
   const visited = new Set();
-  // min-heap simples com array ordenado (ok ate ~100k arestas)
   const queue = [{ id: origem, cost: 0 }];
 
   while (queue.length) {
@@ -532,7 +521,6 @@ function dfsPath(origem, destino) {
   const useFullGraph = !!state.grafoCompleto;
   const adj = useFullGraph ? buildGrafoAdjacency() : buildAmostraAdjacency();
 
-  // iterativo para evitar stack overflow com 100k arestas
   const visited = new Set();
   const stack = [[origem, [origem]]];
 
@@ -561,11 +549,9 @@ function makeTraversalGraph(origem, type = "bfs") {
   const treeEdges = [];
   const usedTreeEdges = new Set();
   const limit = 28;
-  // max vizinhos por no: evita que um hub (ex: Jurassic Park) ocupe todos os slots
   const maxPerNode = type === "bfs" ? 4 : 3;
 
   function addNode(id, level) {
-    // nó de origem sempre verde e grande; demais crescem proporcionalmente ao grau global
     const size = id === origem ? 48 : nodeSizeByGlobalDegree(id, 20, 44);
     nodes.push(baseNode(id, {
       level,
@@ -663,7 +649,6 @@ function makeDijkstraGraph() {
   const nodes = route.path.map((id, index) => {
     const isFirst = index === 0;
     const isLast = index === route.path.length - 1;
-    // tamanho pelo grau global; pontos extremos ficam ainda maiores
     const baseSize = nodeSizeByGlobalDegree(id, 24, 46);
     return baseNode(id, {
       size: isFirst || isLast ? Math.max(baseSize, 44) : baseSize,
@@ -678,7 +663,6 @@ function makeDijkstraGraph() {
       color: "#ff9f1c",
       width: 6,
       arrows: "to",
-      // mostra a similaridade nas arestas do caminho Dijkstra: avaliador vê o peso
       label: String(edge.similaridade ?? ""),
     });
   });
@@ -748,13 +732,10 @@ function makeFullGraph() {
   const arestas = g.arestas ?? [];
   const posicoes = g.posicoes ?? {};
 
-  // limite absoluto: pega as 3000 arestas de maior similaridade
-  // o roteamento (dijkstra/dfs) usa todas as 100k via buildGrafoAdjacency()
   const LIMITE_VISUAL = 3000;
   const arestasSorted = [...arestas].sort((a, b) => (b.sim ?? 0) - (a.sim ?? 0));
   const arestasFiltradas = arestasSorted.slice(0, LIMITE_VISUAL);
 
-  // apenas nos que aparecem nessas arestas
   const nodeSet = new Set();
   arestasFiltradas.forEach((e) => { nodeSet.add(edgeOrigem(e)); nodeSet.add(edgeDestino(e)); });
 
@@ -789,13 +770,8 @@ function makeFullGraph() {
   return { nodes, edges, layout: "network", fullGraph: true };
 }
 
-// ── Modo Franquias ──────────────────────────────────────────────────────────
-// Mostra grupos de filmes da mesma franquia (sim >= 8, quase mesmo elenco).
-// Cada franquia recebe uma cor distinta; arestas grossas = similaridade alta.
-// Deixa claro ao avaliador: "filmes com mesmo elenco = nó maior + aresta grossa"
 function makeFranquiasGraph() {
   const FRANQUIAS = [
-    // nome exibido, cor, sementes dos filmes
     { nome: "Marvel / Avengers", cor: { bg: "#ef4444", border: "#b91c1c" },
       seeds: ["Avengers: Age of Ultron", "Captain America: Civil War",
                "Avengers: Infinity War - Part I", "Iron Man 2"] },
@@ -832,7 +808,6 @@ function makeFranquiasGraph() {
                "Star Trek VI: The Undiscovered Country"] },
   ];
 
-  // monta adjacência filtrada por sim >= 8
   const edgeMap = {};
   Object.values(state.amostra?.edges ?? {}).forEach((e) => {
     if ((e.similaridade ?? 0) >= 8) edgeMap[e.id] = e;
@@ -846,7 +821,6 @@ function makeFranquiasGraph() {
     adj.get(edgeDestino(e)).push(e);
   });
 
-  // para cada franquia, BFS a partir das seeds para pegar filmes conectados
   const nodeList = [];
   const edgeList = [];
   const usedNodes = new Set();
@@ -854,12 +828,9 @@ function makeFranquiasGraph() {
 
   FRANQUIAS.forEach(({ nome, cor, seeds }, fi) => {
     const franqNodes = new Set();
-    // 1) adiciona todas as seeds diretamente (nomes exatos do CSV)
     seeds.forEach((s) => {
       if (state.amostra?.movies?.[s]) franqNodes.add(s);
     });
-    // 2) expande por BFS para pegar filmes vizinhos conectados (sim>=8)
-    //    limite = seeds*2 para não explodir franquias com muitos filmes
     const limit = Math.max(10, seeds.length * 2);
     const bfsQueue = [...franqNodes];
     while (bfsQueue.length && franqNodes.size < limit) {
@@ -887,7 +858,6 @@ function makeFranquiasGraph() {
       });
     });
 
-    // arestas internas da franquia
     franqNodes.forEach((id) => {
       (adj.get(id) ?? []).forEach((e) => {
         const nb = edgeOrigem(e) === id ? edgeDestino(e) : edgeOrigem(e);
@@ -916,7 +886,6 @@ function graphForMode(mode) {
   }
 
   if (mode === "top") {
-    // top conexões: nós com tamanho pelo grau global, sem labels nas arestas
     return makeGraphFromEdges(byActors.slice(0, 42), {
       edgeOptions: { label: "" },
     });
@@ -942,7 +911,6 @@ function graphForMode(mode) {
     return makeFullGraph();
   }
 
-  // modo padrão "similaridade": amostra conectada com nós por grau global e cor por gênero
   const sampleEdges = connectedEdgeSample(bySimilarity, 32);
   const nodeSet = new Map();
   sampleEdges.forEach((e) => {
@@ -982,7 +950,6 @@ function renderResults(resumo) {
   const bfCycle = bellmanList.some((i) => i.ciclo_negativo);
   const bfNoCycle = bellmanList.some((i) => !i.ciclo_negativo);
 
-  // ── Cards de resumo ────────────────────────────────────────────────────────
   document.getElementById("results-resumo").innerHTML = [
     `<article class="result-stat">
       <h3>BFS + DFS</h3>
@@ -1018,7 +985,6 @@ function renderResults(resumo) {
     </article>`,
   ].join("");
 
-  // ── Tabelas detalhadas ─────────────────────────────────────────────────────
   const bfsDfsRows = fontes.map((fonte) => {
     const b = bfsList.find((i) => i.origem === fonte) ?? {};
     const d = dfsList.find((i) => i.origem === fonte) ?? {};
@@ -1576,7 +1542,6 @@ function drawGraph(mode = "similaridade") {
       tooltipDelay: 120,
       navigationButtons: false,
       keyboard: true,
-      // melhora o desempenho no grafo completo
       hideEdgesOnDrag: !!graph.fullGraph,
       hideEdgesOnZoom: !!graph.fullGraph,
     },
@@ -1851,7 +1816,6 @@ function setupGraphControls() {
   });
 
   drawGraph(mode.value);
-  // mostra descrição do modo inicial
   if (["franquias", "similaridade", "top"].includes(mode.value)) {
     renderModeDetails(mode.value);
   }
@@ -1977,7 +1941,6 @@ async function init() {
   state.resumo = resumo;
   state.amostra = amostra;
 
-  // popula datalist com os titulos da amostra para autocomplete nos inputs de busca.
   const dl = document.getElementById("movies-list");
   if (dl && amostra?.movies) {
     Object.keys(amostra.movies).sort().forEach((title) => {

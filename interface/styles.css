@@ -1323,3 +1323,95 @@ button:active {
   .discussao-grid { grid-template-columns: 1fr; }
   .discussao-card-wide { grid-column: 1; }
 }
+
+/* ── AVD Parte 2 — Stats bar na hero ─────────────────────────────────────── */
+.avd2-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin: 18px 0 0;
+  max-width: 820px;
+}
+
+.avd2-stat {
+  background: var(--panel-flat);
+  border: 1px solid var(--yellow-line);
+  border-radius: 8px;
+  padding: 14px 12px;
+  text-align: center;
+  transition: border-color 160ms;
+}
+
+.avd2-stat:hover { border-color: rgba(245, 197, 24, 0.44); }
+
+.avd2-stat strong {
+  display: block;
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 900;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.avd2-stat span {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 5px;
+}
+
+/* ── AVD Parte 2 — Narrativas na aba gráficos ────────────────────────────── */
+.avd2-narrative-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.avd2-narrative {
+  background: var(--panel-flat);
+  border: 1px solid var(--yellow-line);
+  border-left: 3px solid var(--primary);
+  border-radius: 8px;
+  padding: 18px 22px;
+  transition: border-color 160ms;
+}
+
+.avd2-narrative:hover { border-color: rgba(245, 197, 24, 0.44); }
+
+.avd2-narrative-label {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+.avd2-narrative p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.avd2-narrative strong { color: var(--text); }
+
+.avd2-narrative code {
+  background: #2a2a2a;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 12px;
+  color: var(--primary);
+}
+
+@media (max-width: 900px) {
+  .avd2-narrative-grid { grid-template-columns: 1fr; }
+  .avd2-stats-bar { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .avd2-stats-bar { grid-template-columns: repeat(2, 1fr); }
+}

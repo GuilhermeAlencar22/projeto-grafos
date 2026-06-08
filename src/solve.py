@@ -92,17 +92,19 @@ def rodar_parte1():
 
     salvar_csv("out/distancias_rotas.csv", rotas)
 
-    obrigatorios = {("REC", "POA"), ("MAO", "GRU")}
-    caminhos_para_plotar = [
-        rota["caminho"].split(" -> ")
-        for rota in rotas
-        if (rota["origem"], rota["destino"]) in obrigatorios
-        and rota["caminho"] != "sem caminho"
-    ]
-    if not caminhos_para_plotar:
-        print("aviso: nenhum caminho obrigatorio encontrado para plotar.")
+    def _caminho_de(origem, destino):
+        for rota in rotas:
+            if rota["origem"] == origem and rota["destino"] == destino and rota["caminho"] != "sem caminho":
+                return [rota["caminho"].split(" -> ")]
+        return []
 
-    gerar_arvore_percurso(grafo, caminhos_para_plotar, aeroportos)
+    caminho_rec_poa = _caminho_de("REC", "POA")
+    caminho_mao_gru = _caminho_de("MAO", "GRU")
+
+    if caminho_rec_poa:
+        gerar_arvore_percurso(grafo, caminho_rec_poa, aeroportos, output_path="out/arvore_percurso.html")
+    if caminho_mao_gru:
+        gerar_arvore_percurso(grafo, caminho_mao_gru, aeroportos, output_path="out/arvore_percurso_gru_mao.html")
     plot_histograma_graus(grafo)
     plot_ranking(grafo)
     plot_regioes(grafo, aeroportos)

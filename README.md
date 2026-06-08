@@ -74,7 +74,7 @@ python -m src.solve parte2
 ### Gerar visualizações da Parte 2 (PNGs)
 
 ```bash
-python -m src.viz parte2
+python -m src.parte1.viz parte2
 ```
 
 ### Gerar dados da interface web da Parte 2
@@ -121,7 +121,7 @@ python -m src.cli --dataset ./data/dataset_parte2/ --alg DIJKSTRA --source "Jura
 python -m pytest -v
 ```
 
-13 testes cobrindo:
+12 testes cobrindo:
 
 - **BFS**: níveis corretos em grafo pequeno e componente isolada
 - **DFS**: detecção de ciclo e classificação de arestas (tree/back/cross/forward)
@@ -146,10 +146,8 @@ Após rodar `python -m src.solve`, os seguintes arquivos são criados:
 | `rankings.json` | Aeroportos mais conectados |
 | `distancias_rotas.csv` | Caminhos mínimos (Dijkstra) |
 | `grafo_interativo.html` | Grafo completo navegável |
-| `arvore_percurso.html` | Percurso REC → POA |
-| `arvore_percurso_gru_mao.html` | Percurso GRU → MAO |
+| `arvore_percurso.html` | Percurso REC → POA e MAO → GRU |
 | `subgrafo_hubs.html` | Subgrafo dos hubs principais |
-| `avd_relatorio.html` | Relatório analítico completo |
 | `histograma.png` | Distribuição de graus |
 | `ranking.png` | Ranking visual dos hubs |
 | `regioes.png` | Comparação por região |
@@ -212,7 +210,7 @@ projeto-grafos/
 | Arestas | 100.000 conexões |
 | Tipo | Não-dirigido, ponderado |
 | Componentes conexas | 7 (maior: 3.971 filmes) |
-| Grau médio | 50,2 |
+| Grau médio | 50,19 |
 
 **Fórmula de peso:**
 
@@ -228,6 +226,6 @@ Conexões mais fortes têm peso menor — o Dijkstra escolhe naturalmente caminh
 ## Observações
 
 - `plotly` foi removido do `requirements.txt` — não é usado no projeto.
-- `networkx` foi removido — os algoritmos são implementados manualmente.
+- `networkx` é usado internamente pelo `pyvis` (visualização), mas **não** para nenhum algoritmo — toda a lógica de BFS, DFS, Dijkstra e Bellman-Ford é implementação própria.
 - O arquivo `interface/data/parte2_grafo.json` (~8 MB) está versionado para evitar que a professora precise rodar o pipeline completo apenas para ver a interface.
 - O modo "grafo completo" na interface renderiza as 3.000 arestas mais fortes das 100.000 disponíveis para não travar o navegador. O roteamento filme × filme continua usando todas as 100.000.

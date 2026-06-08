@@ -60,6 +60,14 @@
             <strong>Vingadores 1 ↔ Vingadores 2: sim = 22 · peso = 0,045</strong>
             <em>9 atores em comum + mesmo gênero = aresta grossa = caminho barato no Dijkstra.</em>
           </aside>
+          <div class="avd2-stats-bar">
+            <div class="avd2-stat"><strong>3.985</strong><span>Vértices</span></div>
+            <div class="avd2-stat"><strong>100.000</strong><span>Arestas</span></div>
+            <div class="avd2-stat"><strong>50,2</strong><span>Grau Médio</span></div>
+            <div class="avd2-stat"><strong>7</strong><span>Componentes</span></div>
+            <div class="avd2-stat"><strong>0,600</strong><span>Dens. Ego Max</span></div>
+          </div>
+
           <div class="hero-actions">
             <button type="button" data-view="grafos">explorar grafo</button>
             <button type="button" data-view="resultados">ver resultados</button>
@@ -183,13 +191,21 @@
           <p class="section-sub">Corretude, desempenho e análise comparativa dos algoritmos sobre o grafo IMDb.</p>
         </div>
 
-        <!-- 1. Cards de resumo por algoritmo -->
+        <div class="avd2-narrative-grid" style="margin-bottom:24px;">
+          <div class="avd2-narrative">
+            <div class="avd2-narrative-label">📍 Storytelling Explanatório — O que os algoritmos responderam</div>
+            <p>BFS e DFS respondem <strong>perguntas de alcance e estrutura</strong>: quantos filmes consigo visitar a partir de <em>Jurassic Park</em>? Há ciclos? Dijkstra responde <strong>qual o caminho mais barato</strong> (= mais similar) entre dois filmes. Bellman-Ford valida o comportamento com <strong>pesos negativos e ciclos negativos</strong> — caso impossível no dataset IMDb real, por isso testado em grafos artificiais dedicados.</p>
+          </div>
+          <div class="avd2-narrative">
+            <div class="avd2-narrative-label">🎨 Gestalt — Hierarquia Visual nos Resultados</div>
+            <p>Nos cards de resumo: <strong>número grande = dado principal</strong> (hierarquia visual). Badges coloridos indicam status: <span style="color:#2ecc71;font-weight:700;">verde = conforme rubrica</span>, <span style="color:#f97316;font-weight:700;">laranja = aviso</span>, <span style="color:#ef4444;font-weight:700;">vermelho = ciclo detectado</span>. A tabela Dijkstra usa <strong>destaque amarelo no custo</strong> (dado mais importante para a rubrica) e cinza no caminho completo (detalhe secundário) — Figura-Fundo explícito.</p>
+          </div>
+        </div>
+
         <div class="results-resumo" id="results-resumo"></div>
 
-        <!-- 2. Tabelas detalhadas BFS/DFS/Dijkstra/Bellman-Ford -->
         <div id="results-tables"></div>
 
-        <!-- 3. Discussão crítica (item 5 da rubrica) -->
         <section class="discussao-section" id="discussao-critica">
           <h3 class="discussao-title">Discussão Crítica</h3>
 
@@ -300,7 +316,6 @@
           </div>
         </section>
 
-        <!-- 4. JSON técnico + benchmark -->
         <div class="results-tech-split">
           <div class="results-tech-json" id="raw-output-pane"></div>
           <aside class="results-tech-bench" id="benchmark-output" aria-label="tempos medios por algoritmo"></aside>
@@ -309,8 +324,34 @@
 
       <section class="panel-section view-panel" id="graficos" data-view-panel="graficos">
         <div class="section-heading">
-          <h2>Evidencias Visuais</h2>
+          <h2>Evidências Visuais</h2>
+          <p class="section-sub">Análise e Visualização de Dados — princípios de Gestalt, Storytelling Analítico e Hierarquia Visual aplicados à rede IMDb.</p>
         </div>
+
+        <div class="avd2-narrative-grid">
+
+          <div class="avd2-narrative">
+            <div class="avd2-narrative-label">🔍 Storytelling Exploratório — Estrutura da Rede</div>
+            <p>O grafo IMDb com <strong>3.985 filmes e 100.000 conexões</strong> forma uma rede de mundo pequeno: <strong>7 componentes conexas</strong>, sendo a maior com 3.971 vértices. Grau médio de <strong>50,2 conexões por filme</strong> indica alta densidade — filmes de grandes franquias funcionam como hubs com grau > 100. A BFS a partir de <em>Jurassic Park</em> alcança toda a componente em apenas <strong>7 camadas</strong> (diâmetro efetivo pequeno).</p>
+          </div>
+
+          <div class="avd2-narrative">
+            <div class="avd2-narrative-label">📍 Storytelling Explanatório — Dijkstra e a Fórmula de Peso</div>
+            <p>A fórmula <code>peso = 1 / ((2 × atores) + gêneros)</code> transforma similaridade em custo: conexões fortes (sim = 22) custam <strong>0,045</strong>, fracas (sim = 2) custam <strong>0,500</strong>. O Dijkstra escolhe automaticamente caminhos pelos filmes mais parecidos. O par mais distante encontrado foi <em>Departures → Bad Taste</em>: <strong>13 filmes no caminho</strong>, custo 3,29, cruzando gêneros completamente distintos.</p>
+          </div>
+
+          <div class="avd2-narrative">
+            <div class="avd2-narrative-label">🎨 Gestalt — Similaridade, Figura-Fundo, Conectividade</div>
+            <p><strong>Similaridade:</strong> cor do nó = gênero principal (Action vermelho, Drama azul, Sci-Fi roxo). <strong>Figura-Fundo:</strong> fundo escuro #070707 destaca os nós amarelos. <strong>Conectividade:</strong> arestas grossas = alta similaridade (muitos atores em comum). <strong>Proximidade:</strong> o layout força-dirigido posiciona naturalmente filmes da mesma franquia próximos entre si.</p>
+          </div>
+
+          <div class="avd2-narrative">
+            <div class="avd2-narrative-label">📊 Hierarquia Visual — Tamanho, Espessura, Cor</div>
+            <p><strong>Tamanho do nó</strong> ∝ grau global (log₂): hubs como filmes Avengers ficam visualmente maiores, periféricos menores. <strong>Espessura da aresta</strong> ∝ √similaridade: arestas grossas = muitos atores em comum. <strong>Cor do nó</strong> encoda o gênero. <strong>Cor da aresta</strong> varia por modo (verde = BFS, azul claro = DFS, laranja = Dijkstra, vermelho = ciclo negativo BF).</p>
+          </div>
+
+        </div>
+
         <div class="viz-grid" id="viz-grid"></div>
       </section>
     </main>
