@@ -15,27 +15,36 @@ import pandas as pd
 
 
 # tamanho da figura, dpi, cores e fontes nos graficos
-FIG_WIDE = (10.5, 5.8)
-FIG_SCATTER = (9.2, 6.2)
-FIG_COMPS = (10.5, 8.2)
-FIG_DPI = 200
-GRID_ALPHA = 0.35
+FIG_WIDE    = (10.5, 5.8)
+FIG_SCATTER = (9.2,  6.2)
+FIG_COMPS   = (10.5, 8.2)
+FIG_DPI     = 200
+GRID_ALPHA  = 0.35
 
-FONT_TITLE = 13
-FONT_AXIS = 11
+FONT_TITLE  = 13
+FONT_AXIS   = 11
 FONT_LEGEND = 9
-COLOR_GRID = "#bbbbbb"
-COLOR_EDGE_BAR = "#333333"
 
-COL_GRAD_DIST = "#238b45"
-COL_COMPS_LINE = "#d95f02"
-COL_COMPS_MARK_FACE = "#fed976"
-COL_COMPS_MARK_EDGE = "#b35806"
-COL_SCATTER_ACTORS = "#1b9e77"
-COL_SCATTER_SIM_PESO = "#542788"
-COL_CURVA_MODELO = "#b35806"
-COL_BENCHMARK = ["#2c7bb6", "#abd9e9", "#fdae61", "#d7191c"]
-COL_COMPS_BAR = ["#91bfdb", "#d73027"]
+# tema escuro — espelha parte 1 (viz.py _estilo_base)
+BG      = "#0f172a"
+PANEL   = "#1e293b"
+BORDA   = "#334155"
+TXT     = "#f1f5f9"
+TXT_DIM = "#94a3b8"
+
+COLOR_GRID     = BORDA
+COLOR_EDGE_BAR = "#0f172a"
+
+# paleta alinhada à parte 1 — hierarquia de nós e acentos primários
+COL_GRAD_DIST        = "#f5c518"  # ouro — acento primário
+COL_COMPS_LINE       = "#f97316"  # laranja — hub regional
+COL_COMPS_MARK_FACE  = "#facc15"  # amarelo — intermediário
+COL_COMPS_MARK_EDGE  = "#0f172a"  # fundo escuro para borda
+COL_SCATTER_ACTORS   = "#38bdf8"  # ciano — info/média
+COL_SCATTER_SIM_PESO = "#f5c518"  # ouro — acento primário
+COL_CURVA_MODELO     = "#f43f5e"  # rose — super hub / destaque
+COL_BENCHMARK        = ["#f43f5e", "#f97316", "#facc15", "#34d399"]  # hierarquia parte 1
+COL_COMPS_BAR        = ["#94a3b8", "#f5c518"]  # periférico + ouro
 
 SCATTER_SEED_ATORES = 42
 SCATTER_SEED_SIM_PESO = 44
@@ -48,18 +57,29 @@ def _aplicar_estilo_relatorio() -> None:
             "axes.titlesize": FONT_TITLE,
             "axes.labelsize": FONT_AXIS,
             "legend.fontsize": FONT_LEGEND,
-            "grid.color": COLOR_GRID,
+            # tema escuro — espelha parte 1
+            "figure.facecolor":  BG,
+            "axes.facecolor":    PANEL,
+            "axes.edgecolor":    BORDA,
+            "axes.labelcolor":   TXT_DIM,
+            "xtick.color":       TXT_DIM,
+            "ytick.color":       TXT_DIM,
+            "text.color":        TXT,
+            "legend.facecolor":  PANEL,
+            "legend.edgecolor":  BORDA,
+            "grid.color":        COLOR_GRID,
+            "savefig.facecolor": BG,
         }
     )
 
 
 def _salvar_fig(fig: plt.Figure, path_png: Path) -> None:
     path_png.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(path_png, dpi=FIG_DPI, bbox_inches="tight")
+    fig.savefig(path_png, dpi=FIG_DPI, bbox_inches="tight", facecolor=BG)
 
 
 def _grid_leve(ax: plt.Axes) -> None:
-    ax.grid(True, linestyle="--", linewidth=0.6, alpha=GRID_ALPHA)
+    ax.grid(True, linestyle="--", linewidth=0.6, alpha=GRID_ALPHA, color=COLOR_GRID)
     ax.set_axisbelow(True)
 
 

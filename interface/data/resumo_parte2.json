@@ -652,27 +652,27 @@
     {
       "titulo": "Benchmark de tempos",
       "arquivo": "assets/parte2_benchmark_tempos.png",
-      "tipo": "comparacao_algoritmos"
+      "tipo": "Comparação de desempenho entre algoritmos de caminho"
     },
     {
       "titulo": "Distribuicao de graus",
       "arquivo": "assets/parte2_distribuicao_graus.png",
-      "tipo": "estrutura_grafo"
+      "tipo": "Distribuição de conectividade dos nós do grafo"
     },
     {
       "titulo": "Componentes conexas",
       "arquivo": "assets/parte2_componentes_conexas.png",
-      "tipo": "estrutura_grafo"
+      "tipo": "Análise de agrupamentos e ilhas no grafo"
     },
     {
       "titulo": "Similaridade vs peso",
       "arquivo": "assets/parte2_similaridade_vs_peso.png",
-      "tipo": "pesos"
+      "tipo": "Correlação entre similaridade e peso das arestas"
     },
     {
       "titulo": "Atores em comum vs similaridade",
       "arquivo": "assets/parte2_atores_vs_similaridade.png",
-      "tipo": "dataset"
+      "tipo": "Relação entre co-participações e força da conexão"
     }
   ]
 }
