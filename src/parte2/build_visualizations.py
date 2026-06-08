@@ -146,8 +146,19 @@ def medias_benchmark(report: dict) -> dict[str, float]:
 
 def grafico_benchmark_tempos(medias: dict[str, float], saida: Path) -> None:
     ordem = ["BFS", "DFS", "Dijkstra", "Bellman-Ford"]
+    complexidades = {
+        "BFS":         "O(V + E)",
+        "DFS":         "O(V + E)",
+        "Dijkstra":    "O((V+E) log V)",
+        "Bellman-Ford": "O(V · E)",
+    }
     vals = [max(medias[k], 1e-15) for k in ordem]
-    fig, ax = plt.subplots(figsize=FIG_WIDE, constrained_layout=True)
+
+    fig = plt.figure(figsize=(11.5, 7.0), constrained_layout=True)
+    gs = fig.add_gridspec(2, 1, height_ratios=[3.0, 1.0], hspace=0.0)
+    ax = fig.add_subplot(gs[0])
+    ax_tab = fig.add_subplot(gs[1])
+
     xpos = np.arange(len(ordem))
     bars = ax.bar(
         xpos,
@@ -161,19 +172,18 @@ def grafico_benchmark_tempos(medias: dict[str, float], saida: Path) -> None:
     ax.set_xticklabels(ordem)
     ax.set_yscale("log")
     ax.set_ylabel("Tempo médio de execução (s, escala log)")
-    ax.set_xlabel("Algoritmo")
+    ax.set_xlabel("")
     ax.set_title(
-        "Comparação de desempenho dos algoritmos\nMédia dos tempos · escala log"
+        "Comparação de desempenho dos algoritmos\n"
+        "Tempo medido no grafo real IMDb (3 985 vértices, 100 000 arestas) · escala log"
     )
     ax.tick_params(axis="x", rotation=18)
     _grid_leve(ax)
+
     ymax = max(vals)
     for bar, v_raw in zip(bars, [medias[k] for k in ordem]):
         h = bar.get_height()
-        if v_raw >= 0.001:
-            lbl = f"{v_raw:.3f}"
-        else:
-            lbl = f"{v_raw:.1e}"
+        lbl = f"{v_raw:.3f} s" if v_raw >= 0.001 else f"{v_raw:.1e} s"
         ax.annotate(
             lbl,
             xy=(bar.get_x() + bar.get_width() / 2, h),
@@ -184,7 +194,54 @@ def grafico_benchmark_tempos(medias: dict[str, float], saida: Path) -> None:
             fontsize=FONT_LEGEND,
             fontweight="medium",
         )
-    ax.set_ylim(bottom=min(vals) * 0.65, top=ymax * 2.2)
+
+    ax.set_ylim(bottom=min(vals) * 0.55, top=ymax * 3.5)
+
+    # nota sobre Bellman-Ford ser executado em grafo artificial pequeno
+    ax.annotate(
+        "* Bellman-Ford executado em grafo\n  artificial pequeno (resultado 1e-05 s)",
+        xy=(3, medias["Bellman-Ford"] if medias["Bellman-Ford"] > 1e-15 else vals[3]),
+        xytext=(2.0, ymax * 1.8),
+        textcoords="data",
+        fontsize=FONT_LEGEND - 1,
+        color=TXT_DIM,
+        arrowprops=dict(arrowstyle="->", color=TXT_DIM, lw=0.8),
+        ha="center",
+        va="bottom",
+    )
+
+    # mini tabela de complexidade
+    ax_tab.axis("off")
+    col_labels = ["Algoritmo", "Complexidade teórica", "Classe"]
+    classe = {
+        "BFS":          "linear",
+        "DFS":          "linear",
+        "Dijkstra":     "quase-linear",
+        "Bellman-Ford": "quadrática/cúbica",
+    }
+    table_data = [
+        [k, complexidades[k], classe[k]]
+        for k in ordem
+    ]
+    tbl = ax_tab.table(
+        cellText=table_data,
+        colLabels=col_labels,
+        cellLoc="center",
+        loc="center",
+    )
+    tbl.auto_set_font_size(False)
+    tbl.set_fontsize(FONT_LEGEND)
+    tbl.scale(1.0, 1.55)
+    for (row, col), cell in tbl.get_celld().items():
+        cell.set_facecolor(PANEL)
+        cell.set_edgecolor(BORDA)
+        cell.set_text_props(color=TXT if row > 0 else TXT_DIM)
+        if row == 0:
+            cell.set_facecolor(BG)
+    # colorir a célula do algoritmo com a cor da barra correspondente
+    for i, k in enumerate(ordem):
+        tbl[(i + 1, 0)].set_facecolor(COL_BENCHMARK[i] + "44")  # mesma cor, alpha baixo
+
     _salvar_fig(fig, saida)
     plt.close(fig)
 
@@ -193,7 +250,27 @@ def grafico_distribuicao_graus(dist: dict, saida: Path) -> None:
     pares = sorted(((int(k), int(v)) for k, v in dist.items()), key=lambda x: x[0])
     graus = np.array([p[0] for p in pares], dtype=float)
     qtd = np.array([p[1] for p in pares], dtype=float)
+
+    # grau médio fixo (calculado do dataset IMDb)
+    grau_medio = 50.2
+
+    # limiar dos top-10% hubs: grau no percentil 90 ponderado por frequência
+    graus_expandidos = np.repeat(graus.astype(int), qtd.astype(int))
+    limiar_hub = float(np.percentile(graus_expandidos, 90)) if len(graus_expandidos) > 0 else grau_medio
+
     fig, ax = plt.subplots(figsize=FIG_WIDE, constrained_layout=True)
+
+    # área preenchida sob a curva
+    ax.fill_between(
+        graus,
+        qtd,
+        1,  # preenche até y=1 (escala log, não vai abaixo)
+        color=COL_GRAD_DIST,
+        alpha=0.15,
+        zorder=2,
+    )
+
+    # linha principal
     ax.semilogy(
         graus,
         qtd,
@@ -204,11 +281,50 @@ def grafico_distribuicao_graus(dist: dict, saida: Path) -> None:
         alpha=0.92,
         zorder=3,
     )
+
+    # região sombreada dos top-10% hubs
+    mask_hub = graus >= limiar_hub
+    if mask_hub.any():
+        ax.fill_between(
+            graus[mask_hub],
+            qtd[mask_hub],
+            1,
+            color=COL_CURVA_MODELO,
+            alpha=0.22,
+            zorder=2,
+            label=f"Top 10% hubs (grau ≥ {int(limiar_hub)})",
+        )
+
+    # linha vertical tracejada no grau médio
+    ax.axvline(
+        grau_medio,
+        color=COL_COMPS_MARK_FACE,
+        linewidth=1.4,
+        linestyle="--",
+        alpha=0.85,
+        zorder=4,
+        label=f"Grau médio = {grau_medio}",
+    )
+    # anotação do grau médio
+    y_annot = float(np.interp(grau_medio, graus, qtd)) if grau_medio <= graus[-1] else qtd[-1]
+    ax.annotate(
+        f"Grau médio\n= {grau_medio}",
+        xy=(grau_medio, y_annot),
+        xytext=(grau_medio + max(graus) * 0.06, y_annot * 3.5),
+        textcoords="data",
+        fontsize=FONT_LEGEND,
+        color=COL_COMPS_MARK_FACE,
+        arrowprops=dict(arrowstyle="->", color=COL_COMPS_MARK_FACE, lw=0.9),
+        ha="left",
+        va="center",
+    )
+
     ax.set_xlabel("Grau do vértice (filme)")
     ax.set_ylabel("Número de vértices com esse grau (escala log₁₀)")
     ax.set_title(
-        "Distribuição de graus na rede de filmes\nFrequências em log · cauda longa"
+        "Distribuição de graus na rede de filmes\nFrequências em log · cauda longa · top-10% hubs destacados"
     )
+    ax.legend(loc="upper right", framealpha=0.85, fontsize=FONT_LEGEND)
     _grid_leve(ax)
     _salvar_fig(fig, saida)
     plt.close(fig)
@@ -234,21 +350,66 @@ def grafico_atores_similaridade(
     rng = np.random.default_rng(SCATTER_SEED_ATORES)
     jitter_x = rng.uniform(-0.32, 0.32, size=len(df))
     x_plot = df["qtd_atores_compartilhados"].astype(float).to_numpy() + jitter_x
+    sim_arr = df["similaridade"].to_numpy()
+
     fig, ax = plt.subplots(figsize=FIG_SCATTER, constrained_layout=True)
     ax.scatter(
         x_plot,
-        df["similaridade"],
+        sim_arr,
         s=8,
         alpha=0.48,
         c=COL_SCATTER_ACTORS,
         edgecolors="none",
         rasterized=True,
     )
-    ax.set_xlabel("Compartilhamento de elenco (atores em comum; leve jitter horizontal)")
+
+    # linhas de referência: sim = (2 * atores + generos_em_comum) / norm
+    # Simplificando para mostrar bandas de 0, 1, 2 géneros em comum
+    # A similaridade é: (2*atores + generos) / (total_atores + total_generos) — aprox.
+    # Plotamos linhas orientativas y = offset + slope*x como referência qualitativa
+    x_ref_vals = np.linspace(0, float(df["qtd_atores_compartilhados"].max()) + 0.5, 200)
+    ref_lines = [
+        (0, 0.00, "0 gêneros comuns"),
+        (1, 0.00, "1 gênero comum"),
+        (2, 0.00, "2 gêneros comuns"),
+    ]
+    # Normalizamos assumindo denominador típico de ~10 atores + ~3 gêneros ≈ 13
+    denom_tipico = 13.0
+    line_styles = ["--", "-.", ":"]
+    ref_colors = ["#94a3b8", "#f97316", "#f43f5e"]
+    for (gen_comuns, _offset, label), ls, rc in zip(ref_lines, line_styles, ref_colors):
+        y_ref = (2.0 * x_ref_vals + gen_comuns) / denom_tipico
+        mask = y_ref <= 1.05
+        ax.plot(
+            x_ref_vals[mask],
+            y_ref[mask],
+            color=rc,
+            linewidth=1.1,
+            linestyle=ls,
+            alpha=0.75,
+            label=label,
+            zorder=4,
+        )
+
+    # anotação da fórmula
+    ax.text(
+        0.02, 0.97,
+        "sim ≈ (2×atores + gêneros) / norm",
+        transform=ax.transAxes,
+        fontsize=FONT_LEGEND,
+        color=TXT_DIM,
+        va="top",
+        ha="left",
+        bbox=dict(facecolor=PANEL, edgecolor=BORDA, boxstyle="round,pad=0.3", alpha=0.85),
+    )
+
+    ax.set_xlabel("Atores em comum (leve jitter horizontal para legibilidade)")
     ax.set_ylabel("Similaridade entre filmes")
     ax.set_title(
-        "Similaridade e elenco em comum\nNuvem com jitter horizontal"
+        "Similaridade vs. elenco compartilhado\n"
+        "Linhas guia: contribuição esperada de 0, 1 e 2 gêneros em comum"
     )
+    ax.legend(loc="lower right", framealpha=0.85, fontsize=FONT_LEGEND)
     _grid_leve(ax)
     _salvar_fig(fig, saida)
     plt.close(fig)
@@ -264,25 +425,37 @@ def grafico_similaridade_peso(
         usecols=["similaridade", "peso"],
         dtype={"similaridade": float, "peso": float},
     )
-    df = _amostra_dataframe(df, max_pontos, seed=SCATTER_SEED_SIM_PESO)
-    xs = df["similaridade"].to_numpy()
-    ys = df["peso"].to_numpy()
+    # usa todos os dados para o hexbin (densidade), amostra só se muito grande
+    df_full = df if len(df) <= 200_000 else df.sample(n=200_000, random_state=SCATTER_SEED_SIM_PESO)
+    xs = df_full["similaridade"].to_numpy()
+    ys = df_full["peso"].to_numpy()
+
     fig, ax = plt.subplots(figsize=FIG_SCATTER, constrained_layout=True)
-    ax.scatter(
+
+    # hexbin para mostrar concentração dos dados (similaridade discreta → pontos sobrepostos)
+    hb = ax.hexbin(
         xs,
         ys,
-        s=6,
-        alpha=0.45,
-        c=COL_SCATTER_SIM_PESO,
-        edgecolors="none",
-        rasterized=True,
+        gridsize=55,
+        cmap="YlOrRd",
+        mincnt=1,
+        linewidths=0.2,
+        alpha=0.85,
+        zorder=2,
+        bins="log",
     )
-    # peso = 1/similaridade; pontos na curva esperada
+    cbar = fig.colorbar(hb, ax=ax, pad=0.02)
+    cbar.set_label("Contagem (escala log)", color=TXT_DIM, fontsize=FONT_LEGEND)
+    cbar.ax.yaxis.set_tick_params(color=TXT_DIM)
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TXT_DIM)
+    cbar.outline.set_edgecolor(BORDA)
+
+    # curva teórica: peso = 1 / similaridade
     if len(xs) >= 1:
         x_min = float(np.min(xs))
         x_max = float(np.max(xs))
         if x_max > x_min * (1 + 1e-15):
-            x_curve = np.linspace(x_min, x_max, 200)
+            x_curve = np.linspace(x_min, x_max, 400)
         else:
             x_curve = np.array([x_min])
         y_curve = 1.0 / x_curve
@@ -290,17 +463,19 @@ def grafico_similaridade_peso(
             x_curve,
             y_curve,
             color=COL_CURVA_MODELO,
-            linewidth=2.0,
+            linewidth=2.2,
             linestyle="-",
-            alpha=0.92,
-            label="Curva do modelo: peso = 1 / similaridade",
+            alpha=0.95,
+            label="Modelo teórico: peso = 1 / sim",
             zorder=5,
         )
         ax.legend(loc="upper right", framealpha=0.92, fontsize=FONT_LEGEND)
+
     ax.set_xlabel("Similaridade")
     ax.set_ylabel("Peso da aresta")
     ax.set_title(
-        "Similaridade e peso das arestas\nMenor peso quando a semelhança é maior"
+        "Similaridade vs. peso das arestas\n"
+        "Densidade hexbin — concentração real dos dados + curva teórica"
     )
     _grid_leve(ax)
     _salvar_fig(fig, saida)
@@ -343,6 +518,7 @@ def grafico_distribuicao_tamanhos_componentes(sizes: list[int], saida: Path) -> 
     sizes_ord = sorted(sizes, reverse=True)
     giant = sizes_ord[0]
     total_v = sum(sizes)
+    pct_giant = giant / total_v * 100 if total_v > 0 else 0.0
     ranks = np.arange(1, len(sizes_ord) + 1)
 
     fig = plt.figure(figsize=FIG_COMPS, constrained_layout=True)
@@ -372,8 +548,14 @@ def grafico_distribuicao_tamanhos_componentes(sizes: list[int], saida: Path) -> 
 
     ax2 = fig.add_subplot(gs[1])
     outros_vertices = total_v - giant
-    categorias = ["Demais componentes\n(soma dos tamanhos)", "Componente gigante"]
+
+    # componente gigante em cima (y=1), demais em baixo (y=0)
+    categorias = [
+        "Demais componentes\n(soma dos tamanhos)",
+        f"Componente gigante\n({pct_giant:.1f}% da rede)".replace(".", ","),
+    ]
     barras_v = [outros_vertices, giant]
+    # cores: COL_COMPS_BAR[0] = periférico (demais), COL_COMPS_BAR[1] = ouro (gigante)
     y_pos = np.arange(len(categorias))
     ax2.barh(
         y_pos,

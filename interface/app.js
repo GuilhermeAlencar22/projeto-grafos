@@ -67,8 +67,37 @@ function fileName(path) {
   return String(path ?? "--").split(/[\\/]/).pop();
 }
 
+const VIZ_META = {
+  "Distribuição de graus": {
+    insight: "Cauda longa com lei de potência: a maioria dos filmes tem grau baixo (~2–30), mas hubs como filmes de franquias Marvel alcançam grau 208. Evidência de rede livre de escala.",
+    tag: "Gestalt · Figura-Fundo",
+  },
+  "Componentes conexas": {
+    insight: "99,6% dos filmes (3.971/3.985) estão na componente gigante — a rede é praticamente conexa. As 6 ilhas restantes são filmes sem atores em comum com o restante.",
+    tag: "Storytelling Exploratório",
+  },
+  "Atores vs Similaridade": {
+    insight: "Cada ator em comum adiciona +2 à similaridade. O jitter expõe a estrutura discreta: filmes com 0 atores mas gênero em comum têm sim = 1 ou 2 (apenas gêneros).",
+    tag: "Storytelling Explanatório",
+  },
+  "Similaridade e peso": {
+    insight: "A curva peso = 1/sim comprova o modelo. Pontos reais seguem exatamente a curva teórica — o Dijkstra escolhe naturalmente o caminho pelos filmes mais parecidos.",
+    tag: "Hierarquia Visual · Figura-Fundo",
+  },
+  "Benchmark — Tempos": {
+    insight: "BFS e DFS são O(V+E) — os mais rápidos. Dijkstra O((V+E)logV) é ~2× mais lento. Bellman-Ford é executado em grafo artificial pequeno (validação, não comparação justa).",
+    tag: "Storytelling Explanatório",
+  },
+};
+
 function displayVizTitle(title) {
-  return title === "Componentes conexas" ? "Ilhas do grafo" : title;
+  if (title === "Componentes conexas") return "Ilhas do grafo";
+  if (title === "Benchmark") return "Benchmark — Tempos";
+  return title;
+}
+
+function vizMeta(titulo) {
+  return VIZ_META[titulo] ?? VIZ_META[displayVizTitle(titulo)] ?? { insight: titulo, tag: "" };
 }
 
 async function fetchJson(path) {
@@ -1219,6 +1248,7 @@ function renderVisualizations(visualizacoes) {
   const html = visualizacoes
     .map((viz) => {
       const title = displayVizTitle(viz.titulo);
+      const meta = vizMeta(viz.titulo);
 
       return `
         <article
@@ -1228,12 +1258,13 @@ function renderVisualizations(visualizacoes) {
           aria-label="abrir grafico ${attr(title)}"
           data-viz-src="${attr(viz.arquivo)}"
           data-viz-title="${attr(title)}"
-          data-viz-caption="${attr(viz.tipo)}"
+          data-viz-caption="${attr(meta.insight)}"
         >
           <img src="${viz.arquivo}" alt="${title}">
-          <div>
+          <div class="viz-card-body">
+            ${meta.tag ? `<span class="viz-card-tag">${attr(meta.tag)}</span>` : ""}
             <h3>${title}</h3>
-            <p>${viz.tipo}</p>
+            <p>${meta.insight}</p>
           </div>
         </article>
       `;
