@@ -1,38 +1,30 @@
-# ── Ambientes virtuais ────────────────────────────────────────────────────────
 venv/
 .venv/
 env/
 .env/
 
-# ── Python cache ──────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 .Python
 
-# ── Testes e cobertura ────────────────────────────────────────────────────────
 .pytest_cache/
 .pytest_tmp/
 pytest_tmp*/
 .coverage
 htmlcov/
 
-# ── Saídas geradas pelo pipeline (recriadas com python -m src.solve) ──────────
-# Manter apenas o .gitkeep para garantir que a pasta out/ exista no clone
 out/*
 !out/.gitkeep
 
-# ── Dados brutos pesados (baixados externamente) ──────────────────────────────
 data/dataset_parte2/imdb/*.tsv.gz
 data/dataset_parte2/movielens/
 
-# ── JSONs gerados para a interface (recriados com build_interface_data/grafo) ──
 interface/data/parte2_grafo.json
 interface/data/parte2_amostra.json
 interface/data/resumo_parte2.json
 
-# ── IDEs e editores ───────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
@@ -40,7 +32,6 @@ interface/data/resumo_parte2.json
 .DS_Store
 Thumbs.db
 
-# ── Distribuição e build ──────────────────────────────────────────────────────
 dist/
 build/
 *.egg-info/

@@ -810,8 +810,8 @@ function makeFranquiasGraph() {
                "Star Wars: Episode VII - The Force Awakens",
                "Star Wars: The Last Jedi"] },
     { nome: "Harry Potter", cor: { bg: "#8b5cf6", border: "#6d28d9" },
-      seeds: ["Harry Potter and the Sorcerer's Stone",
-               "Harry Potter and the Chamber of Secrets",
+      seeds: ["Harry Potter and the Chamber of Secrets",
+               "Harry Potter and the Goblet of Fire",
                "Harry Potter and the Deathly Hallows: Part 1",
                "Harry Potter and the Deathly Hallows: Part 2"] },
     { nome: "Hobbit / LOTR", cor: { bg: "#10b981", border: "#059669" },
@@ -839,7 +839,7 @@ function makeFranquiasGraph() {
 
   const edgeMap = {};
   Object.values(state.amostra?.edges ?? {}).forEach((e) => {
-    if ((e.similaridade ?? 0) >= 8) edgeMap[e.id] = e;
+    if ((e.similaridade ?? 0) >= 3) edgeMap[e.id] = e;
   });
 
   const adj = new Map();
@@ -1271,7 +1271,8 @@ function renderVisualizations(visualizacoes) {
     })
     .join("");
 
-  document.getElementById("viz-grid").innerHTML = html;
+  const grid = document.getElementById("viz-grid");
+  if (grid) grid.innerHTML = html;
 }
 
 function renderDetailsForNode(id) {
@@ -1297,31 +1298,28 @@ function renderDetailsForNode(id) {
 
   const movie = movieInfo(id);
   const details = document.getElementById("details-panel");
-  const meta = [movie.ano, movie.generos, movie.nota ? `nota ${movie.nota}` : ""]
-    .filter(Boolean)
-    .join(" | ");
+  const degree = globalDegree().get(id) ?? 0;
+  const genreList = movieGenres(id);
+  const genreTags = genreList
+    .map((g) => `<span class="detail-genre-tag">${attr(g)}</span>`)
+    .join("");
+
+  let networkRole = "filme conectado";
+  if (degree >= 100) networkRole = "hub principal da rede";
+  else if (degree >= 50) networkRole = "hub secundário";
+  else if (degree >= 20) networkRole = "bem conectado";
+  else if (degree <= 3) networkRole = "filme de nicho";
 
   details.innerHTML = `
-    <p class="eyebrow">selecao</p>
+    <p class="eyebrow">filme selecionado</p>
     <h3>${attr(movie.titulo || id)}</h3>
-    <p>${attr(id)}${meta ? ` | ${attr(meta)}` : ""}</p>
+    ${genreTags ? `<div class="detail-genre-row">${genreTags}</div>` : ""}
     <dl class="detail-list">
-      <div>
-        <dt>filme</dt>
-        <dd>${attr(movie.titulo || id)}</dd>
-      </div>
-      <div>
-        <dt>generos</dt>
-        <dd>${attr(movie.generos || "nao informado")}</dd>
-      </div>
-      <div>
-        <dt>ano</dt>
-        <dd>${attr(movie.ano || "--")}</dd>
-      </div>
-      <div>
-        <dt>nota imdb</dt>
-        <dd>${attr(movie.nota || "--")}</dd>
-      </div>
+      ${movie.ano ? `<div><dt>ano</dt><dd>${attr(movie.ano)}</dd></div>` : ""}
+      ${movie.nota ? `<div><dt>nota IMDb</dt><dd><strong>${attr(movie.nota)}</strong> / 10</dd></div>` : ""}
+      ${movie.diretores ? `<div><dt>diretor</dt><dd>${attr(movie.diretores)}</dd></div>` : ""}
+      <div><dt>conexões na rede</dt><dd><strong>${fmt.format(degree)}</strong> filmes</dd></div>
+      <div><dt>papel na rede</dt><dd>${attr(networkRole)}</dd></div>
     </dl>
   `;
 }
@@ -1455,104 +1453,242 @@ function renderRouteDetails(result, origem, destino) {
   `;
 }
 
+function legendaDot(color, label) {
+  return `<span class="legend-item"><span class="legend-dot" style="background:${color}"></span>${attr(label)}</span>`;
+}
+
+
 function renderModeDetails(mode) {
   const panel = document.getElementById("details-panel");
-  const configs = {
-    franquias: {
-      eyebrow: "modo: franquias",
-      titulo: "grupos por elenco compartilhado",
-      descricao: "cada cor representa uma franquia. dois filmes se conectam quando compartilham atores — quanto mais atores em comum, mais grossa a aresta.",
-      itens: [
-        ["nó maior", "filme com mais conexões no dataset (grau alto)"],
-        ["aresta grossa", "alta similaridade: muitos atores em comum"],
-        ["aresta fina", "baixa similaridade: poucos atores ou só gênero"],
-        ["cor do nó", "identifica a franquia (Marvel, Star Wars, etc.)"],
-        ["passe o mouse", "veja título, ano, gênero e nota IMDb"],
-      ],
-    },
-    similaridade: {
-      eyebrow: "modo: maior similaridade",
-      titulo: "filmes mais parecidos entre si",
-      descricao: "mostra uma amostra conectada das arestas com maior similaridade. a similaridade é calculada como (2 × atores em comum) + gêneros em comum.",
-      itens: [
-        ["nó maior", "filme com mais conexões no dataset (hub)"],
-        ["cor do nó", "gênero principal do filme"],
-        ["aresta grossa", "muitos atores e/ou gêneros em comum"],
-        ["aresta fina", "conexão mais fraca (só gênero, por exemplo)"],
-        ["passe o mouse", "veja atores compartilhados e similaridade exata"],
-      ],
-    },
-    top: {
-      eyebrow: "modo: top conexões",
-      titulo: "filmes mais conectados (hubs)",
-      descricao: "exibe os filmes que mais compartilham atores com outros. hubs são vértices de alto grau — filmes com elencos grandes que aparecem em muitas outras produções.",
-      itens: [
-        ["nó maior", "hub: filme com centenas de conexões no dataset"],
-        ["cor do nó", "gênero principal do filme"],
-        ["aresta", "cada linha = elenco compartilhado com outro hub"],
-        ["passe o mouse", "veja quais atores conectam os dois filmes"],
-      ],
-    },
-  };
-  const c = configs[mode];
-  if (!c) { resetDetails(); return; }
 
-  panel.innerHTML = `
-    <p class="eyebrow">${attr(c.eyebrow)}</p>
-    <h3>${attr(c.titulo)}</h3>
-    <p>${attr(c.descricao)}</p>
-    <dl class="detail-list">
-      ${c.itens.map(([dt, dd]) => `<div><dt>${attr(dt)}</dt><dd>${attr(dd)}</dd></div>`).join("")}
-    </dl>
-  `;
+  if (mode === "franquias") {
+    panel.innerHTML = `
+      <p class="eyebrow">modo ativo</p>
+      <h3>Franquias Cinematográficas</h3>
+      <p>Filmes da mesma franquia compartilham atores — a rede revela comunidades de elenco.</p>
+      <div class="mode-legend">
+        ${legendaDot("#ef4444", "Marvel / Avengers")}
+        ${legendaDot("#f5c518", "Star Wars")}
+        ${legendaDot("#8b5cf6", "Harry Potter / Hobbit")}
+        ${legendaDot("#10b981", "Hobbit / LOTR")}
+        ${legendaDot("#3b82f6", "X-Men")}
+        ${legendaDot("#06b6d4", "Jurassic Park")}
+        ${legendaDot("#f97316", "Fast & Furious")}
+        ${legendaDot("#a855f7", "Star Trek")}
+      </div>
+      <dl class="detail-list">
+        <div><dt>nó grande</dt><dd>hub da franquia — ator/filme com muitas conexões</dd></div>
+        <div><dt>aresta grossa</dt><dd>alta similaridade: muitos atores em comum</dd></div>
+        <div><dt>interação</dt><dd>clique em qualquer filme para ver grau, gênero e nota IMDb</dd></div>
+      </dl>
+    `;
+    return;
+  }
+
+  if (mode === "similaridade") {
+    panel.innerHTML = `
+      <p class="eyebrow">modo ativo</p>
+      <h3>Hubs da Rede</h3>
+      <p>Arestas com maior similaridade. Sim = 2× atores + gêneros em comum. Conexões mais fortes primeiro.</p>
+      <div class="mode-legend">
+        ${legendaDot("#ef4444", "Ação")}
+        ${legendaDot("#f59e0b", "Comédia")}
+        ${legendaDot("#3b82f6", "Drama")}
+        ${legendaDot("#8b5cf6", "Ficção Científica")}
+        ${legendaDot("#10b981", "Animação")}
+        ${legendaDot("#ec4899", "Romance")}
+      </div>
+      <dl class="detail-list">
+        <div><dt>cor do nó</dt><dd>gênero principal do filme</dd></div>
+        <div><dt>tamanho do nó</dt><dd>grau na rede completa (mais conexões = maior)</dd></div>
+        <div><dt>aresta grossa</dt><dd>sim > 8: muitos atores em comum</dd></div>
+      </dl>
+    `;
+    return;
+  }
+
+  if (mode === "bfs") {
+    const fonte = defaultGraphSource();
+    const fonteTitle = movieInfo(fonte).titulo || fonte;
+    panel.innerHTML = `
+      <p class="eyebrow">algoritmo: busca em largura</p>
+      <h3>BFS — Expansão por Camadas</h3>
+      <p>A partir de <strong>${attr(fonteTitle)}</strong>, o BFS visita todos os vizinhos diretos antes de avançar para o próximo nível.</p>
+      <div class="algo-visual">
+        <div class="algo-tree">
+          <div class="algo-node algo-node-origem">● ${attr(fonteTitle.split(":")[0])}</div>
+          <div class="algo-branch">
+            <div class="algo-node algo-node-l1">● camada 1 — vizinhos diretos</div>
+            <div class="algo-branch">
+              <div class="algo-node algo-node-l2">● camada 2 — filmes de filmes</div>
+              <div class="algo-branch">
+                <div class="algo-node algo-node-l3">● camada 3 — e assim por diante</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <dl class="detail-list">
+        <div><dt>insight</dt><dd>BFS atinge filmes FAMOSOS primeiro — vizinhos do hub têm alto grau</dd></div>
+        <div><dt>complexidade</dt><dd>O(V + E) — linear no tamanho do grafo</dd></div>
+        <div><dt>estrutura</dt><dd>usa fila (FIFO) — garante menor número de saltos</dd></div>
+        <div><dt>resultado</dt><dd>3.899 filmes em 7 camadas a partir de qualquer hub</dd></div>
+      </dl>
+    `;
+    return;
+  }
+
+  if (mode === "dfs") {
+    const fonte = defaultGraphSource();
+    const fonteTitle = movieInfo(fonte).titulo || fonte;
+    panel.innerHTML = `
+      <p class="eyebrow">algoritmo: busca em profundidade</p>
+      <h3>DFS — Mergulho Profundo</h3>
+      <p>A partir de <strong>${attr(fonteTitle)}</strong>, o DFS mergulha em um único caminho até o fim antes de retroceder.</p>
+      <div class="algo-visual">
+        <div class="algo-tree">
+          <div class="algo-node algo-node-origem">● ${attr(fonteTitle.split(":")[0])}</div>
+          <div class="algo-branch">
+            <div class="algo-node algo-node-l1">↓ vizinho 1</div>
+            <div class="algo-branch">
+              <div class="algo-node algo-node-l2">↓ vizinho do vizinho 1</div>
+              <div class="algo-branch">
+                <div class="algo-node algo-node-l3">↓ chega em filmes de nicho</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <dl class="detail-list">
+        <div><dt>insight</dt><dd>DFS chega em filmes OBSCUROS — mergulha fundo em filmes de baixo grau</dd></div>
+        <div><dt>complexidade</dt><dd>O(V + E) — mesmo custo do BFS</dd></div>
+        <div><dt>estrutura</dt><dd>usa pilha (LIFO) — detecta ciclos no percurso</dd></div>
+        <div><dt>diferença visual</dt><dd>nós azuis claros; caminho em linha profunda vs radial do BFS</dd></div>
+      </dl>
+    `;
+    return;
+  }
+
+  if (mode === "dijkstra") {
+    panel.innerHTML = `
+      <p class="eyebrow">algoritmo: menor caminho ponderado</p>
+      <h3>Dijkstra — Caminho Mais Similar</h3>
+      <p>Encontra a rota de menor custo entre dois filmes. Peso = 1 / similaridade: filmes muito parecidos custam menos para conectar.</p>
+      <div class="algo-visual">
+        <div class="algo-path">
+          <span class="algo-path-node algo-path-origem">origem</span>
+          <span class="algo-path-arrow">→</span>
+          <span class="algo-path-node algo-path-mid">intermediário</span>
+          <span class="algo-path-arrow">→</span>
+          <span class="algo-path-node algo-path-mid">intermediário</span>
+          <span class="algo-path-arrow">→</span>
+          <span class="algo-path-node algo-path-destino">destino</span>
+        </div>
+        <p class="algo-path-caption">o caminho escolhido maximiza a similaridade total</p>
+      </div>
+      <dl class="detail-list">
+        <div><dt>peso da aresta</dt><dd>1 / similaridade — conexão forte = custo baixo</dd></div>
+        <div><dt>complexidade</dt><dd>O((V + E) log V) com heap mínimo</dd></div>
+        <div><dt>garantia</dt><dd>pesos sempre ≥ 0 no grafo IMDb — Dijkstra é válido</dd></div>
+        <div><dt>use a busca de rota</dt><dd>digite origem e destino acima para visualizar qualquer caminho</dd></div>
+      </dl>
+    `;
+    return;
+  }
+
+  resetDetails();
 }
 
 function renderBellmanDetails() {
   document.getElementById("details-panel").innerHTML = `
-    <p class="eyebrow">bellman-ford</p>
-    <h3>validacao direcionada artificial</h3>
-    <p>estes dois grafos nao sao do imdb. eles validam peso negativo sem ciclo e deteccao de ciclo negativo.</p>
+    <p class="eyebrow">algoritmo: pesos negativos</p>
+    <h3>Bellman-Ford — Validação de Ciclos</h3>
+    <p>O grafo IMDb tem apenas pesos positivos. Para validar o algoritmo, foram criados dois grafos artificiais dirigidos.</p>
+    <div class="algo-visual">
+      <div class="algo-cases">
+        <div class="algo-case algo-case-ok">
+          <span class="algo-case-badge">✓ sem ciclo</span>
+          <span>peso negativo sem loop — distâncias calculadas</span>
+        </div>
+        <div class="algo-case algo-case-bad">
+          <span class="algo-case-badge">⚠ ciclo negativo</span>
+          <span>loop de custo negativo — algoritmo bloqueia</span>
+        </div>
+      </div>
+    </div>
     <dl class="detail-list">
-      <div>
-        <dt>caso sem ciclo negativo</dt>
-        <dd>grafo dirigido com peso negativo controlado; o algoritmo calcula distancias finais.</dd>
-      </div>
-      <div>
-        <dt>caso com ciclo negativo</dt>
-        <dd>grafo dirigido com ciclo de custo negativo; o algoritmo bloqueia o resultado.</dd>
-      </div>
-      <div>
-        <dt>por que artificial?</dt>
-        <dd>o grafo imdb principal usa pesos positivos para dijkstra. bellman-ford precisa demonstrar o caso de pesos negativos separadamente.</dd>
-      </div>
+      <div><dt>caso 1</dt><dd>grafo com peso negativo mas sem ciclo → calcula distâncias corretamente</dd></div>
+      <div><dt>caso 2</dt><dd>grafo com ciclo negativo → detectado e resultado bloqueado</dd></div>
+      <div><dt>complexidade</dt><dd>O(V × E) — mais lento que Dijkstra, mas suporta negativos</dd></div>
+      <div><dt>no grafo IMDb</dt><dd>Dijkstra é preferido pois pesos = 1/sim são sempre positivos</dd></div>
     </dl>
   `;
 }
 
 function resetDetails() {
+  const topHubs = [
+    { id: "The Royal Tenenbaums", grau: 142 },
+    { id: "Jurassic Park", grau: 121 },
+    { id: "Pulp Fiction", grau: 118 },
+    { id: "Avengers: Age of Ultron", grau: 97 },
+    { id: "The Matrix", grau: 89 },
+  ];
+
+  const hubRows = topHubs
+    .filter(({ id }) => state.amostra?.movies?.[id])
+    .map(({ id, grau }) => `
+      <div class="hub-row">
+        <button type="button" class="detail-hint-btn" data-movie-id="${attr(id)}">${attr(id)}</button>
+        <span class="hub-grau">${grau} conexões</span>
+      </div>`)
+    .join("");
+
+  const comunidades = [
+    { cor: "#ef4444", nome: "Ação" },
+    { cor: "#3b82f6", nome: "Drama" },
+    { cor: "#f59e0b", nome: "Comédia" },
+    { cor: "#8b5cf6", nome: "Sci-Fi" },
+    { cor: "#10b981", nome: "Animação" },
+    { cor: "#dc2626", nome: "Terror" },
+  ];
+  const comunidadeDots = comunidades
+    .map(({ cor, nome }) => `<span class="comm-dot-item"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${cor};margin-right:5px;vertical-align:middle"></span>${nome}</span>`)
+    .join("");
+
   document.getElementById("details-panel").innerHTML = `
-    <p class="eyebrow">selecao</p>
-    <h3>nenhum item selecionado</h3>
-    <p>ao clicar em um filme ou aresta, os dados aparecem aqui.</p>
-    <dl class="detail-list">
-      <div>
-        <dt>filme</dt>
-        <dd>--</dd>
-      </div>
-      <div>
-        <dt>conexao</dt>
-        <dd>--</dd>
-      </div>
-      <div>
-        <dt>similaridade</dt>
-        <dd>--</dd>
-      </div>
-      <div>
-        <dt>peso</dt>
-        <dd>--</dd>
-      </div>
+    <p class="eyebrow">rede cinematográfica IMDb</p>
+    <h3>Explore a Rede</h3>
+    <p>3.899 filmes conectados por elenco compartilhado. Clique em qualquer nó para explorar.</p>
+
+    <div class="detail-stat-row">
+      <div class="detail-stat"><strong>3.899</strong><span>filmes</span></div>
+      <div class="detail-stat"><strong>63.484</strong><span>conexões</span></div>
+      <div class="detail-stat"><strong>32,6</strong><span>grau médio</span></div>
+    </div>
+
+    ${hubRows ? `<div class="detail-section-title">top hubs da rede</div><div class="hub-list">${hubRows}</div>` : ""}
+
+    <div class="detail-section-title">comunidades por gênero</div>
+    <div class="comm-dots">${comunidadeDots}</div>
+
+    <div class="detail-section-title">como explorar</div>
+    <dl class="detail-list detail-list-muted">
+      <div><dt>Franquias</dt><dd>ver comunidades Marvel, Star Wars, HP…</dd></div>
+      <div><dt>Hubs</dt><dd>filmes mais conectados da rede</dd></div>
+      <div><dt>BFS / DFS</dt><dd>visualizar como os algoritmos percorrem</dd></div>
+      <div><dt>Dijkstra</dt><dd>menor caminho entre dois filmes</dd></div>
     </dl>
   `;
+
+  document.querySelectorAll(".detail-hint-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.movieId;
+      if (!focusGraphNode(id)) {
+        drawGraph(makeNeighborhoodGraph(id));
+        focusGraphNode(id);
+      }
+    });
+  });
 }
 
 function drawGraph(mode = "similaridade") {
@@ -1689,7 +1825,7 @@ async function loadGrafoCompleto() {
   return data;
 }
 
-function showFullGraphModal(modeSelect) {
+function showFullGraphModal(_originBtn) {
   const modal = document.getElementById("full-graph-modal");
   const confirmBtn = document.getElementById("full-graph-confirm");
   const cancelBtn = document.getElementById("full-graph-cancel");
@@ -1701,7 +1837,7 @@ function showFullGraphModal(modeSelect) {
   function close(revert = true) {
     modal.setAttribute("aria-hidden", "true");
     modal.style.display = "";
-    if (revert) modeSelect.value = "similaridade";
+    if (revert) setActiveMode("franquias");
     confirmBtn.removeEventListener("click", onConfirm);
     cancelBtn.removeEventListener("click", onCancel);
     backdrop.removeEventListener("click", onCancel);
@@ -1709,6 +1845,7 @@ function showFullGraphModal(modeSelect) {
 
   async function onConfirm() {
     close(false);
+    setActiveMode("grafo-completo");
     confirmBtn.textContent = "carregando...";
     confirmBtn.disabled = true;
     await loadGrafoCompleto();
@@ -1726,34 +1863,75 @@ function showFullGraphModal(modeSelect) {
   backdrop.addEventListener("click", onCancel);
 }
 
+function setActiveMode(modeValue) {
+  document.querySelectorAll(".gmode-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.mode === modeValue);
+  });
+}
+
 function setupGraphControls() {
-  const mode = document.getElementById("graph-mode");
   const search = document.getElementById("graph-search");
-  const searchButton = document.getElementById("search-btn");
   const resetButton = document.getElementById("reset-graph-btn");
   const routeOrigem = document.getElementById("route-origem");
   const routeDestino = document.getElementById("route-destino");
   const routeAlgorithm = document.getElementById("route-algorithm");
   const routeButton = document.getElementById("route-run-btn");
 
-  mode.addEventListener("change", () => {
-    if (mode.value === "grafo-completo") {
-      showFullGraphModal(mode);
+  // modos que mostram filtros de gênero/grau
+  const MODOS_COM_FILTROS = new Set(["franquias", "similaridade", "top", "bfs", "dfs"]);
+  const filtersBar = document.getElementById("graph-filters");
+
+  function applyFilters() {
+    if (!state.graph.nodes || !state.graph.baseNodes) return;
+    const genero = document.querySelector(".gfilter-btn[data-filter-genero].active")?.dataset.filterGenero ?? "";
+    const grauMin = parseInt(document.querySelector(".gfilter-btn[data-filter-grau].active")?.dataset.filterGrau ?? "0", 10);
+    if (!genero && grauMin === 0) {
+      state.graph.nodes.update(state.graph.baseNodes.map((n) => ({ id: n.id, hidden: false })));
       return;
     }
-    drawGraph(mode.value);
-    refreshGraphView(true);
-    if (mode.value === "bellman-ford") {
-      renderBellmanDetails();
-    } else if (mode.value === "franquias") {
-      renderModeDetails("franquias");
-    } else if (mode.value === "similaridade") {
-      renderModeDetails("similaridade");
-    } else if (mode.value === "top") {
-      renderModeDetails("top");
-    } else {
-      resetDetails();
-    }
+    state.graph.nodes.update(state.graph.baseNodes.map((n) => {
+      const deg = globalDegree().get(n.id) ?? 0;
+      const genres = movieGenres(n.id);
+      const generoOk = !genero || genres.includes(genero);
+      const grauOk = deg >= grauMin;
+      return { id: n.id, hidden: !(generoOk && grauOk) };
+    }));
+  }
+
+  document.querySelectorAll(".gfilter-btn[data-filter-genero]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      for (const b of document.querySelectorAll(".gfilter-btn[data-filter-genero]")) b.classList.remove("active");
+      btn.classList.add("active");
+      applyFilters();
+    });
+  });
+
+  document.querySelectorAll(".gfilter-btn[data-filter-grau]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      for (const b of document.querySelectorAll(".gfilter-btn[data-filter-grau]")) b.classList.remove("active");
+      btn.classList.add("active");
+      applyFilters();
+    });
+  });
+
+  document.querySelectorAll(".gmode-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const modeValue = btn.dataset.mode;
+      if (modeValue === "grafo-completo") {
+        showFullGraphModal(btn);
+        return;
+      }
+      setActiveMode(modeValue);
+      // mostrar/ocultar filtros conforme o modo
+      filtersBar?.classList.toggle("is-hidden", !MODOS_COM_FILTROS.has(modeValue));
+      drawGraph(modeValue);
+      refreshGraphView(true);
+      if (modeValue === "bellman-ford") {
+        renderBellmanDetails();
+      } else {
+        renderModeDetails(modeValue);
+      }
+    });
   });
 
   function runSearch() {
@@ -1768,7 +1946,6 @@ function setupGraphControls() {
     search.classList.toggle("search-miss", !found);
   }
 
-  searchButton.addEventListener("click", runSearch);
   search.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -1787,10 +1964,10 @@ function setupGraphControls() {
     if (!origem || !destino) return;
 
     if (!state.grafoCompleto) {
-      routeButton.textContent = "carregando grafo...";
+      routeButton.textContent = "carregando...";
       routeButton.disabled = true;
       await loadGrafoCompleto();
-      routeButton.textContent = "calcular rota";
+      routeButton.textContent = "→";
       routeButton.disabled = false;
     }
 
@@ -1846,10 +2023,9 @@ function setupGraphControls() {
     resetDetails();
   });
 
-  drawGraph(mode.value);
-  if (["franquias", "similaridade", "top"].includes(mode.value)) {
-    renderModeDetails(mode.value);
-  }
+  // carrega modo padrão ao iniciar
+  drawGraph("franquias");
+  renderModeDetails("franquias");
 }
 
 function setupVizModal() {
@@ -1992,6 +2168,9 @@ async function init() {
   setupGraphFullscreen();
 }
 
-init().catch(() => {
+init().catch((err) => {
   document.body.classList.add("load-error");
+  console.error("[init] falha ao carregar:", err);
+  const ph = document.getElementById("graph-placeholder");
+  if (ph) ph.innerHTML = `<strong style="color:#ff4d4d">Erro ao carregar: ${err?.message ?? err}</strong>`;
 });

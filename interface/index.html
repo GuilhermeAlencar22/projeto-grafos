@@ -1,11 +1,184 @@
 <!doctype html>
-<html lang="pt-br">
+<html lang="pt-BR">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Parte 2 — Rede IMDb | Teoria dos Grafos</title>
     <link rel="stylesheet" href="lib/vis-9.1.2/vis-network.css">
-    <link rel="stylesheet" href="styles.css?v=22">
+    <link rel="stylesheet" href="styles.css?v=24">
+    <style>
+      .p2-section { margin-top: 48px; }
+      .p2-section-title {
+        margin: 0 0 6px;
+        color: var(--primary);
+        font-size: clamp(20px, 2.5vw, 28px);
+        font-weight: 900;
+      }
+      .p2-section-sub {
+        margin: 0 0 24px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+        max-width: 760px;
+      }
+
+      .p2-stats {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .p2-stat {
+        background: var(--panel-flat);
+        border: 1px solid var(--yellow-line);
+        border-radius: 8px;
+        padding: 18px 16px;
+        text-align: center;
+        transition: border-color 160ms;
+      }
+      .p2-stat:hover { border-color: rgba(245,197,24,.44); }
+      .p2-stat strong {
+        display: block;
+        font-size: clamp(22px, 2.5vw, 34px);
+        font-weight: 900;
+        color: var(--primary);
+        line-height: 1;
+      }
+      .p2-stat span {
+        font-size: 11px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-top: 5px;
+        display: block;
+      }
+
+      .p2-narrative {
+        background: var(--panel-flat);
+        border-left: 3px solid var(--primary);
+        border-radius: 0 8px 8px 0;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+      }
+      .p2-narrative-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        color: var(--primary);
+        margin-bottom: 8px;
+      }
+      .p2-narrative p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.65;
+      }
+      .p2-narrative p strong { color: var(--text); }
+      .p2-narrative code {
+        font-family: monospace;
+        font-size: 12px;
+        color: var(--primary);
+        background: rgba(245,197,24,.08);
+        padding: 1px 5px;
+        border-radius: 3px;
+      }
+
+      .p2-gallery { display: grid; grid-template-columns: 1fr; gap: 28px; }
+      .p2-figure {
+        margin: 0;
+        background: var(--panel-flat);
+        border: 1px solid var(--yellow-line);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 160ms ease, border-color 160ms ease;
+      }
+      .p2-figure:hover { transform: translateY(-2px); border-color: rgba(245,197,24,.44); }
+      .p2-figure a { display: block; }
+      .p2-figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 4/2.2;
+        object-fit: contain;
+        background: #fff;
+      }
+      .p2-figure figcaption {
+        padding: 12px 16px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .p2-figure figcaption strong { color: var(--text); }
+
+      .p2-2col {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .p2-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 28px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 0;
+      }
+      .p2-tab-btn {
+        padding: 9px 18px;
+        border: none;
+        border-radius: 6px 6px 0 0;
+        background: transparent;
+        color: var(--muted);
+        font: 700 13px/1 "Segoe UI", sans-serif;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        transition: color 130ms, border-color 130ms;
+      }
+      .p2-tab-btn.active { color: var(--primary); border-color: var(--primary); }
+      .p2-tab-btn:hover:not(.active) { color: var(--text); }
+      .p2-pane { display: none; }
+      .p2-pane.active { display: block; }
+
+      .p2-result-intro {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+      .p2-result-intro-card {
+        background: var(--panel-flat);
+        border: 1px solid var(--yellow-line);
+        border-radius: 8px;
+        padding: 18px 20px;
+      }
+      .p2-result-intro-card .label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        color: var(--primary);
+        margin-bottom: 8px;
+      }
+      .p2-result-intro-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .p2-result-intro-card p strong { color: var(--text); }
+
+      @media (max-width: 900px) {
+        .p2-stats { grid-template-columns: repeat(3, 1fr); }
+        .p2-2col { grid-template-columns: 1fr; }
+        .p2-result-intro { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 600px) {
+        .p2-stats { grid-template-columns: repeat(2, 1fr); }
+      }
+    </style>
   </head>
   <body>
     <header class="topbar">
@@ -30,48 +203,48 @@
       <section class="hero view-panel is-active" id="inicio" data-view-panel="inicio">
         <div class="hero-copy">
           <h2>Filmes são vértices. Atores e gêneros criam arestas ponderadas.</h2>
+
+          <div class="p2-stats" style="margin-top:28px;">
+            <div class="p2-stat"><strong>3.899</strong><span>Vértices</span></div>
+            <div class="p2-stat"><strong>63.484</strong><span>Arestas</span></div>
+            <div class="p2-stat"><strong>32,6</strong><span>Grau Médio</span></div>
+            <div class="p2-stat"><strong>1</strong><span>Componente</span></div>
+            <div class="p2-stat"><strong>142</strong><span>Grau Máximo</span></div>
+          </div>
+
           <div class="hero-info-grid">
             <article class="formula-card">
-              <span>fórmula de peso (parte 2)</span>
+              <span>fórmula de peso</span>
               <strong>similaridade = (2 × atores) + gêneros</strong>
               <p>
-                Cada ator em comum vale <b>2</b> (evidência direta de elenco compartilhado).
-                Cada gênero em comum vale <b>1</b> (relação mais ampla).
-                O peso da aresta é <b>peso = 1 / similaridade</b>:
-                conexões mais fortes ficam com custo menor — o Dijkstra
-                escolhe naturalmente caminhos por filmes mais parecidos.
+                Cada ator em comum vale <b>2</b>; cada gênero em comum vale <b>1</b>.
+                O peso da aresta é <b>peso = 1 / similaridade</b> — conexões mais fortes
+                ficam com custo menor, então o Dijkstra escolhe naturalmente os filmes
+                mais parecidos.
               </p>
             </article>
             <article>
-              <span>dataset IMDb — sem malha aérea</span>
-              <strong>3.985 filmes · 100.000 conexões</strong>
+              <span>dataset IMDb</span>
+              <strong>grafo não-dirigido e ponderado</strong>
               <p>
                 Fonte: <code style="font-size:12px;color:var(--primary)">Imdb_filmes.csv</code>
                 e <code style="font-size:12px;color:var(--primary)">Imdb_arestas.csv</code>.
-                Grafo <b>não-dirigido e ponderado</b>. 7 componentes conexas;
-                a maior tem 3.971 filmes. Grau médio: 50,2.
-                Implementado <b>sem libs de algoritmos prontos</b>
-                (BFS, DFS, Dijkstra, Bellman-Ford em Python puro).
+                1 componente gigante com 3.899 filmes (dataset curado: sim ≥ 3).
+                BFS, DFS, Dijkstra e Bellman-Ford implementados <b>sem libs de algoritmos prontos</b>.
               </p>
             </article>
           </div>
+
           <aside class="cinema-note">
             <span>exemplo concreto</span>
             <strong>Vingadores 1 ↔ Vingadores 2: sim = 22 · peso = 0,045</strong>
             <em>9 atores em comum + mesmo gênero = aresta grossa = caminho barato no Dijkstra.</em>
           </aside>
-          <div class="avd2-stats-bar">
-            <div class="avd2-stat"><strong>3.985</strong><span>Vértices</span></div>
-            <div class="avd2-stat"><strong>100.000</strong><span>Arestas</span></div>
-            <div class="avd2-stat"><strong>50,2</strong><span>Grau Médio</span></div>
-            <div class="avd2-stat"><strong>7</strong><span>Componentes</span></div>
-            <div class="avd2-stat"><strong>208</strong><span>Grau Máximo</span></div>
-          </div>
 
           <div class="hero-actions">
             <button type="button" data-view="grafos">explorar grafo</button>
             <button type="button" data-view="resultados">ver resultados</button>
-            <button type="button" data-view="graficos">gráficos analíticos</button>
+            <button type="button" data-view="graficos">análise visual</button>
           </div>
         </div>
         <div class="hero-side">
@@ -97,90 +270,91 @@
       </section>
 
       <section class="panel-section view-panel" id="grafos" data-view-panel="grafos">
-        <div class="section-heading">
-          <h2>Visualização Interativa</h2>
+
+        <!-- barra de modos — substituiu o select técnico -->
+        <div class="graph-toolbar">
+          <div class="graph-mode-btns" role="group" aria-label="modo de visualização">
+            <button type="button" class="gmode-btn active" data-mode="franquias">
+              <span class="gmode-icon">◈</span>
+              <span class="gmode-label">Franquias</span>
+            </button>
+            <button type="button" class="gmode-btn" data-mode="similaridade">
+              <span class="gmode-icon">◎</span>
+              <span class="gmode-label">Hubs</span>
+            </button>
+            <button type="button" class="gmode-btn" data-mode="bfs">
+              <span class="gmode-icon">↠</span>
+              <span class="gmode-label">BFS</span>
+            </button>
+            <button type="button" class="gmode-btn" data-mode="dfs">
+              <span class="gmode-icon">↡</span>
+              <span class="gmode-label">DFS</span>
+            </button>
+            <button type="button" class="gmode-btn" data-mode="dijkstra">
+              <span class="gmode-icon">⬡</span>
+              <span class="gmode-label">Dijkstra</span>
+            </button>
+            <button type="button" class="gmode-btn" data-mode="bellman-ford">
+              <span class="gmode-icon">⚠</span>
+              <span class="gmode-label">Bellman</span>
+            </button>
+            <button type="button" class="gmode-btn gmode-btn-full" data-mode="grafo-completo">
+              <span class="gmode-icon">⊞</span>
+              <span class="gmode-label">Completo</span>
+            </button>
+          </div>
+
+          <!-- busca e rota unificadas -->
+          <div class="graph-search-bar">
+            <datalist id="movies-list"></datalist>
+            <input id="graph-search" type="search" class="gsearch-input" placeholder="buscar filme..." list="movies-list" autocomplete="off" aria-label="buscar filme no grafo">
+            <span class="gsearch-sep"></span>
+            <input id="route-origem" type="search" class="gsearch-input gsearch-route" placeholder="de..." list="movies-list" autocomplete="off" aria-label="origem da rota">
+            <input id="route-destino" type="search" class="gsearch-input gsearch-route" placeholder="até..." list="movies-list" autocomplete="off" aria-label="destino da rota">
+            <select id="route-algorithm" class="gsearch-algo" aria-label="algoritmo de rota">
+              <option value="dijkstra">Dijkstra</option>
+              <option value="dfs">DFS</option>
+            </select>
+            <button id="route-run-btn" type="button" class="gsearch-go" aria-label="calcular rota">→</button>
+            <button id="reset-graph-btn" type="button" class="gsearch-reset" aria-label="limpar">✕</button>
+          </div>
         </div>
 
+        <!-- filtros contextuais -->
+        <div class="graph-filters" id="graph-filters">
+          <div class="gfilter-group" id="filter-genero">
+            <span class="gfilter-label">gênero</span>
+            <button type="button" class="gfilter-btn active" data-filter-genero="">Todos</button>
+            <button type="button" class="gfilter-btn" data-filter-genero="Action">Ação</button>
+            <button type="button" class="gfilter-btn" data-filter-genero="Drama">Drama</button>
+            <button type="button" class="gfilter-btn" data-filter-genero="Comedy">Comédia</button>
+            <button type="button" class="gfilter-btn" data-filter-genero="Sci-Fi">Ficção Científica</button>
+            <button type="button" class="gfilter-btn" data-filter-genero="Horror">Terror</button>
+            <button type="button" class="gfilter-btn" data-filter-genero="Animation">Animação</button>
+          </div>
+          <div class="gfilter-group" id="filter-grau">
+            <span class="gfilter-label">importância</span>
+            <button type="button" class="gfilter-btn active" data-filter-grau="0">Todos</button>
+            <button type="button" class="gfilter-btn" data-filter-grau="10">Grau &gt; 10</button>
+            <button type="button" class="gfilter-btn" data-filter-grau="20">Grau &gt; 20</button>
+            <button type="button" class="gfilter-btn" data-filter-grau="50">Hubs (≥ 50)</button>
+          </div>
+        </div>
+
+        <!-- área principal: grafo + painel de detalhes -->
         <div class="graph-shell">
-          <aside class="graph-controls">
-            <div class="panel-kicker">controle da cena</div>
-            <label for="graph-mode">modo do grafo</label>
-            <select id="graph-mode">
-              <option value="franquias">franquias — grupos por elenco</option>
-              <option value="similaridade">maior similaridade</option>
-              <option value="bfs">bfs — percurso por camadas</option>
-              <option value="dfs">dfs — percurso em profundidade</option>
-              <option value="dijkstra">dijkstra — menor caminho</option>
-              <option value="bellman-ford">bellman-ford — pesos negativos</option>
-              <option value="grafo-completo">grafo completo (100k arestas)</option>
-            </select>
-
-            <datalist id="movies-list"></datalist>
-
-            <label for="graph-search">buscar</label>
-            <div class="search-row">
-              <input id="graph-search" type="search" placeholder="ex: Jurassic Park" list="movies-list" autocomplete="off">
-              <button id="search-btn" type="button">buscar</button>
-            </div>
-
-            <div class="route-tool">
-              <span class="route-tool-title">filme x filme</span>
-              <input id="route-origem" type="search" placeholder="origem Jurassic Park" list="movies-list" autocomplete="off">
-              <input id="route-destino" type="search" placeholder="destino Pulp Fiction" list="movies-list" autocomplete="off">
-              <select id="route-algorithm">
-                <option value="dijkstra">dijkstra</option>
-                <option value="dfs">profundidade</option>
-              </select>
-              <button id="route-run-btn" type="button">calcular rota</button>
-            </div>
-
-            <button id="reset-graph-btn" type="button">limpar destaque</button>
-
-            <div class="legend">
-              <strong>legenda visual</strong>
-              <span><i class="legend-dot origin"></i>origem / início</span>
-              <span><i class="legend-dot destino"></i>destino / fim</span>
-              <span><i class="legend-line"></i>aresta destacada</span>
-              <hr>
-              <span>nó maior = mais conexões (grau)</span>
-              <span>aresta grossa = alta similaridade</span>
-              <span>cor do nó = gênero principal</span>
-              <span style="margin-top:2px;font-style:italic;">passe o mouse para detalhes</span>
-            </div>
-          </aside>
-
           <div class="graph-area">
-            <button class="graph-fullscreen-btn" id="graph-fullscreen-btn" type="button">maximizar</button>
+            <button class="graph-fullscreen-btn" id="graph-fullscreen-btn" type="button">⤢</button>
             <div id="network"></div>
             <div class="graph-placeholder" id="graph-placeholder">
               <span class="loader-ring"></span>
-              <strong>grafo ainda nao carregado</strong>
-              <p>escolha um modo, busque um filme ou calcule uma rota para visualizar as conexoes.</p>
+              <strong>carregando rede cinematográfica...</strong>
+              <p>3.899 filmes · 63.484 conexões por elenco</p>
             </div>
           </div>
 
-          <aside class="details-panel" id="details-panel">
-            <p class="eyebrow">selecao</p>
-            <h3>nenhum item selecionado</h3>
-            <p>ao clicar em um filme ou aresta, os dados aparecem aqui.</p>
-            <dl class="detail-list">
-              <div>
-                <dt>filme</dt>
-                <dd>--</dd>
-              </div>
-              <div>
-                <dt>conexao</dt>
-                <dd>--</dd>
-              </div>
-              <div>
-                <dt>similaridade</dt>
-                <dd>--</dd>
-              </div>
-              <div>
-                <dt>peso</dt>
-                <dd>--</dd>
-              </div>
-            </dl>
+          <aside class="details-panel" id="details-panel" aria-label="detalhes do filme selecionado">
+            <!-- conteúdo injetado por JS -->
           </aside>
         </div>
       </section>
@@ -188,17 +362,17 @@
       <section class="panel-section view-panel" id="resultados" data-view-panel="resultados">
         <div class="section-heading section-heading-resultados">
           <h2>Resultados e Discussão Crítica</h2>
-          <p class="section-sub">Corretude, desempenho e análise comparativa dos algoritmos sobre o grafo IMDb.</p>
+          <p class="section-sub">Corretude, desempenho e análise comparativa dos 4 algoritmos implementados sobre o grafo IMDb.</p>
         </div>
 
-        <div class="avd2-narrative-grid" style="margin-bottom:24px;">
-          <div class="avd2-narrative">
-            <div class="avd2-narrative-label">📍 Storytelling Explanatório — O que os algoritmos responderam</div>
-            <p>BFS e DFS respondem <strong>perguntas de alcance e estrutura</strong>: quantos filmes consigo visitar a partir de <em>Jurassic Park</em>? Há ciclos? Dijkstra responde <strong>qual o caminho mais barato</strong> (= mais similar) entre dois filmes. Bellman-Ford valida o comportamento com <strong>pesos negativos e ciclos negativos</strong> — caso impossível no dataset IMDb real, por isso testado em grafos artificiais dedicados.</p>
+        <div class="p2-result-intro">
+          <div class="p2-result-intro-card">
+            <div class="label">Storytelling Explanatório — o que cada algoritmo responde</div>
+            <p><strong>BFS e DFS</strong> respondem perguntas de alcance e estrutura: quantos filmes consigo visitar? Há ciclos? <strong>Dijkstra</strong> encontra o caminho de menor custo — filmes mais parecidos. <strong>Bellman-Ford</strong> valida pesos negativos e detecta ciclos negativos, testado em grafos artificiais pois o IMDb só tem pesos positivos.</p>
           </div>
-          <div class="avd2-narrative">
-            <div class="avd2-narrative-label">🎨 Gestalt — Hierarquia Visual nos Resultados</div>
-            <p>Nos cards de resumo: <strong>número grande = dado principal</strong> (hierarquia visual). Badges coloridos indicam status: <span style="color:#2ecc71;font-weight:700;">verde = conforme rubrica</span>, <span style="color:#f97316;font-weight:700;">laranja = aviso</span>, <span style="color:#ef4444;font-weight:700;">vermelho = ciclo detectado</span>. A tabela Dijkstra usa <strong>destaque amarelo no custo</strong> (dado mais importante para a rubrica) e cinza no caminho completo (detalhe secundário) — Figura-Fundo explícito.</p>
+          <div class="p2-result-intro-card">
+            <div class="label">Gestalt — hierarquia visual dos resultados</div>
+            <p><strong>Número grande = dado principal</strong> (hierarquia visual). Badges coloridos indicam status: <span style="color:#2ecc71;font-weight:700;">verde</span> = correto, <span style="color:#f97316;font-weight:700;">laranja</span> = aviso, <span style="color:#ef4444;font-weight:700;">vermelho</span> = ciclo negativo. Destaque amarelo no custo e cinza no caminho — Figura-Fundo explícito.</p>
           </div>
         </div>
 
@@ -216,8 +390,8 @@
               <p>
                 A BFS percorre o grafo por <strong>camadas</strong>, garantindo que cada filme visitado está
                 na menor distância (em número de arestas) da fonte. Sobre o grafo IMDb, a partir de
-                <em>Jurassic Park</em>, a BFS alcançou <strong>3.971 filmes em 7 camadas</strong>,
-                provando que a maior componente conexa tem diâmetro pequeno — típico de redes de
+                <em>Jurassic Park</em>, a BFS alcançou <strong>3.899 filmes em 7 camadas</strong>,
+                provando que a componente gigante tem diâmetro pequeno — típico de redes de
                 co-ocorrência densas.
               </p>
               <p>
@@ -325,34 +499,100 @@
       <section class="panel-section view-panel" id="graficos" data-view-panel="graficos">
         <div class="section-heading">
           <h2>Análise e Visualização de Dados</h2>
-          <p class="section-sub">Gestalt, Storytelling Analítico e Hierarquia Visual aplicados à rede IMDb — cada gráfico responde uma pergunta específica sobre a estrutura do dataset.</p>
+          <p class="section-sub">Gestalt, Storytelling Analítico e Hierarquia Visual aplicados à rede IMDb — 5 gráficos, cada um responde uma pergunta específica sobre a estrutura do dataset.</p>
         </div>
 
-        <div class="avd2-narrative-grid">
-
-          <div class="avd2-narrative">
-            <div class="avd2-narrative-label">🔍 Storytelling Exploratório — Estrutura da Rede</div>
-            <p>O grafo IMDb com <strong>3.985 filmes e 100.000 conexões</strong> forma uma rede de mundo pequeno: <strong>7 componentes conexas</strong>, sendo a maior com 3.971 vértices. Grau médio de <strong>50,2 conexões por filme</strong> indica alta densidade — filmes de grandes franquias funcionam como hubs com grau > 100. A BFS a partir de <em>Jurassic Park</em> alcança toda a componente em apenas <strong>7 camadas</strong> (diâmetro efetivo pequeno).</p>
+        <div class="p2-section">
+          <div class="p2-stats">
+            <div class="p2-stat"><strong>3.899</strong><span>Vértices (|V|)</span></div>
+            <div class="p2-stat"><strong>63.484</strong><span>Arestas (|E|)</span></div>
+            <div class="p2-stat"><strong>32,6</strong><span>Grau Médio</span></div>
+            <div class="p2-stat"><strong>1</strong><span>Componente</span></div>
+            <div class="p2-stat"><strong>142</strong><span>Grau Máximo</span></div>
           </div>
 
-          <div class="avd2-narrative">
-            <div class="avd2-narrative-label">📍 Storytelling Explanatório — Dijkstra e a Fórmula de Peso</div>
-            <p>A fórmula <code>peso = 1 / ((2 × atores) + gêneros)</code> transforma similaridade em custo: conexões fortes (sim = 22) custam <strong>0,045</strong>, fracas (sim = 2) custam <strong>0,500</strong>. O Dijkstra escolhe automaticamente caminhos pelos filmes mais parecidos. O par mais distante encontrado foi <em>Departures → Bad Taste</em>: <strong>13 filmes no caminho</strong>, custo 3,29, cruzando gêneros completamente distintos.</p>
+          <div class="p2-tabs">
+            <button type="button" class="p2-tab-btn active" onclick="p2Tab('estrutura',this)">1. Como é a rede?</button>
+            <button type="button" class="p2-tab-btn" onclick="p2Tab('travessia',this)">2. BFS vs DFS</button>
+            <button type="button" class="p2-tab-btn" onclick="p2Tab('dijkstra',this)">3. Dijkstra</button>
+            <button type="button" class="p2-tab-btn" onclick="p2Tab('comparacao',this)">4. Comparação</button>
           </div>
 
-          <div class="avd2-narrative">
-            <div class="avd2-narrative-label">🎨 Gestalt — Similaridade, Figura-Fundo, Conectividade</div>
-            <p><strong>Similaridade:</strong> cor do nó = gênero principal (Action vermelho, Drama azul, Sci-Fi roxo). <strong>Figura-Fundo:</strong> fundo escuro #070707 destaca os nós amarelos. <strong>Conectividade:</strong> arestas grossas = alta similaridade (muitos atores em comum). <strong>Proximidade:</strong> o layout força-dirigido posiciona naturalmente filmes da mesma franquia próximos entre si.</p>
+          <div id="p2-pane-estrutura" class="p2-pane active">
+            <div class="p2-narrative">
+              <div class="p2-narrative-label">🔍 Storytelling Exploratório — Como é essa rede?</div>
+              <p>O grafo IMDb é uma <strong>rede de mundo pequeno</strong>. A distribuição de graus segue lei de potência — a maioria dos filmes tem grau baixo, mas hubs como <em>Royal Tenenbaums</em> (grau 142) concentram centenas de conexões e atuam como pontos de passagem obrigatórios. A rede é <strong>completamente conectada</strong>: todos os 3.899 filmes estão em uma única componente gigante (dataset curado, sim ≥ 3). O gráfico A mostra a estrutura completa; o ranking B revela os filmes que, se removidos, desconectariam mais vizinhos.</p>
+            </div>
+            <figure class="p2-figure">
+              <a href="../out/parte2/parte2_estrutura_rede.png" target="_blank">
+                <img src="../out/parte2/parte2_estrutura_rede.png" alt="dashboard estrutura da rede">
+              </a>
+              <figcaption>
+                <strong>Dashboard Exploratório — Estrutura da rede IMDb</strong>
+                · Gestalt: <em>Figura-Fundo</em> (distribuição log), <em>Similaridade</em> (cores dos hubs), <em>Região Comum</em> (componentes) ·
+                <strong>A</strong>: cauda longa evidencia lei de potência · grau médio 32,6 · top 10% hubs destacados em vermelho ·
+                <strong>B</strong>: True Romance lidera com grau 208 · barra dourada = máximo absoluto ·
+                <strong>C</strong>: 99,6% dos filmes na componente gigante
+              </figcaption>
+            </figure>
           </div>
 
-          <div class="avd2-narrative">
-            <div class="avd2-narrative-label">📊 Hierarquia Visual — Tamanho, Espessura, Cor</div>
-            <p><strong>Tamanho do nó</strong> ∝ grau global (log₂): hubs como filmes Avengers ficam visualmente maiores, periféricos menores. <strong>Espessura da aresta</strong> ∝ √similaridade: arestas grossas = muitos atores em comum. <strong>Cor do nó</strong> encoda o gênero. <strong>Cor da aresta</strong> varia por modo (verde = BFS, azul claro = DFS, laranja = Dijkstra, vermelho = ciclo negativo BF).</p>
+          <div id="p2-pane-travessia" class="p2-pane">
+            <div class="p2-narrative">
+              <div class="p2-narrative-label">🔍 Storytelling Exploratório — BFS e DFS percorrem a rede da mesma forma?</div>
+              <p>Não. O gráfico compara diretamente o <strong>grau dos filmes visitados</strong> por cada algoritmo a partir de <em>Jurassic Park</em>. <strong>BFS visita primeiro os filmes mais conectados</strong> (Pulp Fiction, Independence Day — vizinhos famosos). <strong>DFS mergulha imediatamente no primeiro vizinho</strong>, chegando em filmes obscuros na 2ª posição (Fresh, Maze Runner). Ambos visitam os mesmos 3.899 filmes no total, detectam ciclos, e percorrem a rede em 7 camadas (BFS). O insight é sobre <em>por que cada algoritmo existe</em>: BFS é ideal para menor número de saltos, DFS para exploração profunda e detecção de ciclos.</p>
+            </div>
+            <figure class="p2-figure">
+              <a href="../out/parte2/parte2_heatmap_bfs_dfs.png" target="_blank">
+                <img src="../out/parte2/parte2_heatmap_bfs_dfs.png" alt="heatmap BFS vs DFS">
+              </a>
+              <figcaption>
+                <strong>Heatmap de Visitação — BFS vs DFS</strong>
+                · Gestalt: <em>Similaridade</em> (verde = BFS, azul = DFS), <em>Região Comum</em> (cada coluna = uma fonte) ·
+                Linha = posição de visitação (1° ao 15°) · Quanto mais escuro = visitado mais tarde ·
+                BFS tende a colunas com filmes conhecidos no topo; DFS com filmes obscuros ·
+                Todas as 3 fontes visitam 3.899 filmes e detectam ciclos
+              </figcaption>
+            </figure>
+          </div>
+
+          <div id="p2-pane-dijkstra" class="p2-pane">
+            <div class="p2-narrative">
+              <div class="p2-narrative-label">📍 Storytelling Explanatório — O Dijkstra realmente escolhe os filmes mais parecidos?</div>
+              <p>Sim. Com <code>peso = 1 / similaridade</code>, o Dijkstra minimiza custo priorizando filmes com elenco compartilhado. O <strong>caminho mais longo</strong> encontrado vai de <em>Departures (drama japonês)</em> até <em>Bad Taste (terror Peter Jackson)</em> em <strong>13 filmes</strong> e custo 3,29 — cruzando gêneros completamente distintos através de filmes "ponte". O <strong>caminho mais similar</strong> (Jurassic Park → Pulp Fiction, 2 saltos, custo 0,33) mostra a outra extremidade: filmes vizinhos com elenco diretamente compartilhado. A visualização prova que o algoritmo está correto: cada seta é uma aresta com peso real do dataset.</p>
+            </div>
+            <figure class="p2-figure">
+              <a href="../out/parte2/parte2_caminho_dijkstra.png" target="_blank">
+                <img src="../out/parte2/parte2_caminho_dijkstra.png" alt="caminhos Dijkstra">
+              </a>
+              <figcaption>
+                <strong>Caminhos Mínimos Dijkstra</strong>
+                · Gestalt: <em>Conectividade</em> (setas = arestas), <em>Proximidade</em> (sequência linear = ordem do caminho), <em>Figura-Fundo</em> (vermelho=origem, verde=destino, dourado=intermediário) ·
+                Superior: Departures → Bad Taste · 13 filmes · custo 3,294 ·
+                Inferior: exemplo com menor custo total
+              </figcaption>
+            </figure>
+          </div>
+
+          <div id="p2-pane-comparacao" class="p2-pane">
+            <div class="p2-narrative">
+              <div class="p2-narrative-label">📊 Storytelling Explanatório — Qual algoritmo usar em cada situação?</div>
+              <p>O heatmap de adequação mostra que <strong>não existe algoritmo universalmente melhor</strong> — cada um tem seu papel. <strong>BFS e DFS</strong> são ideais quando velocidade importa (O(V+E) = 8–11ms). <strong>Dijkstra</strong> é o único que encontra o caminho de menor custo ponderado (O((V+E)logV) = 20ms). <strong>Bellman-Ford</strong> é o único que suporta pesos negativos e detecta ciclos negativos, mas O(V·E) torna impraticável no IMDb completo — por isso testado em grafo artificial. O benchmark confirma empiricamente as complexidades teóricas.</p>
+            </div>
+            <figure class="p2-figure">
+              <a href="../out/parte2/parte2_heatmap_performance.png" target="_blank">
+                <img src="../out/parte2/parte2_heatmap_performance.png" alt="heatmap de performance e comparação">
+              </a>
+              <figcaption>
+                <strong>Dashboard de Comparação — Heatmap de Adequação + Benchmark</strong>
+                · Gestalt: <em>Similaridade</em> (verde = melhor, vermelho = pior, por critério), <em>Figura-Fundo</em> (escala log no benchmark) ·
+                Esquerda: matriz algoritmo × critério com rótulos de tempo e complexidade ·
+                Direita: benchmark real em escala logarítmica — BFS 9ms · DFS 11ms · Dijkstra 20ms · Bellman-Ford* µs
+              </figcaption>
+            </figure>
           </div>
 
         </div>
-
-        <div class="viz-grid" id="viz-grid"></div>
       </section>
     </main>
 
@@ -376,8 +616,8 @@
       <section class="image-modal-panel" style="max-width:480px;text-align:center;gap:1rem;">
         <h2 style="margin:0">grafo completo</h2>
         <p style="margin:0;line-height:1.6">
-          Renderiza os <strong>3.000 links mais fortes</strong> do dataset (de 100.000).<br>
-          O roteamento filme x filme continua usando todas as 100.000 arestas.<br>
+          Renderiza os <strong>3.000 links mais fortes</strong> do dataset (de 63.484).<br>
+          O roteamento filme x filme continua usando todas as 63.484 arestas.<br>
           Pode demorar alguns segundos para carregar.
         </p>
         <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
@@ -392,6 +632,14 @@
     </footer>
 
     <script src="lib/vis-9.1.2/vis-network.min.js"></script>
-    <script src="app.js?v=42"></script>
+    <script src="app.js?v=43"></script>
+    <script>
+      window.p2Tab = function p2Tab(id, btn) {
+        document.querySelectorAll(".p2-pane").forEach((p) => { p.classList.remove("active"); });
+        document.querySelectorAll(".p2-tab-btn").forEach((b) => { b.classList.remove("active"); });
+        document.getElementById(`p2-pane-${id}`).classList.add("active");
+        btn.classList.add("active");
+      };
+    </script>
   </body>
 </html>

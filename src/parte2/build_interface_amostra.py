@@ -194,11 +194,31 @@ def build_amostra(movies: dict[str, dict], edges: list[dict], report: dict) -> d
     if not fontes:
         fontes = ["Jurassic Park", "Forrest Gump", "Pulp Fiction"]
 
+    # arestas de franquias conhecidas para garantir representação visual
+    FRANQUIA_SEEDS = [
+        "Avengers: Age of Ultron", "Captain America: Civil War",
+        "Avengers: Infinity War - Part I", "Iron Man 2",
+        "Star Wars: Episode IV - A New Hope", "Star Wars: Episode V - The Empire Strikes Back",
+        "Star Wars: Episode VII - The Force Awakens", "Star Wars: The Last Jedi",
+        "Harry Potter and the Chamber of Secrets", "Harry Potter and the Goblet of Fire",
+        "Harry Potter and the Deathly Hallows: Part 1",
+        "Hobbit: An Unexpected Journey, The", "Hobbit: The Desolation of Smaug, The",
+        "X-Men", "X2: X-Men United", "X-Men: Days of Future Past",
+        "Jurassic Park", "Jurassic World",
+        "2 Fast 2 Furious (Fast and the Furious 2, The)", "Fast Five (Fast and the Furious 5, The)",
+        "Star Trek II: The Wrath of Khan", "Star Trek IV: The Voyage Home",
+    ]
+    franquia_edges: list[dict] = []
+    for seed in FRANQUIA_SEEDS:
+        for edge in sorted(adj.get(seed, []), key=lambda e: e["similaridade"], reverse=True)[:8]:
+            franquia_edges.append(edge)
+
     selected: list[dict] = []
-    selected.extend(_connected_sample(by_similarity, 80))
-    selected.extend(top_connection_edges[:140])
+    selected.extend(_connected_sample(by_similarity, 120))
+    selected.extend(top_connection_edges[:180])
     selected.extend(_edges_from_paths(report, edge_map))
-    selected.extend(_traversal_edges(fontes, adj, 36))
+    selected.extend(_traversal_edges(fontes, adj, 48))
+    selected.extend(franquia_edges)
 
     edge_out: dict[str, dict] = {}
     movie_names: set[str] = set()

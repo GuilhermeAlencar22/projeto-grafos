@@ -1,8 +1,9 @@
 # Projeto Final — Teoria dos Grafos
 
-Projeto dividido em duas partes: **Parte 1** modela a rede de aeroportos brasileiros; **Parte 2** aplica algoritmos de grafos sobre um dataset de filmes do IMDb.
+Implementação de BFS, DFS, Dijkstra e Bellman-Ford em Python puro (sem NetworkX ou igraph), aplicados sobre dois datasets:
 
-Todos os algoritmos (BFS, DFS, Dijkstra, Bellman-Ford) foram implementados do zero em Python puro, sem bibliotecas de grafos prontas.
+- **Parte 1** — rede de aeroportos brasileiros
+- **Parte 2** — rede de filmes do IMDb (3.899 filmes, 63.484 conexões por elenco)
 
 ---
 
@@ -18,89 +19,98 @@ Todos os algoritmos (BFS, DFS, Dijkstra, Bellman-Ford) foram implementados do ze
 
 ---
 
-## Pré-requisitos
+## Requisitos
 
 - Python 3.10 ou superior
-- Pip atualizado
+- pip
 
 ---
 
 ## Instalação
 
 ```bash
-# 1. Clone o repositório
+# Clone o repositório
 git clone <url-do-repositorio>
 cd projeto-grafos
 
-# 2. (Opcional, recomendado) Crie um ambiente virtual
+# Crie e ative o ambiente virtual
 python -m venv venv
-
-# Windows
-venv\Scripts\activate
 
 # macOS / Linux
 source venv/bin/activate
 
-# 3. Instale as dependências
-python -m pip install -r requirements.txt
+# Windows
+venv\Scripts\activate
+
+# Instale as dependências
+pip install -r requirements.txt
 ```
 
 ---
 
-## Como executar
+## Como rodar
 
-> Todos os comandos devem ser rodados a partir da **raiz do projeto** (`projeto-grafos/`).
+> Todos os comandos devem ser executados na **raiz do projeto**.
 
-### Pipeline completo (Parte 1 + Parte 2)
+### 1. Rodar tudo (Parte 1 + Parte 2)
 
 ```bash
 python -m src.solve
 ```
 
-Gera todas as saídas em `out/`, os JSONs da interface e os gráficos.
+Executa os quatro algoritmos, gera o relatório JSON, os PNGs e os dados da interface.
 
-### Apenas Parte 1
+### 2. Rodar só a Parte 1
 
 ```bash
 python -m src.solve parte1
 ```
 
-### Apenas Parte 2
+### 3. Rodar só a Parte 2
 
 ```bash
 python -m src.solve parte2
 ```
 
-### Gerar visualizações da Parte 2 (PNGs)
+### 4. Gerar os dados da interface (Parte 2)
 
-```bash
-python -m src.parte1.viz parte2
-```
-
-### Gerar dados da interface web da Parte 2
+Necessário se quiser atualizar os JSONs consumidos pela interface sem rodar o pipeline completo:
 
 ```bash
 python -m src.parte2.build_interface_data
 python -m src.parte2.build_interface_grafo
 ```
 
-### Subir o servidor local e abrir a interface
+### 5. Gerar os gráficos analíticos (PNGs)
 
 ```bash
+python -m src.parte1.viz parte2
+```
+
+### 6. Abrir a interface no navegador
+
+Use o **Live Server** do VS Code apontando para a pasta `interface/`, ou suba um servidor HTTP simples:
+
+```bash
+# na raiz do projeto
 python -m http.server 8000 --bind 127.0.0.1
 ```
 
-Abrir no navegador:
-
-```
-http://127.0.0.1:8000/
-```
-
-A página inicial (`index.html`) direciona para a Parte 1 ou Parte 2.
+Abrir: `http://127.0.0.1:8000/interface/`
 
 ---
 
-## Exemplos via CLI
+## Testes
+
+```bash
+python -m pytest -v
+```
+
+13 testes cobrindo BFS, DFS, Dijkstra, Bellman-Ford e I/O.
+
+---
+
+## CLI — exemplos de uso
 
 ```bash
 # Parte 1 — BFS a partir de Recife
@@ -115,117 +125,74 @@ python -m src.cli --dataset ./data/dataset_parte2/ --alg DIJKSTRA --source "Jura
 
 ---
 
-## Testes
-
-```bash
-python -m pytest -v
-```
-
-12 testes cobrindo:
-
-- **BFS**: níveis corretos em grafo pequeno e componente isolada
-- **DFS**: detecção de ciclo e classificação de arestas (tree/back/cross/forward)
-- **Dijkstra**: caminho correto, ausência de caminho, rejeição de peso negativo
-- **Bellman-Ford**: peso negativo sem ciclo (distâncias corretas) + ciclo negativo detectado
-- **I/O**: carregamento de CSV de arestas
-
----
-
-## Saídas geradas
-
-Após rodar `python -m src.solve`, os seguintes arquivos são criados:
-
-### Parte 1 (`out/`)
-
-| Arquivo | Conteúdo |
-|---|---|
-| `global.json` | Ordem, tamanho e densidade do grafo |
-| `regioes.json` | Métricas por região do Brasil |
-| `graus.csv` | Grau de cada aeroporto |
-| `ego_aeroportos.csv` | Ego-networks dos principais hubs |
-| `rankings.json` | Aeroportos mais conectados |
-| `distancias_rotas.csv` | Caminhos mínimos (Dijkstra) |
-| `grafo_interativo.html` | Grafo completo navegável |
-| `arvore_percurso.html` | Percurso REC → POA e MAO → GRU |
-| `subgrafo_hubs.html` | Subgrafo dos hubs principais |
-| `histograma.png` | Distribuição de graus |
-| `ranking.png` | Ranking visual dos hubs |
-| `regioes.png` | Comparação por região |
-
-### Parte 2 (`out/` e `interface/`)
-
-| Arquivo | Conteúdo |
-|---|---|
-| `out/parte2_report.json` | Resultados de todos os algoritmos + benchmark |
-| `interface/assets/*.png` | Gráficos analíticos (distribuição, benchmark, etc.) |
-| `interface/data/resumo_parte2.json` | Resumo leve para a interface |
-| `interface/data/parte2_amostra.json` | Amostra visual do grafo |
-| `interface/data/parte2_grafo.json` | Grafo completo (100k arestas) para modo avançado |
-
----
-
-## Estrutura do projeto
+## Estrutura de pastas
 
 ```
 projeto-grafos/
 ├── data/
-│   ├── aeroportos_data.csv
+│   ├── aeroportos_data.csv          ← dataset Parte 1
 │   ├── adjacencias_aeroportos.csv
 │   ├── rotas.csv
 │   └── dataset_parte2/
-│       ├── Imdb_filmes.csv
-│       ├── Imdb_arestas.csv
+│       ├── Imdb_filmes.csv          ← vértices (filmes)
+│       ├── Imdb_arestas.csv         ← arestas (similaridade por elenco)
 │       └── artificiais_bellman_ford/
 │           ├── bf_validacao_sem_ciclo.csv
 │           └── bf_validacao_com_ciclo.csv
 ├── interface/
-│   ├── data/           ← JSONs gerados pelo pipeline
-│   ├── assets/         ← PNGs gerados pelo pipeline
-│   ├── lib/            ← vis-network (local, sem CDN)
-│   ├── index.html
-│   ├── parte1.html
+│   ├── index.html                   ← interface Parte 2
+│   ├── parte1.html                  ← interface Parte 1
+│   ├── app.js
 │   ├── styles.css
-│   └── app.js
-├── out/                ← saídas geradas (recriadas pelo pipeline)
+│   ├── lib/                         ← vis-network (local, sem CDN)
+│   ├── assets/                      ← PNGs gerados pelo pipeline
+│   └── data/                        ← JSONs gerados pelo pipeline
+├── out/                             ← saídas geradas (recriadas pelo pipeline)
 ├── src/
-│   ├── shared/         ← Graph, algoritmos, I/O compartilhados
-│   ├── parte1/         ← métricas e visualizações da Parte 1
-│   ├── parte2/         ← builders da interface da Parte 2
-│   ├── solve.py        ← pipeline principal
-│   ├── viz.py          ← gerador de PNGs
-│   └── cli.py          ← interface de linha de comando
+│   ├── shared/                      ← Graph, algoritmos, I/O
+│   ├── parte1/                      ← métricas e visualizações Parte 1
+│   ├── parte2/                      ← builders da interface Parte 2
+│   ├── solve.py                     ← pipeline principal
+│   ├── viz.py                       ← atalho para geração de PNGs
+│   └── cli.py                       ← interface de linha de comando
 ├── tests/
-├── index.html          ← página de entrada (escolha Parte 1 ou Parte 2)
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## Modelagem — Parte 2 (IMDb)
+## Modelagem — Parte 2
 
-| Propriedade | Valor |
-|---|---|
-| Vértices | 3.985 filmes |
-| Arestas | 100.000 conexões |
-| Tipo | Não-dirigido, ponderado |
-| Componentes conexas | 7 (maior: 3.971 filmes) |
-| Grau médio | 50,19 |
-
-**Fórmula de peso:**
+Dois filmes são conectados quando compartilham atores ou gêneros. A força da conexão é calculada pela similaridade:
 
 ```
 similaridade = (2 × atores em comum) + gêneros em comum
 peso         = 1 / similaridade
 ```
 
-Conexões mais fortes têm peso menor — o Dijkstra escolhe naturalmente caminhos por filmes mais parecidos.
+Atores valem mais que gêneros porque indicam ligação direta de elenco. O peso é invertido para que o Dijkstra encontre caminhos pelos filmes mais parecidos (menor peso = maior similaridade).
+
+| Propriedade | Valor |
+|---|---|
+| Vértices | 3.899 filmes |
+| Arestas | 63.484 conexões |
+| Tipo | Não-dirigido, ponderado |
+| Componentes | 1 (componente gigante) |
+| Grau médio | 32,6 |
+| Hub principal | The Royal Tenenbaums (grau 142) |
 
 ---
 
-## Observações
+## Algoritmos
 
-- `plotly` foi removido do `requirements.txt` — não é usado no projeto.
-- `networkx` é usado internamente pelo `pyvis` (visualização), mas **não** para nenhum algoritmo — toda a lógica de BFS, DFS, Dijkstra e Bellman-Ford é implementação própria.
-- O arquivo `interface/data/parte2_grafo.json` (~8 MB) está versionado para evitar que a professora precise rodar o pipeline completo apenas para ver a interface.
-- O modo "grafo completo" na interface renderiza as 3.000 arestas mais fortes das 100.000 disponíveis para não travar o navegador. O roteamento filme × filme continua usando todas as 100.000.
+Todos implementados do zero, sem bibliotecas de grafos:
+
+| Algoritmo | Dataset | O que demonstra |
+|---|---|---|
+| BFS | IMDb (3 fontes) | Percurso por camadas, alcance da componente |
+| DFS | IMDb (3 fontes) | Percurso em profundidade, detecção de ciclos |
+| Dijkstra | IMDb (5 pares) | Caminho mínimo ponderado entre filmes |
+| Bellman-Ford | Grafos artificiais | Pesos negativos sem ciclo + detecção de ciclo negativo |
+
+O Bellman-Ford roda em grafos artificiais porque o grafo IMDb tem apenas pesos positivos. Os dois CSVs de validação estão em `data/dataset_parte2/artificiais_bellman_ford/`.

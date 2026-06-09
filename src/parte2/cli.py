@@ -599,7 +599,7 @@ def _executar_dijkstra(g2: Graph, args: argparse.Namespace) -> None:
 def executar_cli(args: argparse.Namespace, projeto_root: Path | None = None) -> None:
     """mesmo fluxo que main depois do parse."""
     if projeto_root is None:
-        projeto_root = Path(__file__).resolve().parents[1]
+        projeto_root = Path(__file__).resolve().parents[2]
 
     # bellman: fluxo separado em _cli_bellman_ford
     if args.alg == "BELLMAN_FORD":
