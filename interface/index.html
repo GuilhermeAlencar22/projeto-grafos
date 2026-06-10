@@ -3,9 +3,12 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Parte 2 — Rede IMDb | Teoria dos Grafos</title>
     <link rel="stylesheet" href="lib/vis-9.1.2/vis-network.css">
-    <link rel="stylesheet" href="styles.css?v=24">
+    <link rel="stylesheet" href="styles.css?v=50">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -258,8 +261,8 @@
         <a class="is-active" href="#inicio" data-view="inicio">lobby</a>
         <a href="#grafos" data-view="grafos">grafos</a>
         <a href="#analise" data-view="analise">análise de dados</a>
-        <a href="parte1.html">parte 1</a>
-        <a href="../index.html" style="border-left:1px solid var(--line);padding-left:1rem;margin-left:0.5rem;">← início</a>
+        <a href="parte1.html" style="border-left:1px solid var(--line);padding-left:1rem;margin-left:0.5rem;">parte 1</a>
+        <a href="../index.html">← início</a>
       </nav>
     </header>
 
@@ -696,7 +699,7 @@
     </div>
 
     <script src="lib/vis-9.1.2/vis-network.min.js"></script>
-    <script src="app.js?v=43"></script>
+    <script src="app.js?v=50"></script>
     <script>
       window.p2Tab = function p2Tab(id, btn) {
         document.querySelectorAll(".p2-pane").forEach((p) => { p.classList.remove("active"); });
