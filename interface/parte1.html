@@ -24,7 +24,6 @@
       --font-display: "Space Grotesk", "Segoe UI", Arial, sans-serif;
     }
 
-    /* ── coesão com a landing: fonte display nos títulos + base mais escura ── */
     body { background: linear-gradient(180deg, #0a0a0a, #000000 60%); }
     .brand-mark,
     .topbar h1,
@@ -307,12 +306,59 @@
       display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
     }
     .avd-ctrl {
-      padding: 5px 12px; border-radius: 6px; border: 1px solid var(--line);
-      background: rgba(23,23,23,.95); color: var(--muted); font-size: 11px;
+      padding: 6px 14px; border-radius: 20px; border: 1px solid var(--line);
+      background: rgba(23,23,23,.95); color: var(--muted); font-size: 12px;
       font-weight: 700; cursor: pointer; transition: all 120ms; font-family: inherit;
+      display: inline-flex; align-items: center; gap: 6px;
     }
-    .avd-ctrl.on { border-color: var(--primary); color: var(--primary); }
-    .avd-ctrl:hover { border-color: var(--muted); color: var(--text); }
+    .avd-ctrl::before { content:''; display:inline-block; width:8px; height:8px; border-radius:50%; background: var(--line); transition: background 120ms; }
+    .avd-ctrl.on { border-color: var(--primary); color: var(--primary); background: rgba(245,197,24,.08); }
+    .avd-ctrl.on::before { background: var(--primary); }
+    .avd-ctrl:hover:not(.on) { border-color: var(--muted); color: var(--text); }
+    .avd-map-route-panel {
+      background: var(--panel-flat); border: 1px solid var(--yellow-line);
+      border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;
+    }
+    .avd-map-route-title {
+      font-size: 12px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 14px;
+    }
+    .avd-map-route-form {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    .avd-map-route-form select {
+      flex: 1; min-width: 140px; padding: 8px 12px; border-radius: 6px;
+      border: 1px solid var(--line); background: #1a1a1a; color: var(--text);
+      font-size: 14px; font-family: inherit; outline: none; cursor: pointer;
+    }
+    .avd-map-route-form select:focus { border-color: var(--primary); }
+    .avd-map-route-go {
+      padding: 8px 20px; border-radius: 6px; border: 1px solid var(--primary);
+      background: rgba(245,197,24,.12); color: var(--primary);
+      font-size: 14px; font-weight: 900; cursor: pointer; font-family: inherit;
+      transition: all 120ms; white-space: nowrap;
+    }
+    .avd-map-route-go:hover { background: rgba(245,197,24,.22); }
+    .avd-map-route-result {
+      margin-top: 14px; display: none;
+      align-items: center; gap: 20px; flex-wrap: wrap;
+      padding-top: 14px; border-top: 1px solid var(--line);
+    }
+    .avd-map-route-result.visible { display: flex; }
+    .avd-map-route-pill {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .avd-map-route-pill .rp-node {
+      padding: 4px 10px; border-radius: 5px; font-weight: 800; font-size: 13px;
+    }
+    .rp-node.rp-start { background: rgba(46,204,113,.12); color: var(--success); border: 1px solid var(--success); }
+    .rp-node.rp-end   { background: rgba(255,77,77,.12);   color: var(--danger);  border: 1px solid var(--danger); }
+    .rp-node.rp-mid   { background: rgba(245,197,24,.1);   color: var(--primary); border: 1px solid var(--primary); }
+    .rp-arrow { color: var(--muted); font-size: 14px; }
+    .avd-map-route-meta { display: flex; gap: 16px; flex-wrap: wrap; }
+    .avd-map-route-stat { display: flex; flex-direction: column; gap: 2px; }
+    .avd-map-route-stat strong { font-size: 18px; font-weight: 900; color: var(--text); line-height: 1; }
+    .avd-map-route-stat span   { font-size: 11px; color: var(--muted); line-height: 1; }
     .lf-edge-tt { background:#1e293b!important; border:1px solid #facc15!important; border-radius:8px!important; color:#f1f5f9!important; font-size:13px!important; padding:8px 12px!important; box-shadow:0 4px 16px #0009!important; }
     .lf-edge-tt::before { display:none!important; }
     .leaflet-container .leaflet-popup-content-wrapper {
@@ -386,8 +432,9 @@
     .avd-node.mid   { background: rgba(245,197,24,.1);   color: var(--primary); border: 1px solid var(--primary); }
     .avd-arrow { color: var(--muted); font-size: 16px; }
     .avd-route-stats { display: flex; flex-direction: column; gap: 16px; }
-    .avd-route-stat strong { display: block; font-size: 22px; font-weight: 900; color: var(--text); }
-    .avd-route-stat span   { font-size: 13px; color: var(--muted); }
+    .avd-route-stat { display: flex; flex-direction: column; gap: 4px; }
+    .avd-route-stat strong { display: block; font-size: 22px; font-weight: 900; color: var(--text); line-height: 1; }
+    .avd-route-stat span   { font-size: 13px; color: var(--muted); line-height: 1; }
     .avd-route-expl {
       font-size: 15px; color: var(--muted); line-height: 1.7;
       margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line);
@@ -553,12 +600,12 @@
     <section class="p1-section" style="margin-top:12px;">
       <h2 class="p1-section-title">Análise e Visualização de Dados</h2>
       <p style="margin:0 0 24px;color:var(--muted);font-size:16px;line-height:1.6;max-width:720px;">
-        Dashboards interativos com Gestalt, storytelling analítico e hierarquia visual — Similaridade, Figura-Fundo, Conectividade e Região Comum aplicados à malha aérea brasileira.
+        Cada dashboard foi construído a partir dos princípios de Gestalt — Similaridade, Figura-Fundo, Conectividade e Região Comum — para transformar os dados da malha aérea brasileira em narrativa visual. O objetivo não é decoração: é revelar estrutura que números sozinhos escondem.
       </p>
 
       <p class="avd-plain-note">
-        <span class="avd-note-label">leitura visual aplicada</span>
-        As cores agrupam aeroportos por Similaridade regional; as linhas mostram Conectividade; o fundo escuro reforça Figura-Fundo; e os agrupamentos no mapa usam Região Comum. A visualização reduz carga cognitiva: métricas como grau, densidade e caminho mínimo deixam de ser apenas números e passam a contar a estrutura da malha.
+        <span class="avd-note-label">como ler os visuais</span>
+        Cor agrupa aeroportos por região (Similaridade); espessura de linha reflete o peso da rota (Conectividade); o fundo escuro isola o que importa (Figura-Fundo); e os polígonos no mapa delimitam zonas geográficas (Região Comum). Juntos, esses recursos fazem com que grau, densidade e caminho mínimo deixem de ser apenas métricas e passem a contar onde a malha é forte, onde é frágil e por onde o tráfego inevitavelmente passa.
       </p>
 
       <div class="avd-tabs">
@@ -654,6 +701,24 @@
           </div>
         </div>
 
+        <div class="avd-map-route-panel">
+          <div class="avd-map-route-title">Calcular rota no mapa — Dijkstra</div>
+          <div class="avd-map-route-form">
+            <select id="map-route-origem">
+              <option value="">Origem…</option>
+            </select>
+            <select id="map-route-destino">
+              <option value="">Destino…</option>
+            </select>
+            <button type="button" class="avd-map-route-go" onclick="avdCalcMapRoute()">Calcular →</button>
+            <button type="button" class="avd-map-route-go" onclick="avdClearMapRoute()" style="border-color:var(--line);color:var(--muted);background:transparent;" id="map-route-clear" hidden>Limpar</button>
+          </div>
+          <div class="avd-map-route-result" id="map-route-result">
+            <div class="avd-map-route-pill" id="map-route-pill"></div>
+            <div class="avd-map-route-meta" id="map-route-meta"></div>
+          </div>
+        </div>
+
         <div class="avd-narrative" style="margin-top:20px;">
           <div class="avd-narrative-label">insight geográfico</div>
           <p>A distância física não explica tudo sozinha: regiões extensas podem ter poucas conexões internas, enquanto áreas menores concentram hubs. O mapa evidencia onde a malha é geograficamente espalhada, mas operacionalmente dependente de poucos centros.</p>
@@ -671,7 +736,7 @@
 
         <div class="avd-panel" style="margin-bottom:20px;">
           <div class="avd-panel-title">Heatmap — Comparativo Regional de Métricas</div>
-          <canvas id="avd-heatmap" height="190" style="width:100%;display:block;"></canvas>
+          <canvas id="avd-heatmap" height="280" style="width:100%;display:block;"></canvas>
         </div>
 
         <div class="avd-panel">
@@ -697,6 +762,18 @@
       </div>
 
       <div id="avd-pane-rotas" class="avd-pane">
+
+        <div style="margin-bottom:16px;">
+          <button type="button" onclick="avdTab('estrutura', document.querySelector('.avd-tab-btn[onclick*=estrutura]'))" style="
+            display:inline-flex;align-items:center;gap:6px;
+            padding:6px 14px;border-radius:6px;border:1px solid var(--line);
+            background:transparent;color:var(--muted);font-size:13px;font-weight:700;
+            cursor:pointer;font-family:inherit;transition:all 130ms;
+          " onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+             onmouseout="this.style.borderColor='var(--line)';this.style.color='var(--muted)'">
+            ← voltar ao grafo
+          </button>
+        </div>
 
         <div class="avd-narrative">
           <div class="avd-narrative-label">4. Explanatório — Caminhos Mínimos</div>
@@ -996,7 +1073,6 @@ function drawBar(id,labels,values,colors,opts={}){
   const cW=W-pad.left-pad.right, cH=H-pad.top-pad.bottom;
   const maxV=Math.max(...values)*1.15;
   ctx.clearRect(0,0,W,H);
-  // grid
   for(let i=0;i<=4;i++){
     const y=pad.top+cH-(i/4)*cH;
     ctx.strokeStyle="#2a2a2a"; ctx.lineWidth=1;
@@ -1046,7 +1122,6 @@ function initEstrutura(){
   });
   drawBar("avd-rank",bwSorted.map(x=>x[0]),bwSorted.map(x=>x[1]),bwColors,{bp:36,dec:2});
 
-  const NIVEL_LABEL_MAP={"#f43f5e":"Super Hub","#f97316":"Hub Regional","#facc15":"Intermediário","#4ade80":"Regional","#60a5fa":"Periférico"};
   const tb=document.getElementById("avd-ego-tbody"); tb.innerHTML="";
   EGO.forEach(d=>{
     const cor=nivelCor(d.a), reg=AERO[d.a]?.regiao||"", cReg=COR_REG[reg]||"#888";
@@ -1121,20 +1196,18 @@ let mapOk=false, lfMap=null, edgeLayer=null, markerLayer=null, hullLayer=null, s
 function renderMap(){
   const el=document.getElementById("avd-leaflet-map"); if(!el) return;
 
-  // Inicializa o mapa uma única vez
   if(!lfMap){
     lfMap = L.map("avd-leaflet-map",{
       center: [-14, -52], zoom: 4,
       zoomControl: true, attributionControl: false,
     });
-    // Tile escuro CartoDB Dark Matter
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{
       maxZoom: 10, minZoom: 3,
     }).addTo(lfMap);
     L.control.attribution({prefix:false}).addTo(lfMap);
+    avdPopulateMapRouteSelects();
   }
 
-  // Limpa camadas anteriores
   if(hullLayer)  { lfMap.removeLayer(hullLayer);   hullLayer=null;  }
   if(edgeLayer)  { lfMap.removeLayer(edgeLayer);   edgeLayer=null;  }
   if(markerLayer){ lfMap.removeLayer(markerLayer); markerLayer=null; }
@@ -1160,7 +1233,6 @@ function renderMap(){
 
   const maxG = Math.max(...Object.values(GRAUS));
 
-  // ── Arestas ──────────────────────────────────────────────────
   const maxPeso = Math.max(...ARESTAS.map(a=>a[2]));
   edgeLayer = L.layerGroup();
   ARESTAS.forEach(([u,v,peso])=>{
@@ -1193,7 +1265,6 @@ function renderMap(){
   });
   if(showEdges) edgeLayer.addTo(lfMap);
 
-  // ── Marcadores ───────────────────────────────────────────────
   markerLayer = L.layerGroup();
 
   Object.entries(AERO).forEach(([iata,d])=>{
@@ -1223,7 +1294,6 @@ function renderMap(){
       <div class="lf-pop-row"><strong>Dens. ego</strong> ${egoD}</div>
     `, { maxWidth: 200 });
 
-    // Tooltip permanente com o código IATA
     marker.bindTooltip(iata, {
       permanent: true, direction: "top", offset: [0, -(r+4)],
       className: "lf-label",
@@ -1258,6 +1328,109 @@ function avdFilterHubs(){
   onlyHubs=!onlyHubs;
   document.getElementById("avd-btn-hubs").classList.toggle("on",onlyHubs);
   renderMap();
+}
+
+/* ════════════════════════════════════
+   MAPA — ROTA INTERATIVA
+   ════════════════════════════════════ */
+let routeHighlight = null;
+
+function avdPopulateMapRouteSelects(){
+  const iatas = Object.keys(AERO).sort((a,b)=>{
+    const ga=GRAUS[a]||0, gb=GRAUS[b]||0;
+    return gb-ga;
+  });
+  ["map-route-origem","map-route-destino"].forEach(id=>{
+    const sel = document.getElementById(id); if(!sel) return;
+    sel.innerHTML = `<option value="">${id.includes("origem")?"Origem…":"Destino…"}</option>`;
+    iatas.forEach(iata=>{
+      const d = AERO[iata];
+      sel.innerHTML += `<option value="${iata}">${iata} — ${d.cidade}</option>`;
+    });
+  });
+}
+
+function avdDijkstraMap(origem, destino){
+  const adj = {};
+  Object.keys(AERO).forEach(k=>{ adj[k]=[]; });
+  ARESTAS.forEach(([u,v,w])=>{
+    adj[u].push({n:v,w}); adj[v].push({n:u,w});
+  });
+  const dist={}, prev={}, visited=new Set();
+  Object.keys(AERO).forEach(k=>{ dist[k]=Infinity; prev[k]=null; });
+  dist[origem]=0;
+  const pq = [[0,origem]];
+  while(pq.length){
+    pq.sort((a,b)=>a[0]-b[0]);
+    const [d,u] = pq.shift();
+    if(visited.has(u)) continue;
+    visited.add(u);
+    for(const {n,w} of adj[u]){
+      const nd = d+w;
+      if(nd < dist[n]){ dist[n]=nd; prev[n]=u; pq.push([nd,n]); }
+    }
+  }
+  if(dist[destino]===Infinity) return null;
+  const path=[];
+  let cur=destino;
+  while(cur){ path.unshift(cur); cur=prev[cur]; }
+  return {path, custo:dist[destino]};
+}
+
+function avdCalcMapRoute(){
+  const origem  = document.getElementById("map-route-origem")?.value;
+  const destino = document.getElementById("map-route-destino")?.value;
+  if(!origem||!destino||origem===destino) return;
+
+  const res = avdDijkstraMap(origem, destino);
+  const result = document.getElementById("map-route-result");
+  const pill   = document.getElementById("map-route-pill");
+  const meta   = document.getElementById("map-route-meta");
+  const clearBtn = document.getElementById("map-route-clear");
+
+  if(!res){ result.classList.remove("visible"); return; }
+
+  if(routeHighlight){ lfMap.removeLayer(routeHighlight); routeHighlight=null; }
+  const coords = res.path.map(iata=>[AERO[iata].lat, AERO[iata].lon]);
+  routeHighlight = L.layerGroup();
+  L.polyline(coords,{ color:"#facc15", weight:6, opacity:0.25 }).addTo(routeHighlight);
+  L.polyline(coords,{ color:"#facc15", weight:3, opacity:0.95, dashArray:"8 5" }).addTo(routeHighlight);
+  res.path.forEach((iata,i)=>{
+    const isEnd = i===0||i===res.path.length-1;
+    if(!isEnd) return;
+    const cor = i===0 ? "#2ecc71" : "#ff4d4d";
+    L.circleMarker([AERO[iata].lat,AERO[iata].lon],{
+      radius:10, fillColor:cor, color:"#fff", weight:2, fillOpacity:1
+    }).bindTooltip(iata,{permanent:true,direction:"top",className:"lf-label"}).addTo(routeHighlight);
+  });
+  routeHighlight.addTo(lfMap);
+  lfMap.fitBounds(L.latLngBounds(coords).pad(0.3));
+
+  pill.innerHTML = res.path.map((iata,i)=>{
+    const cls = i===0?"rp-start":i===res.path.length-1?"rp-end":"rp-mid";
+    return `<span class="rp-node ${cls}">${iata}</span>${i<res.path.length-1?'<span class="rp-arrow">→</span>':""}`;
+  }).join("");
+
+  const horas = Math.floor(res.custo);
+  const mins  = Math.round((res.custo-horas)*60);
+  const tempoStr = horas>0?(mins>0?`${horas}h ${mins}min`:`${horas}h`):`${mins}min`;
+  meta.innerHTML = `
+    <div class="avd-map-route-stat"><strong>${res.custo.toFixed(2)}h</strong><span>Custo</span></div>
+    <div class="avd-map-route-stat"><strong>${tempoStr}</strong><span>Tempo</span></div>
+    <div class="avd-map-route-stat"><strong>${res.path.length-1}</strong><span>Salto(s)</span></div>
+  `;
+
+  result.classList.add("visible");
+  if(clearBtn) clearBtn.hidden = false;
+}
+
+function avdClearMapRoute(){
+  if(routeHighlight){ lfMap.removeLayer(routeHighlight); routeHighlight=null; }
+  document.getElementById("map-route-result")?.classList.remove("visible");
+  document.getElementById("map-route-origem").value = "";
+  document.getElementById("map-route-destino").value = "";
+  document.getElementById("map-route-clear").hidden = true;
+  if(lfMap) lfMap.setView([-14,-52],4);
 }
 
 /* ════════════════════════════════════
@@ -1309,7 +1482,7 @@ function avdSelectRoute(i,btn){
     <div class="avd-route-stats">
       <div class="avd-route-stat"><strong>${r.custo.toFixed(2)}h</strong><span>Custo total</span></div>
       <div class="avd-route-stat"><strong>${r.caminho.length-1}</strong><span>Salto(s)</span></div>
-      <div class="avd-route-stat">Dijkstra<span>Algoritmo</span></div>
+      <div class="avd-route-stat"><strong>Dijkstra</strong><span>Algoritmo</span></div>
     </div>
   `;
   renderRouteSVG(r);
@@ -1336,7 +1509,6 @@ function renderAlgoChart(idx){
     const maxV = Math.max(...vals) * 1.2 || 1;
     ctx.clearRect(0,0,W,H);
 
-    // grid
     for(let i=0;i<=4;i++){
       const y = pad.top + cH - (i/4)*cH;
       ctx.strokeStyle = "rgba(255,255,255,0.06)";
@@ -1347,7 +1519,6 @@ function renderAlgoChart(idx){
       ctx.fillText(decimals ? v.toFixed(1) : Math.round(v), pad.left-6, y+4);
     }
 
-    // bars
     const bW = (cW / algos.length) * 0.6;
     const gap = (cW / algos.length);
     algos.forEach((a,i) => {
@@ -1359,10 +1530,8 @@ function renderAlgoChart(idx){
       ctx.beginPath();
       ctx.roundRect ? ctx.roundRect(x, y, bW, bH, [4,4,0,0]) : ctx.rect(x, y, bW, bH);
       ctx.fill();
-      // valor em cima
       ctx.fillStyle = cors[i]; ctx.font = "bold 12px Segoe UI"; ctx.textAlign = "center";
       ctx.fillText(decimals ? v.toFixed(2) : v, x + bW/2, y - 6);
-      // label
       ctx.fillStyle = "#94a3b8"; ctx.font = "12px Segoe UI";
       ctx.fillText(labels[i], x + bW/2, pad.top + cH + 18);
     });
@@ -1450,7 +1619,6 @@ function renderPerfChart(){
   const maxX=22, maxY=8;
   ctx.clearRect(0,0,W,H);
 
-  // grid
   for(let i=0;i<=4;i++){
     const gx=pad.left+(i/4)*cW, gy=pad.top+(i/4)*cH;
     ctx.strokeStyle="rgba(255,255,255,0.05)"; ctx.lineWidth=1;
@@ -1472,13 +1640,11 @@ function renderPerfChart(){
   ];
   algos.forEach(({key,cor})=>{
     const vals=PERF_DATA[key];
-    // linha
     ctx.strokeStyle=cor; ctx.lineWidth=2; ctx.beginPath();
     PERF_DATA.sizes.forEach((s,i)=>{
       const x=pad.left+(s/maxX)*cW, y=pad.top+cH-(vals[i]/maxY)*cH;
       i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
     }); ctx.stroke();
-    // pontos
     PERF_DATA.sizes.forEach((s,i)=>{
       const x=pad.left+(s/maxX)*cW, y=pad.top+cH-(vals[i]/maxY)*cH;
       const last=i===PERF_DATA.sizes.length-1;
@@ -1512,31 +1678,31 @@ function renderHeatmap(){
   ];
   metrics.forEach(m=>{ const mx=Math.max(...m.vals)||1; m.norm=m.vals.map(v=>v/mx); });
 
-  const padL=100,padT=32,padB=8,padR=12;
+  const padL=110,padT=40,padB=12,padR=12;
   const cellW=(W-padL-padR)/metrics.length;
   const cellH=(H-padT-padB)/regs.length;
 
   ctx.clearRect(0,0,W,H);
-  ctx.font="11px Segoe UI"; ctx.textAlign="center"; ctx.fillStyle="#64748b";
-  metrics.forEach((m,j)=>ctx.fillText(m.label, padL+j*cellW+cellW/2, padT-10));
+  ctx.font="13px Segoe UI"; ctx.textAlign="center"; ctx.fillStyle="#64748b";
+  metrics.forEach((m,j)=>ctx.fillText(m.label, padL+j*cellW+cellW/2, padT-14));
 
   regs.forEach((reg,i)=>{
-    ctx.textAlign="right"; ctx.font="bold 11px Segoe UI"; ctx.fillStyle=COR_REG[reg];
-    ctx.fillText(reg, padL-10, padT+i*cellH+cellH/2+4);
+    ctx.textAlign="right"; ctx.font="bold 13px Segoe UI"; ctx.fillStyle=COR_REG[reg];
+    ctx.fillText(reg, padL-10, padT+i*cellH+cellH/2+5);
     metrics.forEach((m,j)=>{
       const n=m.norm[i];
       const hex=COR_REG[reg];
       const rv=parseInt(hex.slice(1,3),16), gv=parseInt(hex.slice(3,5),16), bv=parseInt(hex.slice(5,7),16);
       ctx.fillStyle=`rgba(${rv},${gv},${bv},${0.08+n*0.82})`;
-      const rx=padL+j*cellW+2, ry=padT+i*cellH+2, rw=cellW-4, rh=cellH-4;
+      const rx=padL+j*cellW+3, ry=padT+i*cellH+3, rw=cellW-6, rh=cellH-6;
       ctx.beginPath();
-      if(ctx.roundRect) ctx.roundRect(rx,ry,rw,rh,4); else ctx.rect(rx,ry,rw,rh);
+      if(ctx.roundRect) ctx.roundRect(rx,ry,rw,rh,6); else ctx.rect(rx,ry,rw,rh);
       ctx.fill();
       const raw=m.vals[i];
       const txt=Number.isInteger(raw)?raw:raw.toFixed(2);
       ctx.fillStyle=n>0.5?"#f8fafc":"#94a3b8";
-      ctx.textAlign="center"; ctx.font="bold 11px Segoe UI";
-      ctx.fillText(txt, padL+j*cellW+cellW/2, padT+i*cellH+cellH/2+4);
+      ctx.textAlign="center"; ctx.font="bold 13px Segoe UI";
+      ctx.fillText(txt, padL+j*cellW+cellW/2, padT+i*cellH+cellH/2+5);
     });
   });
 }
@@ -1568,7 +1734,6 @@ function renderScatter(idx){
 
   ctx.clearRect(0,0,W,H);
 
-  // grid lines
   for(let i=0;i<=4;i++){
     const gx=pad.left+(i/4)*cW;
     const gy=pad.top+(i/4)*cH;
@@ -1580,13 +1745,11 @@ function renderScatter(idx){
     ctx.textAlign="right";  ctx.fillText(Math.round(maxY-(maxY*i/4)), pad.left-6, gy+4);
   }
 
-  // axis labels
   ctx.fillStyle="#64748b"; ctx.font="12px Segoe UI";
   ctx.textAlign="center"; ctx.fillText("Custo (horas)", pad.left+cW/2, H-4);
   ctx.save(); ctx.translate(13,pad.top+cH/2); ctx.rotate(-Math.PI/2);
   ctx.fillText("Saltos",0,0); ctx.restore();
 
-  // points — dim first, then highlighted on top
   [false,true].forEach(highlight=>{
     points.filter(p=>p.cur===highlight).forEach(p=>{
       const x=pad.left+(p.x/maxX)*cW;
@@ -1635,7 +1798,6 @@ function avdGoToIATA(iata){
   if(!lfMap||!AERO[iata]) return;
   const {lat,lon}=AERO[iata];
   lfMap.flyTo([lat,lon],6,{duration:0.8});
-  // pulsa o marcador
   Object.values(mapMarkers).forEach(m=>{ if(m._iata===iata) m.setRadius(14); else m.setRadius(m._baseR||6); });
   setTimeout(()=>Object.values(mapMarkers).forEach(m=>m.setRadius(m._baseR||6)),1800);
 }
@@ -1728,7 +1890,6 @@ function initLobbyCanvas(){
     if(canvas.width!==W||canvas.height!==H){ canvas.width=W; canvas.height=H; }
     ctx.clearRect(0,0,W,H);
 
-    // Brazil outline
     ctx.beginPath();
     BRAZIL.forEach(([lat,lon],i)=>{
       const [x,y]=toXY(lat,lon,W,H);
@@ -1738,7 +1899,6 @@ function initLobbyCanvas(){
     ctx.strokeStyle="rgba(250,204,21,0.09)"; ctx.lineWidth=1.2; ctx.stroke();
     ctx.fillStyle="rgba(250,204,21,0.025)"; ctx.fill();
 
-    // Airport dots
     AERO_ARR.forEach(([,d])=>{
       const [x,y]=toXY(d.lat,d.lon,W,H);
       const [r,g,b]=hexRGB(COR_REG[d.regiao]||"#888888");
@@ -1746,7 +1906,6 @@ function initLobbyCanvas(){
       ctx.fillStyle=`rgba(${r},${g},${b},0.45)`; ctx.fill();
     });
 
-    // Faint route mesh
     LOBBY_LINKS.forEach(([a,b],idx)=>{
       const A=AERO[a], B=AERO[b];
       if(!A||!B) return;
@@ -1762,7 +1921,6 @@ function initLobbyCanvas(){
       ctx.stroke();
     });
 
-    // Hub radar pulses
     HUBS.forEach(h=>{
       const d=AERO[h.iata]; if(!d) return;
       const [x,y]=toXY(d.lat,d.lon,W,H);
@@ -1778,7 +1936,6 @@ function initLobbyCanvas(){
       ctx.fillStyle=h.cor; ctx.globalAlpha=0.75; ctx.fill(); ctx.globalAlpha=1;
     });
 
-    // Planes
     planes.forEach((p,pi)=>{
       const A=toXY(p.from.lat,p.from.lon,W,H);
       const B=toXY(p.to.lat,p.to.lon,W,H);
@@ -1790,7 +1947,6 @@ function initLobbyCanvas(){
       p.trail.push([x,y]);
       if(p.trail.length>56) p.trail.shift();
 
-      // Trail
       for(let ti=1;ti<p.trail.length;ti++){
         ctx.beginPath();
         ctx.moveTo(p.trail[ti-1][0],p.trail[ti-1][1]);

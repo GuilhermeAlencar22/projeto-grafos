@@ -26,14 +26,16 @@ Implementação de BFS, DFS, Dijkstra e Bellman-Ford em Python puro (sem Network
 
 ---
 
-## Instalação
+## Como rodar (do zero)
+
+Execute os passos abaixo **na ordem**. Todos os comandos devem ser executados na **raiz do projeto**.
+
+### Passo 1 — Clonar e configurar o ambiente
 
 ```bash
-# Clone o repositório
 git clone <url-do-repositorio>
 cd projeto-grafos
 
-# Crie e ative o ambiente virtual
 python -m venv venv
 
 # macOS / Linux
@@ -42,57 +44,29 @@ source venv/bin/activate
 # Windows
 venv\Scripts\activate
 
-# Instale as dependências
 pip install -r requirements.txt
 ```
 
----
+### Passo 2 — Gerar todos os dados e relatórios
 
-## Como rodar
-
-> Todos os comandos devem ser executados na **raiz do projeto**.
-
-### 1. Rodar tudo (Parte 1 + Parte 2)
+Este comando executa os quatro algoritmos, gera o relatório JSON e os gráficos PNG:
 
 ```bash
 python -m src.solve
 ```
 
-Executa os quatro algoritmos, gera o relatório JSON, os PNGs e os dados da interface.
+### Passo 3 — Gerar os arquivos da interface web
 
-### 2. Rodar só a Parte 1
-
-```bash
-python -m src.solve parte1
-```
-
-### 3. Rodar só a Parte 2
-
-```bash
-python -m src.solve parte2
-```
-
-### 4. Gerar os dados da interface (Parte 2)
-
-Necessário se quiser atualizar os JSONs consumidos pela interface sem rodar o pipeline completo:
+Este comando cria os JSONs que a interface consome. **Sem ele, a interface abre vazia:**
 
 ```bash
 python -m src.parte2.build_interface_data
 python -m src.parte2.build_interface_grafo
 ```
 
-### 5. Gerar os gráficos analíticos (PNGs)
+### Passo 4 — Subir o servidor e abrir no navegador
 
 ```bash
-python -m src.parte1.viz parte2
-```
-
-### 6. Abrir a interface no navegador
-
-Use o **Live Server** do VS Code apontando para a pasta `interface/`, ou suba um servidor HTTP simples:
-
-```bash
-# na raiz do projeto
 python -m http.server 8000 --bind 127.0.0.1
 ```
 
@@ -110,16 +84,38 @@ python -m pytest -v
 
 ---
 
-## CLI — exemplos de uso
+## Comandos adicionais
+
+Úteis para rodar partes específicas sem refazer tudo.
+
+### Rodar só a Parte 1
 
 ```bash
-# Parte 1 — BFS a partir de Recife
+python -m src.solve parte1
+```
+
+### Rodar só a Parte 2
+
+```bash
+python -m src.solve parte2
+```
+
+### Regenerar os gráficos PNG
+
+```bash
+python -m src.parte1.viz parte2
+```
+
+### CLI — exemplos de uso direto
+
+```bash
+# BFS a partir de Recife (Parte 1)
 python -m src.cli --dataset ./data/aeroportos_data.csv --alg BFS --source REC --out ./out/
 
-# Parte 1 — Dijkstra de Recife até Porto Alegre
+# Dijkstra de Recife até Porto Alegre (Parte 1)
 python -m src.cli --dataset ./data/aeroportos_data.csv --alg DIJKSTRA --source REC --target POA --out ./out/
 
-# Parte 2 — Dijkstra entre dois filmes
+# Dijkstra entre dois filmes (Parte 2)
 python -m src.cli --dataset ./data/dataset_parte2/ --alg DIJKSTRA --source "Jurassic Park" --target "Pulp Fiction" --out ./out/
 ```
 

@@ -2,8 +2,8 @@
   "bfs": [
     {
       "origem": "Jurassic Park",
-      "tempo_s": 0.004455917,
-      "tempo": 0.004455917,
+      "tempo_s": 0.004466875,
+      "tempo": 0.004466875,
       "visitados": 3899,
       "primeiros_nos": [
         "Jurassic Park",
@@ -17,16 +17,16 @@
         "Star Wars: Episode III - Revenge of the Sith",
         "Unbreakable"
       ],
-      "tempo_total_cli_s": 1.025670458,
-      "tempo_total_cli": 1.025670458,
-      "tempo_execucao": 0.004455917
+      "tempo_total_cli_s": 1.030126625,
+      "tempo_total_cli": 1.030126625,
+      "tempo_execucao": 0.004466875
     }
   ],
   "dfs": [
     {
       "origem": "Jurassic Park",
-      "tempo_s": 0.006347042,
-      "tempo": 0.006347042,
+      "tempo_s": 0.006600542,
+      "tempo": 0.006600542,
       "visitados": 3899,
       "primeiros_nos": [
         "Jurassic Park",
@@ -40,9 +40,9 @@
         "Bridget Jones: The Edge of Reason",
         "One True Thing"
       ],
-      "tempo_total_cli_s": 1.0064285,
-      "tempo_total_cli": 1.0064285,
-      "tempo_execucao": 0.006347042
+      "tempo_total_cli_s": 1.039303167,
+      "tempo_total_cli": 1.039303167,
+      "tempo_execucao": 0.006600542
     }
   ],
   "dijkstra": [
@@ -56,8 +56,8 @@
         "Jurassic Park",
         "Pulp Fiction"
       ],
-      "tempo_s": 0.000701166,
-      "tempo_execucao": 0.000701166
+      "tempo_s": 0.000682959,
+      "tempo_execucao": 0.000682959
     },
     {
       "origem": "Jurassic Park",
@@ -75,8 +75,8 @@
         "Nausicaä of the Valley of the Wind (Kaze no tani no Naushika)",
         "Millennium Actress (Sennen joyû)"
       ],
-      "tempo_s": 0.012425,
-      "tempo_execucao": 0.012425
+      "tempo_s": 0.012242625,
+      "tempo_execucao": 0.012242625
     },
     {
       "origem": "Millennium Actress (Sennen joyû)",
@@ -96,8 +96,8 @@
         "Winnie the Pooh and the Blustery Day",
         "Dumbo"
       ],
-      "tempo_s": 0.013696042,
-      "tempo_execucao": 0.013696042
+      "tempo_s": 0.011907959,
+      "tempo_execucao": 0.011907959
     },
     {
       "origem": "Jurassic Park",
@@ -112,8 +112,8 @@
         "Star Trek: Insurrection",
         "Finding Forrester"
       ],
-      "tempo_s": 0.010695875,
-      "tempo_execucao": 0.010695875
+      "tempo_s": 0.00962225,
+      "tempo_execucao": 0.00962225
     },
     {
       "origem": "Jurassic Park",
@@ -125,8 +125,8 @@
         "Jurassic Park",
         "Independence Day (a.k.a. ID4)"
       ],
-      "tempo_s": 4.9875e-05,
-      "tempo_execucao": 4.9875e-05
+      "tempo_s": 4.6084e-05,
+      "tempo_execucao": 4.6084e-05
     }
   ],
   "bellman_ford": [
@@ -140,16 +140,16 @@
         "b": 2.0,
         "c": 2.0
       },
-      "tempo_s": 1.1208e-05,
-      "tempo_execucao": 1.1208e-05
+      "tempo_s": 1.1167e-05,
+      "tempo_execucao": 1.1167e-05
     },
     {
       "dataset": "data/dataset_parte2/artificiais_bellman_ford/bf_validacao_com_ciclo.csv",
       "origem": "a",
       "ciclo_negativo": true,
       "distancias": null,
-      "tempo_s": 4.625e-06,
-      "tempo_execucao": 4.625e-06
+      "tempo_s": 4.25e-06,
+      "tempo_execucao": 4.25e-06
     }
   ],
   "benchmark": {
@@ -161,8 +161,8 @@
     "bfs": [
       {
         "origem": "Jurassic Park",
-        "tempo_s": 0.004455917,
-        "tempo": 0.004455917,
+        "tempo_s": 0.004466875,
+        "tempo": 0.004466875,
         "visitados": 3899,
         "primeiros_nos": [
           "Jurassic Park",
@@ -176,31 +176,31 @@
           "Star Wars: Episode III - Revenge of the Sith",
           "Unbreakable"
         ],
-        "tempo_total_cli_s": 1.025670458,
-        "tempo_total_cli": 1.025670458,
-        "tempo_execucao": 0.004455917,
+        "tempo_total_cli_s": 1.030126625,
+        "tempo_total_cli": 1.030126625,
+        "tempo_execucao": 0.004466875,
         "fonte_registro": "cli"
       },
       {
         "origem": "Forrest Gump",
-        "tempo_s": 0.004492041,
+        "tempo_s": 0.004423084,
         "visitados": 3899,
         "fonte_registro": "tres_fontes",
-        "tempo_execucao": 0.004492041
+        "tempo_execucao": 0.004423084
       },
       {
         "origem": "Pulp Fiction",
-        "tempo_s": 0.004422791,
+        "tempo_s": 0.004285958,
         "visitados": 3899,
         "fonte_registro": "tres_fontes",
-        "tempo_execucao": 0.004422791
+        "tempo_execucao": 0.004285958
       }
     ],
     "dfs": [
       {
         "origem": "Jurassic Park",
-        "tempo_s": 0.006347042,
-        "tempo": 0.006347042,
+        "tempo_s": 0.006600542,
+        "tempo": 0.006600542,
         "visitados": 3899,
         "primeiros_nos": [
           "Jurassic Park",
@@ -214,24 +214,24 @@
           "Bridget Jones: The Edge of Reason",
           "One True Thing"
         ],
-        "tempo_total_cli_s": 1.0064285,
-        "tempo_total_cli": 1.0064285,
-        "tempo_execucao": 0.006347042,
+        "tempo_total_cli_s": 1.039303167,
+        "tempo_total_cli": 1.039303167,
+        "tempo_execucao": 0.006600542,
         "fonte_registro": "cli"
       },
       {
         "origem": "Forrest Gump",
-        "tempo_s": 0.0058935,
+        "tempo_s": 0.006076084,
         "visitados": 3899,
         "fonte_registro": "tres_fontes",
-        "tempo_execucao": 0.0058935
+        "tempo_execucao": 0.006076084
       },
       {
         "origem": "Pulp Fiction",
-        "tempo_s": 0.005994833,
+        "tempo_s": 0.006091708,
         "visitados": 3899,
         "fonte_registro": "tres_fontes",
-        "tempo_execucao": 0.005994833
+        "tempo_execucao": 0.006091708
       }
     ],
     "dijkstra": [
@@ -245,8 +245,8 @@
           "Jurassic Park",
           "Pulp Fiction"
         ],
-        "tempo_s": 0.000701166,
-        "tempo_execucao": 0.000701166
+        "tempo_s": 0.000682959,
+        "tempo_execucao": 0.000682959
       },
       {
         "origem": "Jurassic Park",
@@ -264,8 +264,8 @@
           "Nausicaä of the Valley of the Wind (Kaze no tani no Naushika)",
           "Millennium Actress (Sennen joyû)"
         ],
-        "tempo_s": 0.012425,
-        "tempo_execucao": 0.012425
+        "tempo_s": 0.012242625,
+        "tempo_execucao": 0.012242625
       },
       {
         "origem": "Millennium Actress (Sennen joyû)",
@@ -285,8 +285,8 @@
           "Winnie the Pooh and the Blustery Day",
           "Dumbo"
         ],
-        "tempo_s": 0.013696042,
-        "tempo_execucao": 0.013696042
+        "tempo_s": 0.011907959,
+        "tempo_execucao": 0.011907959
       },
       {
         "origem": "Jurassic Park",
@@ -301,8 +301,8 @@
           "Star Trek: Insurrection",
           "Finding Forrester"
         ],
-        "tempo_s": 0.010695875,
-        "tempo_execucao": 0.010695875
+        "tempo_s": 0.00962225,
+        "tempo_execucao": 0.00962225
       },
       {
         "origem": "Jurassic Park",
@@ -314,8 +314,8 @@
           "Jurassic Park",
           "Independence Day (a.k.a. ID4)"
         ],
-        "tempo_s": 4.9875e-05,
-        "tempo_execucao": 4.9875e-05
+        "tempo_s": 4.6084e-05,
+        "tempo_execucao": 4.6084e-05
       }
     ],
     "bellman_ford": [
@@ -329,16 +329,16 @@
           "b": 2.0,
           "c": 2.0
         },
-        "tempo_s": 1.1208e-05,
-        "tempo_execucao": 1.1208e-05
+        "tempo_s": 1.1167e-05,
+        "tempo_execucao": 1.1167e-05
       },
       {
         "dataset": "data/dataset_parte2/artificiais_bellman_ford/bf_validacao_com_ciclo.csv",
         "origem": "a",
         "ciclo_negativo": true,
         "distancias": null,
-        "tempo_s": 4.625e-06,
-        "tempo_execucao": 4.625e-06
+        "tempo_s": 4.25e-06,
+        "tempo_execucao": 4.25e-06
       }
     ]
   },
@@ -522,8 +522,8 @@
             "Iron Man 2",
             "Executive Decision"
           ],
-          "tempo_s": 0.004290833,
-          "tempo_execucao": 0.004290833
+          "tempo_s": 0.004433166,
+          "tempo_execucao": 0.004433166
         },
         "dfs": {
           "origem": "Jurassic Park",
@@ -546,8 +546,8 @@
             "Out of Africa",
             "Silkwood"
           ],
-          "tempo_s": 0.0058245,
-          "tempo_execucao": 0.0058245
+          "tempo_s": 0.006129042,
+          "tempo_execucao": 0.006129042
         }
       },
       {
@@ -578,8 +578,8 @@
             "Unbreakable",
             "Toy Story 3"
           ],
-          "tempo_s": 0.004492041,
-          "tempo_execucao": 0.004492041
+          "tempo_s": 0.004423084,
+          "tempo_execucao": 0.004423084
         },
         "dfs": {
           "origem": "Forrest Gump",
@@ -602,8 +602,8 @@
             "Spanish Prisoner, The",
             "Roger Dodger"
           ],
-          "tempo_s": 0.0058935,
-          "tempo_execucao": 0.0058935
+          "tempo_s": 0.006076084,
+          "tempo_execucao": 0.006076084
         }
       },
       {
@@ -634,8 +634,8 @@
             "Sin City",
             "Gattaca"
           ],
-          "tempo_s": 0.004422791,
-          "tempo_execucao": 0.004422791
+          "tempo_s": 0.004285958,
+          "tempo_execucao": 0.004285958
         },
         "dfs": {
           "origem": "Pulp Fiction",
@@ -658,11 +658,11 @@
             "Legend of Drunken Master, The (Jui kuen II)",
             "Forbidden Kingdom, The"
           ],
-          "tempo_s": 0.005994833,
-          "tempo_execucao": 0.005994833
+          "tempo_s": 0.006091708,
+          "tempo_execucao": 0.006091708
         }
       }
     ],
-    "tempo_total_cli_s": 1.079079667
+    "tempo_total_cli_s": 1.121674417
   }
 }
