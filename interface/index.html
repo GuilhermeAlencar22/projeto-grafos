@@ -6,7 +6,24 @@
     <title>Parte 2 — Rede IMDb | Teoria dos Grafos</title>
     <link rel="stylesheet" href="lib/vis-9.1.2/vis-network.css">
     <link rel="stylesheet" href="styles.css?v=24">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
+      /* ── coesão com a landing: fonte display nos títulos + base mais escura ── */
+      :root { --font-display: "Space Grotesk", "Segoe UI", Arial, sans-serif; }
+      body { background: linear-gradient(180deg, #0a0a0a, #000000 60%); }
+      .brand-mark,
+      .topbar h1,
+      .hero-copy h2,
+      #grafos .section-heading h2,
+      #resultados .section-heading-resultados h2,
+      #graficos .section-heading h2,
+      .p2-section-title,
+      .p2-stat strong,
+      .avd2-stat strong { font-family: var(--font-display); }
+      .topbar h1 { font-size: clamp(22px, 2.6vw, 32px); text-transform: uppercase; letter-spacing: 0.01em; }
+
       .p2-section { margin-top: 48px; }
       .p2-section-title {
         margin: 0 0 6px;
@@ -21,6 +38,55 @@
         line-height: 1.6;
         max-width: 760px;
       }
+
+      .p2-lobby-hero {
+        min-height: auto;
+        padding: 72px 0 34px;
+      }
+      .p2-lobby-hero .hero-copy h2 {
+        margin: 0 0 18px;
+        font-size: clamp(32px, 4vw, 56px);
+      }
+      .p2-lobby-hero .hero-copy p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.6;
+        max-width: 680px;
+      }
+      .p2-lobby-grid {
+        max-width: none;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 0;
+      }
+      .p2-lobby-actions {
+        margin-top: 18px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .p2-analysis-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0;
+        margin: 24px 0 28px;
+        border-bottom: 1px solid var(--line);
+      }
+      .p2-analysis-tab {
+        border: 0;
+        border-bottom: 2px solid transparent;
+        border-radius: 0;
+        background: transparent;
+        color: var(--muted);
+        padding: 14px 16px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .p2-analysis-tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+      }
+      .p2-analysis-panel { display: none; }
+      .p2-analysis-panel.active { display: block; }
 
       .p2-stats {
         display: grid;
@@ -183,89 +249,80 @@
   <body>
     <header class="topbar">
       <div class="brand">
-        <span class="brand-mark">P2</span>
         <div>
           <p class="eyebrow">parte 2</p>
-          <h1>teoria dos grafos</h1>
+          <h1>Filmes</h1>
         </div>
       </div>
       <nav class="nav">
-        <a class="is-active" href="#inicio" data-view="inicio">início</a>
+        <a class="is-active" href="#inicio" data-view="inicio">lobby</a>
         <a href="#grafos" data-view="grafos">grafos</a>
-        <a href="#resultados" data-view="resultados">resultados</a>
-        <a href="#graficos" data-view="graficos">gráficos</a>
+        <a href="#analise" data-view="analise">análise de dados</a>
         <a href="parte1.html">parte 1</a>
         <a href="../index.html" style="border-left:1px solid var(--line);padding-left:1rem;margin-left:0.5rem;">← início</a>
       </nav>
     </header>
 
     <main>
-      <section class="hero view-panel is-active" id="inicio" data-view-panel="inicio">
-        <div class="hero-copy">
-          <h2>Filmes são vértices. Atores e gêneros criam arestas ponderadas.</h2>
-
-          <div class="p2-stats" style="margin-top:28px;">
-            <div class="p2-stat"><strong>3.899</strong><span>Vértices</span></div>
-            <div class="p2-stat"><strong>63.484</strong><span>Arestas</span></div>
-            <div class="p2-stat"><strong>32,6</strong><span>Grau Médio</span></div>
-            <div class="p2-stat"><strong>1</strong><span>Componente</span></div>
-            <div class="p2-stat"><strong>142</strong><span>Grau Máximo</span></div>
+      <section class="view-panel is-active" id="inicio" data-view-panel="inicio">
+        <div class="hero p2-lobby-hero">
+          <div class="hero-copy">
+            <p class="eyebrow">parte 2 — rede imdb</p>
+            <h2>
+              3.899 Filmes.<br>
+              <span style="color:var(--primary);">Algoritmos do Zero.</span><br>
+              Uma Rede Conectada.
+            </h2>
+            <p>
+              Modelamos filmes como vértices e criamos arestas ponderadas a partir de atores e gêneros em comum. O backend processa o dataset completo; a interface usa subgrafos filtrados para manter a exploração fluida.
+            </p>
           </div>
-
-          <div class="hero-info-grid">
-            <article class="formula-card">
-              <span>fórmula de peso</span>
-              <strong>similaridade = (2 × atores) + gêneros</strong>
-              <p>
-                Cada ator em comum vale <b>2</b>; cada gênero em comum vale <b>1</b>.
-                O peso da aresta é <b>peso = 1 / similaridade</b> — conexões mais fortes
-                ficam com custo menor, então o Dijkstra escolhe naturalmente os filmes
-                mais parecidos.
-              </p>
-            </article>
-            <article>
-              <span>dataset IMDb</span>
-              <strong>grafo não-dirigido e ponderado</strong>
-              <p>
-                Fonte: <code style="font-size:12px;color:var(--primary)">Imdb_filmes.csv</code>
-                e <code style="font-size:12px;color:var(--primary)">Imdb_arestas.csv</code>.
-                1 componente gigante com 3.899 filmes (dataset curado: sim ≥ 3).
-                BFS, DFS, Dijkstra e Bellman-Ford implementados <b>sem libs de algoritmos prontos</b>.
-              </p>
-            </article>
-          </div>
-
-          <aside class="cinema-note">
-            <span>exemplo concreto</span>
-            <strong>Vingadores 1 ↔ Vingadores 2: sim = 22 · peso = 0,045</strong>
-            <em>9 atores em comum + mesmo gênero = aresta grossa = caminho barato no Dijkstra.</em>
-          </aside>
-
-          <div class="hero-actions">
-            <button type="button" data-view="grafos">explorar grafo</button>
-            <button type="button" data-view="resultados">ver resultados</button>
-            <button type="button" data-view="graficos">análise visual</button>
+          <div class="hero-side">
+            <div class="metric-grid" id="dataset-metrics">
+              <article class="metric-card">
+                <span>vertices</span>
+                <strong data-field="num_vertices">--</strong>
+              </article>
+              <article class="metric-card">
+                <span>arestas</span>
+                <strong data-field="num_arestas">--</strong>
+              </article>
+              <article class="metric-card">
+                <span>grau medio</span>
+                <strong data-field="grau_medio">--</strong>
+              </article>
+              <article class="metric-card">
+                <span>ilhas</span>
+                <strong data-field="componentes_conexas">--</strong>
+              </article>
+            </div>
           </div>
         </div>
-        <div class="hero-side">
-          <div class="metric-grid" id="dataset-metrics">
-            <article class="metric-card">
-              <span>vertices</span>
-              <strong data-field="num_vertices">--</strong>
-            </article>
-            <article class="metric-card">
-              <span>arestas</span>
-              <strong data-field="num_arestas">--</strong>
-            </article>
-            <article class="metric-card">
-              <span>grau medio</span>
-              <strong data-field="grau_medio">--</strong>
-            </article>
-            <article class="metric-card">
-              <span>ilhas</span>
-              <strong data-field="componentes_conexas">--</strong>
-            </article>
-          </div>
+
+        <div class="hero-info-grid p2-lobby-grid">
+          <article class="formula-card">
+            <span>fórmula de peso</span>
+            <strong>similaridade = (2 × atores) + gêneros</strong>
+            <p>
+              Cada ator em comum vale <b>2</b>; cada gênero em comum vale <b>1</b>.
+              O peso da aresta é <b>peso = 1 / similaridade</b>, então conexões
+              mais fortes ficam com custo menor para o Dijkstra.
+            </p>
+          </article>
+          <article>
+            <span>dataset IMDb</span>
+            <strong>grafo não-dirigido e ponderado</strong>
+            <p>
+              Fonte: <code style="font-size:12px;color:var(--primary)">Imdb_filmes.csv</code>
+              e <code style="font-size:12px;color:var(--primary)">Imdb_arestas.csv</code>.
+              BFS, DFS, Dijkstra e Bellman-Ford foram implementados <b>sem libs de algoritmos prontos</b>.
+            </p>
+          </article>
+        </div>
+
+        <div class="hero-actions p2-lobby-actions">
+          <button type="button" data-view="grafos">explorar grafo</button>
+          <button type="button" data-view="analise">análise de dados</button>
         </div>
       </section>
 
@@ -294,9 +351,13 @@
               <span class="gmode-icon">⬡</span>
               <span class="gmode-label">Dijkstra</span>
             </button>
-            <button type="button" class="gmode-btn" data-mode="bellman-ford">
+            <button type="button" class="gmode-btn" data-mode="bellman-sem-ciclo">
               <span class="gmode-icon">⚠</span>
-              <span class="gmode-label">Bellman</span>
+              <span class="gmode-label">BF sem ciclo</span>
+            </button>
+            <button type="button" class="gmode-btn" data-mode="bellman-com-ciclo">
+              <span class="gmode-icon">⛔</span>
+              <span class="gmode-label">BF com ciclo</span>
             </button>
             <button type="button" class="gmode-btn gmode-btn-full" data-mode="grafo-completo">
               <span class="gmode-icon">⊞</span>
@@ -359,12 +420,18 @@
         </div>
       </section>
 
-      <section class="panel-section view-panel" id="resultados" data-view-panel="resultados">
+      <section class="panel-section view-panel" id="analise" data-view-panel="analise">
         <div class="section-heading section-heading-resultados">
-          <h2>Resultados e Discussão Crítica</h2>
-          <p class="section-sub">Corretude, desempenho e análise comparativa dos 4 algoritmos implementados sobre o grafo IMDb.</p>
+          <h2>Análise de Dados</h2>
+          <p class="section-sub">Resultados, discussão crítica, benchmark e visualizações analíticas da rede IMDb.</p>
         </div>
 
+        <div class="p2-analysis-tabs" aria-label="subseções de análise da parte 2">
+          <button type="button" class="p2-analysis-tab active" onclick="p2AnalysisTab('resultados',this)">Resultados</button>
+          <button type="button" class="p2-analysis-tab" onclick="p2AnalysisTab('graficos',this)">Gráficos</button>
+        </div>
+
+        <div id="p2-analise-resultados" class="p2-analysis-panel active">
         <div class="p2-result-intro">
           <div class="p2-result-intro-card">
             <div class="label">Storytelling Explanatório — o que cada algoritmo responde</div>
@@ -494,13 +561,13 @@
           <div class="results-tech-json" id="raw-output-pane"></div>
           <aside class="results-tech-bench" id="benchmark-output" aria-label="tempos medios por algoritmo"></aside>
         </div>
-      </section>
-
-      <section class="panel-section view-panel" id="graficos" data-view-panel="graficos">
-        <div class="section-heading">
-          <h2>Análise e Visualização de Dados</h2>
-          <p class="section-sub">Gestalt, Storytelling Analítico e Hierarquia Visual aplicados à rede IMDb — 5 gráficos, cada um responde uma pergunta específica sobre a estrutura do dataset.</p>
         </div>
+
+        <div id="p2-analise-graficos" class="p2-analysis-panel">
+          <div class="section-heading">
+            <h2>Análise e Visualização de Dados</h2>
+            <p class="section-sub">Gestalt, Storytelling Analítico e Hierarquia Visual aplicados à rede IMDb — 5 gráficos, cada um responde uma pergunta específica sobre a estrutura do dataset.</p>
+          </div>
 
         <div class="p2-section">
           <div class="p2-stats">
@@ -593,6 +660,7 @@
           </div>
 
         </div>
+        </div>
       </section>
     </main>
 
@@ -627,10 +695,6 @@
       </section>
     </div>
 
-    <footer style="text-align:center;padding:32px 20px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);margin-top:0;">
-      Projeto Final — Teoria dos Grafos &nbsp;·&nbsp; Python puro · PyVis · Matplotlib · Pandas
-    </footer>
-
     <script src="lib/vis-9.1.2/vis-network.min.js"></script>
     <script src="app.js?v=43"></script>
     <script>
@@ -638,6 +702,12 @@
         document.querySelectorAll(".p2-pane").forEach((p) => { p.classList.remove("active"); });
         document.querySelectorAll(".p2-tab-btn").forEach((b) => { b.classList.remove("active"); });
         document.getElementById(`p2-pane-${id}`).classList.add("active");
+        btn.classList.add("active");
+      };
+      window.p2AnalysisTab = function p2AnalysisTab(id, btn) {
+        document.querySelectorAll(".p2-analysis-panel").forEach((p) => { p.classList.remove("active"); });
+        document.querySelectorAll(".p2-analysis-tab").forEach((b) => { b.classList.remove("active"); });
+        document.getElementById(`p2-analise-${id}`).classList.add("active");
         btn.classList.add("active");
       };
     </script>

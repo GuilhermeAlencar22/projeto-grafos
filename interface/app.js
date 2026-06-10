@@ -18,6 +18,13 @@ function setText(selector, value) {
   if (el) el.textContent = value;
 }
 
+function formatNumber(value, decimals = 0) {
+  return new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value);
+}
+
 function metricValue(value) {
   if (typeof value === "number") return fmt.format(value);
   return value ?? "--";
@@ -37,12 +44,12 @@ function animateNumber(selector, value, decimals = 0) {
     const progress = Math.min((now - start) / duration, 1);
     const eased = 1 - Math.pow(1 - progress, 3);
     const current = value * eased;
-    el.textContent = decimals > 0 ? current.toFixed(decimals) : fmt.format(Math.round(current));
+    el.textContent = decimals > 0 ? formatNumber(current, decimals) : fmt.format(Math.round(current));
 
     if (progress < 1) {
       requestAnimationFrame(frame);
     } else {
-      el.textContent = decimals > 0 ? value.toFixed(decimals) : fmt.format(value);
+      el.textContent = decimals > 0 ? formatNumber(value, decimals) : fmt.format(value);
     }
   }
 
@@ -400,7 +407,7 @@ function makePathGraph(path, options = {}) {
   };
 }
 
-function makeBellmanFordGraph() {
+function makeBellmanFordGraph(caso = "sem-ciclo") {
   const node = (id, label, x, y, color, size = 34, description = "") => ({
     ...baseNode(id, {
       background: color,
@@ -448,25 +455,32 @@ function makeBellmanFordGraph() {
     },
   });
 
+  const okNodes = [
+    node("ok-z", "fonte\nz", -80, -160, "#2ecc71", 44, "fonte Z do caso sem ciclo negativo"),
+    node("ok-a", "a", -250, 60, "#f5c518", 34, "vertice alcancado com peso positivo"),
+    node("ok-b", "b", 90, 60, "#f5c518", 34, "vertice alcancado pela fonte Z"),
+    node("ok-c", "c", -80, 260, "#f5c518", 34, "recebe relaxamento com peso negativo, mas sem formar ciclo negativo"),
+  ];
+  const badNodes = [
+    node("bad-a", "fonte\na", -80, -150, "#ff4d4d", 44, "inicio do caso com ciclo negativo"),
+    node("bad-b", "b", -260, 170, "#f5c518", 34, "parte do ciclo dirigido"),
+    node("bad-c", "c", 120, 170, "#ff4d4d", 40, "fecha o ciclo negativo voltando para a"),
+  ];
+  const okEdges = [
+    directedEdge("ok-z", "ok-a", "5", "sem ciclo negativo"),
+    directedEdge("ok-z", "ok-b", "2", "sem ciclo negativo"),
+    directedEdge("ok-b", "ok-c", "0", "sem ciclo negativo"),
+    directedEdge("ok-a", "ok-c", "-3", "sem ciclo negativo"),
+  ];
+  const badEdges = [
+    directedEdge("bad-a", "bad-b", "1", "com ciclo negativo"),
+    directedEdge("bad-b", "bad-c", "-3", "com ciclo negativo", true),
+    directedEdge("bad-c", "bad-a", "1", "com ciclo negativo", true),
+  ];
+
   return {
-    nodes: [
-      node("ok-z", "sem ciclo\nz", -330, -130, "#2ecc71", 44, "fonte Z do caso sem ciclo negativo"),
-      node("ok-a", "a", -455, 40, "#f5c518", 34, "vertice alcancado com peso positivo"),
-      node("ok-b", "b", -205, 40, "#f5c518", 34, "vertice alcancado pela fonte Z"),
-      node("ok-c", "c", -330, 210, "#f5c518", 34, "recebe relaxamento com peso negativo, mas sem formar ciclo negativo"),
-      node("bad-a", "com ciclo\na", 260, -130, "#ff4d4d", 44, "inicio do caso com ciclo negativo"),
-      node("bad-b", "b", 105, 150, "#f5c518", 34, "parte do ciclo dirigido"),
-      node("bad-c", "c", 415, 150, "#ff4d4d", 40, "fecha o ciclo negativo voltando para a"),
-    ],
-    edges: [
-      directedEdge("ok-z", "ok-a", "5", "sem ciclo negativo"),
-      directedEdge("ok-z", "ok-b", "2", "sem ciclo negativo"),
-      directedEdge("ok-b", "ok-c", "0", "sem ciclo negativo"),
-      directedEdge("ok-a", "ok-c", "-3", "sem ciclo negativo"),
-      directedEdge("bad-a", "bad-b", "1", "com ciclo negativo"),
-      directedEdge("bad-b", "bad-c", "-3", "com ciclo negativo", true),
-      directedEdge("bad-c", "bad-a", "1", "com ciclo negativo", true),
-    ],
+    nodes: caso === "com-ciclo" ? badNodes : okNodes,
+    edges: caso === "com-ciclo" ? badEdges : okEdges,
     layout: "network",
   };
 }
@@ -932,8 +946,12 @@ function graphForMode(mode) {
     return makeDijkstraGraph();
   }
 
-  if (mode === "bellman-ford") {
-    return makeBellmanFordGraph();
+  if (mode === "bellman-sem-ciclo") {
+    return makeBellmanFordGraph("sem-ciclo");
+  }
+
+  if (mode === "bellman-com-ciclo") {
+    return makeBellmanFordGraph("com-ciclo");
   }
 
   if (mode === "grafo-completo") {
@@ -964,7 +982,7 @@ function defaultGraphSource() {
 function renderMetrics(dataset) {
   animateNumber('[data-field="num_vertices"]', dataset.num_vertices);
   animateNumber('[data-field="num_arestas"]', dataset.num_arestas);
-  animateNumber('[data-field="grau_medio"]', dataset.grau?.medio, 2);
+  animateNumber('[data-field="grau_medio"]', dataset.grau?.medio, 1);
   animateNumber('[data-field="componentes_conexas"]', dataset.componentes_conexas);
 }
 
@@ -1058,7 +1076,7 @@ function renderResults(resumo) {
     </tr>`;
   }).join("");
 
-  const bellmanRows = bellmanList.map((item) => {
+  const bellmanRows = (items) => items.map((item) => {
     const dataset = String(item.dataset ?? "").split(/[/\\]/).pop();
     const distStr = item.distancias
       ? Object.entries(item.distancias).map(([k, v]) => `${k}=${v}`).join(", ")
@@ -1073,6 +1091,8 @@ function renderResults(resumo) {
       <td class="td-muted">${timeValue(item.tempo_s)}</td>
     </tr>`;
   }).join("");
+  const bellmanSemCicloRows = bellmanRows(bellmanList.filter((item) => !item.ciclo_negativo));
+  const bellmanComCicloRows = bellmanRows(bellmanList.filter((item) => item.ciclo_negativo));
 
   document.getElementById("results-tables").innerHTML = `
     <div class="results-tables-section">
@@ -1126,8 +1146,28 @@ function renderResults(resumo) {
 
       <div class="results-table-block">
         <div class="results-table-block-header">
-          <h4>Bellman-Ford — grafos artificiais com pesos negativos</h4>
+          <h4>Bellman-Ford — caso sem ciclo negativo</h4>
           <span class="results-table-badge ok">sem ciclo negativo ✓</span>
+        </div>
+        <div class="table-wrap">
+          <table class="results-detail-table">
+            <thead>
+              <tr>
+                <th>Dataset</th>
+                <th>Fonte</th>
+                <th>Resultado</th>
+                <th>Distâncias calculadas</th>
+                <th>Tempo</th>
+              </tr>
+            </thead>
+            <tbody>${bellmanSemCicloRows}</tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="results-table-block">
+        <div class="results-table-block-header">
+          <h4>Bellman-Ford — caso com ciclo negativo</h4>
           <span class="results-table-badge cycle">ciclo negativo detectado ✓</span>
         </div>
         <div class="table-wrap">
@@ -1141,7 +1181,7 @@ function renderResults(resumo) {
                 <th>Tempo</th>
               </tr>
             </thead>
-            <tbody>${bellmanRows}</tbody>
+            <tbody>${bellmanComCicloRows}</tbody>
           </table>
         </div>
       </div>
@@ -1599,11 +1639,22 @@ function renderModeDetails(mode) {
   resetDetails();
 }
 
-function renderBellmanDetails() {
+function renderBellmanDetails(caso = "ambos") {
+  const title = caso === "com-ciclo"
+    ? "Bellman-Ford — Caso com Ciclo Negativo"
+    : caso === "sem-ciclo"
+      ? "Bellman-Ford — Caso sem Ciclo Negativo"
+      : "Bellman-Ford — Validação de Ciclos";
+  const intro = caso === "com-ciclo"
+    ? "Grafo artificial dirigido com ciclo de custo negativo. O algoritmo detecta o ciclo e bloqueia o resultado."
+    : caso === "sem-ciclo"
+      ? "Grafo artificial dirigido com peso negativo controlado. O algoritmo calcula as distâncias finais sem detectar ciclo negativo."
+      : "O grafo IMDb tem apenas pesos positivos. Para validar o algoritmo, foram criados dois grafos artificiais dirigidos.";
+
   document.getElementById("details-panel").innerHTML = `
     <p class="eyebrow">algoritmo: pesos negativos</p>
-    <h3>Bellman-Ford — Validação de Ciclos</h3>
-    <p>O grafo IMDb tem apenas pesos positivos. Para validar o algoritmo, foram criados dois grafos artificiais dirigidos.</p>
+    <h3>${title}</h3>
+    <p>${intro}</p>
     <div class="algo-visual">
       <div class="algo-cases">
         <div class="algo-case algo-case-ok">
@@ -1926,8 +1977,10 @@ function setupGraphControls() {
       filtersBar?.classList.toggle("is-hidden", !MODOS_COM_FILTROS.has(modeValue));
       drawGraph(modeValue);
       refreshGraphView(true);
-      if (modeValue === "bellman-ford") {
-        renderBellmanDetails();
+      if (modeValue === "bellman-sem-ciclo") {
+        renderBellmanDetails("sem-ciclo");
+      } else if (modeValue === "bellman-com-ciclo") {
+        renderBellmanDetails("com-ciclo");
       } else {
         renderModeDetails(modeValue);
       }
@@ -2105,9 +2158,14 @@ function setupViews() {
   const tabs = [...document.querySelectorAll(".nav [data-view]")];
   const panels = [...document.querySelectorAll("[data-view-panel]")];
   const validViews = new Set(panels.map((panel) => panel.dataset.viewPanel));
+  const viewAliases = {
+    resultados: "analise",
+    graficos: "analise",
+  };
 
   function showView(view) {
-    const nextView = validViews.has(view) ? view : "inicio";
+    const requestedView = viewAliases[view] ?? view;
+    const nextView = validViews.has(requestedView) ? requestedView : "inicio";
 
     tabs.forEach((tab) => {
       tab.classList.toggle("is-active", tab.dataset.view === nextView);

@@ -100,9 +100,10 @@ def rodar_parte1():
 
     caminho_rec_poa = _caminho_de("REC", "POA")
     caminho_mao_gru = _caminho_de("MAO", "GRU")
+    caminhos_obrigatorios = caminho_rec_poa + caminho_mao_gru
 
-    if caminho_rec_poa:
-        gerar_arvore_percurso(grafo, caminho_rec_poa, aeroportos, output_path="out/arvore_percurso.html")
+    if caminhos_obrigatorios:
+        gerar_arvore_percurso(grafo, caminhos_obrigatorios, aeroportos, output_path="out/arvore_percurso.html")
     if caminho_mao_gru:
         gerar_arvore_percurso(grafo, caminho_mao_gru, aeroportos, output_path="out/arvore_percurso_gru_mao.html")
     plot_histograma_graus(grafo)
