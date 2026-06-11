@@ -7,6 +7,14 @@ Implementação de BFS, DFS, Dijkstra e Bellman-Ford em Python puro (sem Network
 
 ---
 
+## Documentação
+
+- [Relatório Técnico](PROJETO%20FINAL%20—%20TEORIA%20DOS%20GRAFOS.pdf)
+- [Relatório AVD](relatorio_avd.md)
+- [Slides de Apresentação](Apresentacao_Grafos.pdf)
+
+---
+
 ## Equipe
 
 | Nome | E-mail |
@@ -100,12 +108,6 @@ python -m src.solve parte1
 python -m src.solve parte2
 ```
 
-### Regenerar os gráficos PNG
-
-```bash
-python -m src.parte1.viz parte2
-```
-
 ### CLI — exemplos de uso direto
 
 ```bash
@@ -149,7 +151,6 @@ projeto-grafos/
 │   ├── parte1/                      ← métricas e visualizações Parte 1
 │   ├── parte2/                      ← builders da interface Parte 2
 │   ├── solve.py                     ← pipeline principal
-│   ├── viz.py                       ← atalho para geração de PNGs
 │   └── cli.py                       ← interface de linha de comando
 ├── tests/
 ├── requirements.txt
