@@ -40,7 +40,7 @@ def rodar_parte1():
         metricas_globais,
         subgrafo_por_regiao,
     )
-    from src.viz import (
+    from src.parte1.viz import (
         gerar_arvore_percurso,
         gerar_grafo_interativo,
         plot_histograma_graus,
