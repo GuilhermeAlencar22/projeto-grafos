@@ -176,7 +176,7 @@ def build_amostra(movies: dict[str, dict], edges: list[dict], report: dict) -> d
         reverse=True,
     )
 
-    top_nodes = {name for name, _ in degree.most_common(36)}
+    top_nodes = {name for name, _ in degree.most_common(40)}
     top_connection_edges = [
         edge for edge in edges if edge["origem"] in top_nodes or edge["destino"] in top_nodes
     ]
@@ -214,10 +214,10 @@ def build_amostra(movies: dict[str, dict], edges: list[dict], report: dict) -> d
             franquia_edges.append(edge)
 
     selected: list[dict] = []
-    selected.extend(_connected_sample(by_similarity, 120))
-    selected.extend(top_connection_edges[:180])
+    selected.extend(_connected_sample(by_similarity, 35))
+    selected.extend(top_connection_edges[:60])
     selected.extend(_edges_from_paths(report, edge_map))
-    selected.extend(_traversal_edges(fontes, adj, 48))
+    selected.extend(_traversal_edges(fontes, adj, 15))
     selected.extend(franquia_edges)
 
     edge_out: dict[str, dict] = {}
@@ -240,12 +240,12 @@ def build_amostra(movies: dict[str, dict], edges: list[dict], report: dict) -> d
             "fonte_arestas": "data/dataset_parte2/Imdb_arestas.csv",
             "movies_total": len(movies),
             "edges_total": len(edge_out),
-            "observacao": "todos os filmes do csv estao em movies; edges e amostra visual para nao travar o navegador.",
+            "observacao": "movies inclui apenas filmes com pelo menos uma aresta na amostra.",
         },
         "movies": {
             name: movies[name]
-            for name in sorted(movies)
-            if name
+            for name in sorted(movie_names)
+            if name and name in movies
         },
         "edges": dict(sorted(edge_out.items())),
     }

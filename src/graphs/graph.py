@@ -1,3 +1,2 @@
-from src.shared.graph import Graph, print_degree_sample_stats
-
-__all__ = ["Graph", "print_degree_sample_stats"]
+"""Estrutura do grafo (lista de adjacência) — re-exportada de src.shared."""
+from src.shared.graph import *  # noqa: F401, F403

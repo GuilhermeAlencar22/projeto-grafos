@@ -1,701 +1,626 @@
-"""gera os pngs da narrativa AVD da parte 2 — 4 dashboards, cada um responde uma pergunta."""
+﻿"""Gera os 5 PNGs de AVD da Parte 2 + subgrafo_hubs_p2.html interativo.
+
+Uso:
+    python -m src.parte2.build_visualizations
+"""
 
 from __future__ import annotations
 
-import argparse
+import collections
+import csv
+import heapq
 import json
-from collections import Counter
+import math
+import time
 from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-import matplotlib.gridspec as gridspec
 import numpy as np
-import pandas as pd
 
-FIG_DPI    = 200
-GRID_ALPHA = 0.22
+# ── constantes visuais ────────────────────────────────────────────────────────
+FIG_DPI = 180
 
-FONT_TITLE  = 14
-FONT_SUB    = 12
-FONT_AXIS   = 10
-FONT_SMALL  = 8.5
-FONT_TINY   = 7.5
+BG     = "#0d1117"
+PANEL  = "#0d1117"
+BORDA  = "rgba(255,255,255,0.06)"
+TXT    = "#ffffff"
+MUTED  = (1, 1, 1, 0.45)
 
-BG      = "#0f172a"
-PANEL   = "#1e293b"
-BORDA   = "#334155"
-TXT     = "#f1f5f9"
-TXT_DIM = "#94a3b8"
+AMARELO = "#f5c518"
+LARANJA = "#f97316"
+VERMELHO= "#f43f5e"
+VERDE   = "#34d399"
+CIANO   = "#38bdf8"
+ROXO    = "#a78bfa"
 
-COL_PRIMARY  = "#f5c518"
-COL_ORANGE   = "#f97316"
-COL_RED      = "#f43f5e"
-COL_GREEN    = "#34d399"
-COL_CYAN     = "#38bdf8"
-COL_MUTED    = "#94a3b8"
-COL_PURPLE   = "#a78bfa"
+COL_BFS      = VERDE
+COL_DFS      = CIANO
+COL_DIJKSTRA = AMARELO
+COL_BELLMAN  = LARANJA
 
-COL_BFS      = COL_GREEN
-COL_DFS      = COL_CYAN
-COL_DIJKSTRA = COL_PRIMARY
-COL_BELLMAN  = COL_ORANGE
 
+def _root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+MUTED_C  = (1, 1, 1, 0.45)
+DIM_C    = (1, 1, 1, 0.30)
+GRID_C   = (1, 1, 1, 0.07)
+LEG_TXT  = (1, 1, 1, 0.70)
 
 def _estilo() -> None:
     plt.rcParams.update({
         "font.family":       "DejaVu Sans",
-        "font.size":          FONT_AXIS,
-        "axes.titlesize":     FONT_SUB,
-        "axes.labelsize":     FONT_AXIS,
-        "legend.fontsize":    FONT_SMALL,
-        "figure.facecolor":   BG,
-        "axes.facecolor":     PANEL,
-        "axes.edgecolor":     BORDA,
-        "axes.labelcolor":    TXT_DIM,
-        "xtick.color":        TXT_DIM,
-        "ytick.color":        TXT_DIM,
-        "text.color":         TXT,
-        "legend.facecolor":   PANEL,
-        "legend.edgecolor":   BORDA,
-        "grid.color":         BORDA,
-        "savefig.facecolor":  BG,
+        "font.size":         10,
+        "text.color":        TXT,
+        "axes.facecolor":    BG,
+        "figure.facecolor":  BG,
+        "axes.edgecolor":    "#1f2937",
+        "axes.labelcolor":   MUTED_C,
+        "xtick.color":       DIM_C,
+        "ytick.color":       DIM_C,
+        "xtick.labelsize":   9,
+        "ytick.labelsize":   9,
+        "grid.color":        GRID_C,
+        "grid.linewidth":    0.6,
+        "axes.spines.top":   False,
+        "axes.spines.right": False,
+        "axes.spines.left":  False,
+        "axes.spines.bottom":False,
+        "legend.facecolor":  BG,
+        "legend.edgecolor":  "#1f2937",
+        "legend.labelcolor": LEG_TXT,
+        "legend.fontsize":   9,
     })
+
+
+def _glow_line(ax, x, y, color, lw=2.5, label=None, **kw):
+    """Plota linha com efeito glow (camada larga transparente + linha sólida)."""
+    ax.plot(x, y, color=color, lw=lw * 3.5, alpha=0.18, zorder=2)
+    ax.plot(x, y, color=color, lw=lw, label=label, zorder=3, **kw)
+
+
+def _titulo(ax, title: str, sub: str = "") -> None:
+    ax.set_title(title, color=TXT, fontsize=13, fontweight="bold", pad=10 + (12 if sub else 0))
+    if sub:
+        ax.text(0.5, 1.015, sub, transform=ax.transAxes,
+                ha="center", va="bottom", color=MUTED_C, fontsize=9)
 
 
 def _salvar(fig: plt.Figure, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(path, dpi=FIG_DPI, bbox_inches="tight", facecolor=BG)
+    fig.savefig(path, dpi=FIG_DPI, bbox_inches="tight",
+                facecolor=BG, edgecolor="none")
+    plt.close(fig)
+    print(f"  salvo -> {path.name}")
 
 
-def _grid(ax: plt.Axes, axis: str = "x") -> None:
-    ax.grid(True, axis=axis, linestyle="--", linewidth=0.5, alpha=GRID_ALPHA, color=BORDA)
-    ax.set_axisbelow(True)
+# ── carrega dados ─────────────────────────────────────────────────────────────
+
+def _carregar_grafo(root: Path) -> tuple[dict[str, list], dict[str, dict]]:
+    """Retorna (adj, filmes) onde adj[filme] = [(vizinho, peso, sim, atores)]."""
+    filmes: dict[str, dict] = {}
+    csv_f = root / "data" / "dataset_parte2" / "Imdb_filmes.csv"
+    with csv_f.open(encoding="utf-8", newline="") as fh:
+        for row in csv.DictReader(fh):
+            nome = (row.get("filme") or "").strip()
+            if nome:
+                filmes[nome] = {
+                    "titulo":  nome,
+                    "ano":     (row.get("ano") or "").strip(),
+                    "generos": (row.get("generos") or "").strip(),
+                    "nota":    (row.get("nota") or "").strip(),
+                }
+
+    adj: dict[str, list] = {f: [] for f in filmes}
+    csv_a = root / "data" / "dataset_parte2" / "Imdb_arestas.csv"
+    with csv_a.open(encoding="utf-8", newline="") as fh:
+        for row in csv.DictReader(fh):
+            s = (row.get("filme1") or "").strip()
+            t = (row.get("filme2") or "").strip()
+            if not s or not t:
+                continue
+            try:
+                peso = float(row.get("peso") or 0)
+                sim  = float(row.get("similaridade") or 0)
+                atores = int(float(row.get("qtd_atores_compartilhados") or 0))
+            except ValueError:
+                continue
+            if s not in adj:
+                adj[s] = []
+            if t not in adj:
+                adj[t] = []
+            adj[s].append((t, peso, sim, atores))
+            adj[t].append((s, peso, sim, atores))
+
+    return adj, filmes
 
 
-def _spine(ax: plt.Axes, col: str = BORDA) -> None:
-    ax.set_facecolor(PANEL)
-    for sp in ax.spines.values():
-        sp.set_edgecolor(col)
+def _graus(adj: dict[str, list]) -> dict[str, int]:
+    return {n: len(vizinhos) for n, vizinhos in adj.items()}
 
 
-def _projeto_root() -> Path:
-    return Path(__file__).resolve().parents[2]
+# ── algoritmos para scaling ───────────────────────────────────────────────────
+
+def _bfs(adj: dict[str, list], origem: str) -> tuple[int, list[int]]:
+    """Retorna (visitados, camadas_tamanhos)."""
+    visitados = {origem}
+    fila = collections.deque([origem])
+    camadas: list[int] = []
+    nivel = {origem: 0}
+    cont_camada: dict[int, int] = {0: 1}
+    while fila:
+        no = fila.popleft()
+        for viz, *_ in adj.get(no, []):
+            if viz not in visitados:
+                visitados.add(viz)
+                nivel[viz] = nivel[no] + 1
+                cont_camada[nivel[viz]] = cont_camada.get(nivel[viz], 0) + 1
+                fila.append(viz)
+    camadas = [cont_camada[i] for i in sorted(cont_camada)]
+    return len(visitados), camadas
 
 
-def _media(entries: list[dict]) -> float:
-    vals = [float(e.get("tempo_s") or e.get("tempo") or 0)
-            for e in entries if e.get("tempo_s") or e.get("tempo")]
-    return sum(vals) / len(vals) if vals else 0.0
-
-
-def _graus_por_filme(edges_csv: Path) -> Counter:
-    df = pd.read_csv(edges_csv, usecols=["filme1", "filme2"], dtype=str)
-    graus: Counter = Counter()
-    for _, row in df.iterrows():
-        graus[row["filme1"]] += 1
-        graus[row["filme2"]] += 1
-    return graus
-
-
-def _adjacencia(edges_csv: Path) -> dict[str, set[str]]:
-    df = pd.read_csv(edges_csv, usecols=["filme1", "filme2"], dtype=str)
-    adj: dict[str, set[str]] = {}
-    for _, row in df.iterrows():
-        u, v = row["filme1"], row["filme2"]
-        adj.setdefault(u, set()).add(v)
-        adj.setdefault(v, set()).add(u)
-    return adj
-
-
-def _componentes(adj: dict[str, set[str]]) -> list[int]:
-    visitados: set[str] = set()
-    sizes: list[int] = []
-    for inicio in adj:
-        if inicio in visitados:
+def _dfs(adj: dict[str, list], origem: str) -> int:
+    visitados = set()
+    pilha = [origem]
+    while pilha:
+        no = pilha.pop()
+        if no in visitados:
             continue
-        pilha = [inicio]
-        visitados.add(inicio)
-        tam = 0
-        while pilha:
-            u = pilha.pop()
-            tam += 1
-            for w in adj[u]:
-                if w not in visitados:
-                    visitados.add(w)
-                    pilha.append(w)
-        sizes.append(tam)
-    return sizes
-
-
-def _nome_curto(nome: str, maxlen: int = 20) -> str:
-    n = (nome
-         .replace(" (a.k.a. ID4)", "")
-         .replace(", The", "")
-         .replace(", A", "")
-         .replace(" (Okuribito)", "")
-         .replace("(Hauru no ugoku shiro)", "")
-         .replace("(Sen to Chihiro no kamikakushi)", ""))
-    return n[:maxlen] + "…" if len(n) > maxlen else n
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# GRÁFICO 1 — DASHBOARD EXPLORATÓRIO: estrutura da rede
-# Pergunta: "Como é essa rede? Tem hubs? Está conectada?"
-# ──────────────────────────────────────────────────────────────────────────────
-
-def grafico_estrutura_rede(
-    dist_graus: dict,
-    graus: Counter,
-    sizes: list[int],
-    saida: Path,
-) -> None:
-    pares = sorted(((int(k), int(v)) for k, v in dist_graus.items()), key=lambda x: x[0])
-    xs = np.array([p[0] for p in pares], dtype=float)
-    ys = np.array([p[1] for p in pares], dtype=float)
-
-    top10 = graus.most_common(10)
-    nomes_top = [_nome_curto(f[0], 22) for f in top10]
-    vals_top  = [f[1] for f in top10]
-
-    giant   = max(sizes)
-    total_v = sum(sizes)
-    n_comp  = len(sizes)
-    pct_gc  = giant / total_v * 100
-    n_ilhas = total_v - giant
-
-    grau_medio = 32.6
-    xs_exp = np.repeat(xs.astype(int), ys.astype(int))
-    limiar_hub = float(np.percentile(xs_exp, 90)) if len(xs_exp) > 0 else grau_medio
-
-    fig = plt.figure(figsize=(16.0, 7.0), constrained_layout=True)
-    fig.patch.set_facecolor(BG)
-    fig.suptitle(
-        "Dashboard Exploratório  ·  Como é a Rede IMDb?",
-        fontsize=FONT_TITLE + 2, fontweight="bold", color=TXT,
-    )
-
-    gs = fig.add_gridspec(1, 3, width_ratios=[2.2, 2.0, 1.4])
-
-    # ── painel A: distribuição de graus ──────────────────────────────────────
-    ax_a = fig.add_subplot(gs[0])
-    _spine(ax_a)
-
-    ax_a.fill_between(xs, ys, 0.8, color=COL_PRIMARY, alpha=0.10, zorder=1)
-    mask_hub = xs >= limiar_hub
-    ax_a.fill_between(xs[mask_hub], ys[mask_hub], 0.8,
-                      color=COL_RED, alpha=0.30, zorder=2, label=f"Top 10% hubs (grau ≥ {int(limiar_hub)})")
-    ax_a.semilogy(xs, ys, color=COL_PRIMARY, lw=2.0, alpha=0.95, zorder=3)
-    ax_a.axvline(grau_medio, color=COL_CYAN, lw=1.4, ls="--", alpha=0.85, zorder=4,
-                 label=f"Grau médio = {grau_medio}")
-
-    y_mid = float(np.interp(grau_medio, xs, ys)) if grau_medio <= xs[-1] else ys[-1]
-    ax_a.annotate(f"Grau médio\n= {grau_medio}",
-                  xy=(grau_medio, y_mid),
-                  xytext=(grau_medio + xs[-1] * 0.10, y_mid * 5),
-                  arrowprops=dict(arrowstyle="->", color=COL_CYAN, lw=1.0),
-                  fontsize=FONT_TINY, color=COL_CYAN, ha="left")
-    ax_a.annotate(f"Hub máximo\n= {int(xs[-1])}",
-                  xy=(xs[-1], ys[-1]),
-                  xytext=(xs[-1] * 0.72, ys[-1] * 7),
-                  arrowprops=dict(arrowstyle="->", color=COL_RED, lw=1.0),
-                  fontsize=FONT_TINY, color=COL_RED, ha="center")
-
-    ax_a.set_xlabel("Grau do vértice (vizinhos)")
-    ax_a.set_ylabel("Quantidade de filmes (escala log)")
-    ax_a.set_title("A. Distribuição de Graus\nLei de potência — cauda longa", pad=10)
-    ax_a.legend(loc="upper right", framealpha=0.8, fontsize=FONT_TINY)
-    _grid(ax_a, "y")
-
-    # ── painel B: top-10 hubs ────────────────────────────────────────────────
-    ax_b = fig.add_subplot(gs[1])
-    _spine(ax_b)
-
-    y_pos   = np.arange(len(nomes_top))
-    palette = [COL_PRIMARY if i == 0 else COL_ORANGE for i in range(len(vals_top))]
-    bars = ax_b.barh(y_pos, vals_top, color=palette, edgecolor=BG, lw=0.4,
-                     height=0.65, zorder=3)
-    ax_b.set_yticks(y_pos)
-    ax_b.set_yticklabels(nomes_top, fontsize=FONT_TINY)
-    ax_b.invert_yaxis()
-    for i, v in enumerate(vals_top):
-        ax_b.text(v + 2, i, str(v), va="center", fontsize=FONT_TINY,
-                  fontweight="bold", color=TXT)
-    ax_b.set_xlabel("Grau (número de conexões diretas)")
-    ax_b.set_title("B. Top 10 Hubs\nFilmes mais conectados da rede", pad=10)
-    ax_b.set_xlim(0, vals_top[0] * 1.22)
-
-    ax_b.annotate("★ Remover Royal Tenenbaums\ndesconectaria 142 filmes",
-                  xy=(vals_top[0], 0),
-                  xytext=(vals_top[0] * 0.55, 2.5),
-                  arrowprops=dict(arrowstyle="->", color=COL_PRIMARY, lw=1.0),
-                  fontsize=FONT_TINY, color=COL_PRIMARY, ha="center")
-    _grid(ax_b, "x")
-
-    # ── painel C: conectividade ──────────────────────────────────────────────
-    ax_c = fig.add_subplot(gs[2])
-    _spine(ax_c)
-
-    outros = total_v - giant
-    ax_c.barh(
-        [0, 1],
-        [outros, giant],
-        color=[COL_MUTED, COL_PRIMARY],
-        edgecolor=BG, lw=0.4, height=0.45, zorder=3,
-    )
-    ax_c.set_yticks([0, 1])
-    ax_c.set_yticklabels([f"Ilhas isoladas\n({n_comp - 1} comp.)", "Componente\ngigante"],
-                         fontsize=FONT_TINY)
-    ax_c.text(outros + giant * 0.01, 0, f"{outros}", va="center",
-              fontsize=FONT_TINY, fontweight="bold", color=TXT)
-    ax_c.text(giant + giant * 0.01, 1, f"{giant:,}\n({pct_gc:.1f}%)",
-              va="center", fontsize=FONT_TINY, fontweight="bold", color=TXT)
-    ax_c.set_xlabel("Filmes")
-    ax_c.set_xlim(0, giant * 1.30)
-    ax_c.set_title("C. Conectividade\n99,6% na componente gigante", pad=10)
-    _grid(ax_c, "x")
-
-    _salvar(fig, saida)
-    plt.close(fig)
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# GRÁFICO 2 — BFS vs DFS: comparação direta lado a lado
-# Pergunta: "BFS e DFS percorrem a rede da mesma forma?"
-# Resposta visual: BFS→filmes famosos, DFS→filmes obscuros (mergulho profundo)
-# ──────────────────────────────────────────────────────────────────────────────
-
-def grafico_bfs_vs_dfs(tres_fontes: dict, graus: Counter, saida: Path) -> None:
-    fontes = tres_fontes.get("por_fonte", [])
-    if not fontes:
-        return
-
-    # usa apenas 1 fonte para ser mais claro: Jurassic Park (mais dramático)
-    fp = fontes[0]
-    origem   = fp["origem"]
-    bfs_nos  = fp.get("bfs", {}).get("amostra_ordem", [])[:12]
-    dfs_nos  = fp.get("dfs", {}).get("amostra_ordem", [])[:12]
-
-    # grau de cada filme no dataset (proxy de "fama")
-    def grau_medio_lista(lista: list[str]) -> list[int]:
-        return [graus.get(n, 1) for n in lista]
-
-    bfs_graus = grau_medio_lista(bfs_nos)
-    dfs_graus = grau_medio_lista(dfs_nos)
-
-    # nomes curtos
-    bfs_nomes = [_nome_curto(n, 18) for n in bfs_nos]
-    dfs_nomes = [_nome_curto(n, 18) for n in dfs_nos]
-
-    fig = plt.figure(figsize=(15.0, 8.0), constrained_layout=True)
-    fig.patch.set_facecolor(BG)
-    fig.suptitle(
-        f"Dashboard Exploratório  ·  BFS vs DFS: percursos opostos a partir de '{_nome_curto(origem)}'",
-        fontsize=FONT_TITLE + 1, fontweight="bold", color=TXT,
-    )
-
-    gs = fig.add_gridspec(2, 2, width_ratios=[2.8, 1.2], height_ratios=[1, 1], hspace=0.45)
-
-    # ── painel BFS ──────────────────────────────────────────────────────────
-    ax_bfs = fig.add_subplot(gs[0, 0])
-    _spine(ax_bfs, col=COL_BFS)
-    for sp in ax_bfs.spines.values():
-        sp.set_linewidth(1.5)
-
-    n = len(bfs_nos)
-    pos = np.arange(n)
-    bars = ax_bfs.barh(pos, bfs_graus, color=COL_BFS, alpha=0.85, edgecolor=BG, lw=0.4,
-                       height=0.65, zorder=3)
-    ax_bfs.set_yticks(pos)
-    ax_bfs.set_yticklabels([f"{i+1}°  {nm}" for i, nm in enumerate(bfs_nomes)], fontsize=FONT_SMALL)
-    ax_bfs.invert_yaxis()
-    for i, v in enumerate(bfs_graus):
-        ax_bfs.text(v + 1, i, f"grau {v}", va="center", fontsize=FONT_TINY, color=TXT_DIM)
-    ax_bfs.set_xlabel("Grau do filme (conectividade na rede)")
-    ax_bfs.set_title(f"BFS — percurso por camadas\n(visita os MAIS CONECTADOS primeiro)", color=COL_BFS, pad=8)
-    _grid(ax_bfs, "x")
-
-    # ── painel DFS ──────────────────────────────────────────────────────────
-    ax_dfs = fig.add_subplot(gs[1, 0])
-    _spine(ax_dfs, col=COL_DFS)
-    for sp in ax_dfs.spines.values():
-        sp.set_linewidth(1.5)
-
-    bars2 = ax_dfs.barh(pos, dfs_graus, color=COL_DFS, alpha=0.85, edgecolor=BG, lw=0.4,
-                        height=0.65, zorder=3)
-    ax_dfs.set_yticks(pos)
-    ax_dfs.set_yticklabels([f"{i+1}°  {nm}" for i, nm in enumerate(dfs_nomes)], fontsize=FONT_SMALL)
-    ax_dfs.invert_yaxis()
-    for i, v in enumerate(dfs_graus):
-        ax_dfs.text(v + 1, i, f"grau {v}", va="center", fontsize=FONT_TINY, color=TXT_DIM)
-    ax_dfs.set_xlabel("Grau do filme (conectividade na rede)")
-    ax_dfs.set_title("DFS — percurso em profundidade\n(mergulha no 1° vizinho, chega em filmes OBSCUROS)", color=COL_DFS, pad=8)
-    _grid(ax_dfs, "x")
-
-    # ── painel explicativo ──────────────────────────────────────────────────
-    ax_txt = fig.add_subplot(gs[:, 1])
-    ax_txt.axis("off")
-    ax_txt.set_facecolor(BG)
-
-    # caixa de insight
-    insight_linhas = [
-        ("Por que são tão diferentes?", TXT, FONT_SMALL, "bold"),
-        ("", TXT_DIM, FONT_TINY, "normal"),
-        ("BFS usa uma FILA:", COL_BFS, FONT_SMALL, "bold"),
-        ("visita todos os", TXT_DIM, FONT_TINY, "normal"),
-        ("vizinhos do nível 1", TXT_DIM, FONT_TINY, "normal"),
-        ("antes de avançar.", TXT_DIM, FONT_TINY, "normal"),
-        ("→ 1° camada: famosos", TXT_DIM, FONT_TINY, "normal"),
-        ("", TXT_DIM, FONT_TINY, "normal"),
-        ("DFS usa uma PILHA:", COL_DFS, FONT_SMALL, "bold"),
-        ("mergulha pelo 1°", TXT_DIM, FONT_TINY, "normal"),
-        ("vizinho até o fim", TXT_DIM, FONT_TINY, "normal"),
-        ("antes de voltar.", TXT_DIM, FONT_TINY, "normal"),
-        ("→ 1° camada: obscuros", TXT_DIM, FONT_TINY, "normal"),
-        ("", TXT_DIM, FONT_TINY, "normal"),
-        ("Resultado final:", TXT, FONT_SMALL, "bold"),
-        ("Ambos visitam", TXT_DIM, FONT_TINY, "normal"),
-        ("os mesmos 3.899", TXT_DIM, FONT_TINY, "normal"),
-        ("filmes. Apenas", TXT_DIM, FONT_TINY, "normal"),
-        ("a ORDEM muda.", TXT_DIM, FONT_TINY, "normal"),
-        ("", TXT_DIM, FONT_TINY, "normal"),
-        ("BFS ideal para:", TXT, FONT_SMALL, "bold"),
-        ("menor nº de saltos", COL_BFS, FONT_TINY, "normal"),
-        ("entre filmes", COL_BFS, FONT_TINY, "normal"),
-        ("", TXT_DIM, FONT_TINY, "normal"),
-        ("DFS ideal para:", TXT, FONT_SMALL, "bold"),
-        ("detectar ciclos", COL_DFS, FONT_TINY, "normal"),
-        ("exploração profunda", COL_DFS, FONT_TINY, "normal"),
-    ]
-
-    y = 0.98
-    for (texto, cor, fsize, fw) in insight_linhas:
-        ax_txt.text(0.10, y, texto, transform=ax_txt.transAxes,
-                    va="top", ha="left", fontsize=fsize,
-                    color=cor, fontweight=fw, linespacing=1.4)
-        y -= 0.033 if texto else 0.018
-
-    bfs_p = mpatches.Patch(color=COL_BFS, label="BFS — por camadas")
-    dfs_p = mpatches.Patch(color=COL_DFS, label="DFS — em profundidade")
-    fig.legend(handles=[bfs_p, dfs_p], loc="lower center", ncol=2,
-               framealpha=0.8, fontsize=FONT_SMALL, bbox_to_anchor=(0.42, -0.01))
-
-    _salvar(fig, saida)
-    plt.close(fig)
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# GRÁFICO 3 — DIJKSTRA: caminho mínimo com contexto
-# Pergunta: "O Dijkstra realmente escolhe os filmes mais parecidos?"
-# ──────────────────────────────────────────────────────────────────────────────
-
-def grafico_caminho_dijkstra(dijkstra_entries: list[dict], saida: Path) -> None:
-    validos = [e for e in dijkstra_entries if e.get("caminho") and len(e["caminho"]) >= 2]
-    if not validos:
-        return
-
-    entry_longo = max(validos, key=lambda e: e.get("tamanho_caminho", 0))
-    entry_curto = min(validos, key=lambda e: e.get("custo_total", 999))
-
-    fig = plt.figure(figsize=(15.0, 8.5), constrained_layout=True)
-    fig.patch.set_facecolor(BG)
-    fig.suptitle(
-        "Dashboard Explanatório  ·  Dijkstra: o caminho pelo elenco mais parecido",
-        fontsize=FONT_TITLE + 2, fontweight="bold", color=TXT,
-    )
-
-    gs = fig.add_gridspec(2, 2, width_ratios=[3.2, 1.0], height_ratios=[1.6, 1.0])
-
-    def _desenhar_caminho(ax: plt.Axes, entry: dict, titulo: str, cor_titulo: str) -> None:
-        caminho = entry["caminho"]
-        custo   = entry.get("custo_total") or 0.0
-        n = len(caminho)
-        ax.set_xlim(-0.7, n - 0.3)
-        ax.set_ylim(-0.65, 0.65)
-        ax.axis("off")
-        ax.set_facecolor(BG)
-        ax.set_title(titulo, fontsize=FONT_AXIS, color=cor_titulo, pad=8, fontweight="bold")
-
-        radius = 0.17
-        for i, filme in enumerate(caminho):
-            is_orig = i == 0
-            is_dest = i == n - 1
-            cor = COL_RED if is_orig else (COL_GREEN if is_dest else COL_PRIMARY)
-
-            circle = plt.Circle((i, 0), radius, color=cor, zorder=4, lw=0)
-            ax.add_patch(circle)
-
-            nc = _nome_curto(filme, 14)
-            partes = nc.split()
-            if len(nc) > 12 and len(partes) > 1:
-                mid = max(1, len(partes) // 2)
-                nc = " ".join(partes[:mid]) + "\n" + " ".join(partes[mid:])
-
-            ax.text(i, -radius - 0.06, nc,
-                    ha="center", va="top", fontsize=6.5, color=TXT, zorder=5)
-
-            if i < n - 1:
-                ax.annotate("",
-                    xy=(i + 1 - radius - 0.02, 0),
-                    xytext=(i + radius + 0.02, 0),
-                    arrowprops=dict(arrowstyle="-|>", color=COL_ORANGE, lw=1.8),
-                    zorder=3)
-
-        ax.text(0,     radius + 0.09, "ORIGEM",  ha="center", va="bottom",
-                fontsize=FONT_TINY, fontweight="bold", color=COL_RED)
-        ax.text(n - 1, radius + 0.09, "DESTINO", ha="center", va="bottom",
-                fontsize=FONT_TINY, fontweight="bold", color=COL_GREEN)
-
-        ax.text(0.5, -0.58, f"Custo total: {custo:.3f}  ·  {n} filmes no caminho",
-                transform=ax.transAxes, ha="center", fontsize=FONT_SMALL, color=TXT_DIM,
-                bbox=dict(facecolor=PANEL, edgecolor=BORDA, boxstyle="round,pad=0.3"))
-
-    ax_l = fig.add_subplot(gs[0, 0])
-    _desenhar_caminho(ax_l, entry_longo,
-                      f"Caminho mais longo — {_nome_curto(entry_longo['origem'])} → {_nome_curto(entry_longo['destino'])}",
-                      COL_PRIMARY)
-
-    ax_c = fig.add_subplot(gs[1, 0])
-    _desenhar_caminho(ax_c, entry_curto,
-                      f"Maior similaridade — {_nome_curto(entry_curto['origem'])} → {_nome_curto(entry_curto['destino'])}",
-                      COL_GREEN)
-
-    # ── painel de insight ────────────────────────────────────────────────────
-    ax_i = fig.add_subplot(gs[:, 1])
-    ax_i.axis("off")
-
-    linhas = [
-        ("Como funciona?", TXT, FONT_SMALL, "bold"),
-        ("", "", 0, "normal"),
-        ("peso = 1 / sim", COL_PRIMARY, FONT_SMALL, "bold"),
-        ("", "", 0, "normal"),
-        ("Mais parecidos", TXT_DIM, FONT_TINY, "normal"),
-        ("= menor peso", TXT_DIM, FONT_TINY, "normal"),
-        ("= caminho mais", TXT_DIM, FONT_TINY, "normal"),
-        ("barato.", TXT_DIM, FONT_TINY, "normal"),
-        ("", "", 0, "normal"),
-        ("Departures → Bad Taste", TXT, FONT_TINY, "bold"),
-        ("gêneros opostos", TXT_DIM, FONT_TINY, "normal"),
-        ("13 filmes, custo 3.29", COL_ORANGE, FONT_TINY, "normal"),
-        ("", "", 0, "normal"),
-        ("Caminho similar:", TXT, FONT_TINY, "bold"),
-        ("elenco direto", TXT_DIM, FONT_TINY, "normal"),
-        (f"custo {entry_curto.get('custo_total', 0):.3f}", COL_GREEN, FONT_TINY, "normal"),
-        ("", "", 0, "normal"),
-        ("Gestalt:", TXT, FONT_SMALL, "bold"),
-        ("Vermelho = origem", COL_RED, FONT_TINY, "normal"),
-        ("Verde = destino", COL_GREEN, FONT_TINY, "normal"),
-        ("Dourado = via", COL_PRIMARY, FONT_TINY, "normal"),
-        ("Seta = aresta real", TXT_DIM, FONT_TINY, "normal"),
-    ]
-
-    y = 0.96
-    for (texto, cor, fsize, fw) in linhas:
-        if texto:
-            ax_i.text(0.08, y, texto, transform=ax_i.transAxes,
-                      va="top", ha="left", fontsize=fsize,
-                      color=cor, fontweight=fw)
-        y -= 0.038 if texto else 0.016
-
-    orig_p = mpatches.Patch(color=COL_RED,     label="Origem")
-    dest_p = mpatches.Patch(color=COL_GREEN,   label="Destino")
-    mid_p  = mpatches.Patch(color=COL_PRIMARY, label="Intermediário")
-    fig.legend(handles=[orig_p, dest_p, mid_p],
-               loc="lower center", ncol=3, framealpha=0.8,
-               fontsize=FONT_SMALL, bbox_to_anchor=(0.44, -0.02))
-
-    _salvar(fig, saida)
-    plt.close(fig)
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# GRÁFICO 4 — HEATMAP DE COMPARAÇÃO + BENCHMARK
-# Pergunta: "Qual algoritmo usar em cada situação?"
-# ──────────────────────────────────────────────────────────────────────────────
-
-def grafico_heatmap_performance(medias: dict[str, float], saida: Path) -> None:
-    algos    = ["BFS", "DFS", "Dijkstra", "Bellman-Ford"]
-    cores    = [COL_BFS, COL_DFS, COL_DIJKSTRA, COL_BELLMAN]
-
-    metricas = [
-        "Velocidade\nde execução",
-        "Caminho\nmínimo (saltos)",
-        "Caminho\nponderado",
-        "Suporta\npesos negativos",
-        "Detecta ciclos\nnegativos",
-    ]
-
-    scores = np.array([
-        [10,  9,  1,  1,  1],
-        [ 9,  9,  1,  1,  9],
-        [ 7,  8, 10,  1,  1],
-        [ 1,  1,  7, 10, 10],
-    ], dtype=float)
-
-    labels_cell = [
-        ["8 ms",     "Sim",    "Não",    "Não",     "Não"],
-        ["11 ms",    "Sim",    "Não",    "Não",     "Sim"],
-        ["20 ms",    "Sim",    "Sim",    "Não",     "Não"],
-        ["µs (art.)","Parcial","Sim",    "Sim",     "Sim"],
-    ]
-
-    fig = plt.figure(figsize=(14.0, 7.0), constrained_layout=True)
-    fig.patch.set_facecolor(BG)
-    fig.suptitle(
-        "Dashboard Comparativo  ·  Qual algoritmo usar em cada situação?",
-        fontsize=FONT_TITLE + 2, fontweight="bold", color=TXT,
-    )
-
-    gs = fig.add_gridspec(1, 2, width_ratios=[1.7, 1.0])
-
-    # ── heatmap de adequação ─────────────────────────────────────────────────
-    ax_h = fig.add_subplot(gs[0])
-    _spine(ax_h)
-
-    cmap = plt.cm.RdYlGn
-    im = ax_h.imshow(scores, cmap=cmap, vmin=0, vmax=10,
-                     aspect="auto", interpolation="nearest", alpha=0.88)
-
-    ax_h.set_xticks(range(len(metricas)))
-    ax_h.set_xticklabels(metricas, fontsize=FONT_TINY, color=TXT)
-    ax_h.set_yticks(range(len(algos)))
-    ax_h.set_yticklabels(algos, fontsize=FONT_AXIS, color=TXT, fontweight="bold")
-    ax_h.tick_params(length=0)
-
-    # colore os labels dos algoritmos com as cores deles
-    for i, cor in enumerate(cores):
-        ax_h.get_yticklabels()[i].set_color(cor)
-
-    for i in range(len(algos)):
-        for j in range(len(metricas)):
-            s = scores[i, j]
-            txt_col = "black" if 3 < s < 8 else "white"
-            ax_h.text(j, i, labels_cell[i][j],
-                      ha="center", va="center", fontsize=FONT_SMALL,
-                      color=txt_col, fontweight="bold")
-
-    cbar = fig.colorbar(im, ax=ax_h, pad=0.01, shrink=0.80, aspect=30)
-    cbar.set_label("Adequação para a tarefa (0 = ruim · 10 = ideal)",
-                   color=TXT_DIM, fontsize=FONT_TINY)
-    cbar.ax.yaxis.set_tick_params(color=TXT_DIM)
-    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TXT_DIM, fontsize=FONT_TINY)
-    cbar.outline.set_edgecolor(BORDA)
-
-    ax_h.set_title("Mapa de Adequação por Critério\nVerde = melhor opção · Vermelho = limitação", pad=10)
-
-    # ── benchmark ────────────────────────────────────────────────────────────
-    ax_b = fig.add_subplot(gs[1])
-    _spine(ax_b)
-
-    tempos = [max(medias.get(k, 1e-9), 1e-9) for k in algos]
-    y_pos = np.arange(len(algos))
-    bars = ax_b.barh(y_pos, tempos, color=cores, edgecolor=BG, lw=0.4,
-                     height=0.55, zorder=3)
-    ax_b.set_xscale("log")
-    ax_b.set_yticks(y_pos)
-    ax_b.set_yticklabels(algos, fontsize=FONT_AXIS, fontweight="bold")
-    for i, lbl in enumerate(ax_b.get_yticklabels()):
-        lbl.set_color(cores[i])
-    ax_b.set_xlabel("Tempo médio de execução (escala log)", fontsize=FONT_TINY)
-    ax_b.set_title("Benchmark Real — Grafo IMDb\n(escala log — ordens de grandeza diferentes)", pad=10)
-
-    complexidades = ["O(V+E)", "O(V+E)", "O((V+E)logV)", "O(V·E)*"]
-    for bar, v, comp in zip(bars, tempos, complexidades):
-        lbl = f"{v*1000:.1f} ms" if v >= 0.001 else f"{v*1e6:.1f} µs"
-        ax_b.text(bar.get_width() * 1.4, bar.get_y() + bar.get_height() / 2,
-                  f"{lbl}  {comp}", va="center", fontsize=FONT_TINY, color=TXT)
-
-    ax_b.annotate("* testado em grafo\nartificial (pesos neg.)",
-                  xy=(tempos[3], 3), xytext=(tempos[3] * 10, 3.4),
-                  fontsize=6.5, color=TXT_DIM,
-                  arrowprops=dict(arrowstyle="->", color=TXT_DIM, lw=0.7))
-
-    _grid(ax_b, "x")
-    _salvar(fig, saida)
-    plt.close(fig)
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# ORQUESTRADOR
-# ──────────────────────────────────────────────────────────────────────────────
-
-def gerar_figuras_parte2(
-    report_path: Path,
-    edges_path: Path,
-    out_dir: Path,
-    scatter_max: int = 50000,
-) -> list[str]:
-    report_path = Path(report_path).resolve()
-    edges_path  = Path(edges_path).resolve()
-    out_dir     = Path(out_dir).resolve()
-
-    with open(report_path, encoding="utf-8") as fh:
-        report = json.load(fh)
-
+        visitados.add(no)
+        for viz, *_ in adj.get(no, []):
+            if viz not in visitados:
+                pilha.append(viz)
+    return len(visitados)
+
+
+def _dijkstra(adj: dict[str, list], origem: str, destino: str) -> float:
+    dist = {origem: 0.0}
+    heap = [(0.0, origem)]
+    while heap:
+        d, u = heapq.heappop(heap)
+        if u == destino:
+            return d
+        if d > dist.get(u, math.inf):
+            continue
+        for v, peso, *_ in adj.get(u, []):
+            nd = d + peso
+            if nd < dist.get(v, math.inf):
+                dist[v] = nd
+                heapq.heappush(heap, (nd, v))
+    return math.inf
+
+
+def _subgrafo_induzido(adj: dict[str, list], nos: list[str]) -> dict[str, list]:
+    s = set(nos)
+    return {n: [(v, p, sim, a) for v, p, sim, a in adj[n] if v in s]
+            for n in nos if n in adj}
+
+
+def _medir_scaling(adj: dict[str, list], graus: dict[str, int],
+                   tamanhos: list[int]) -> dict[str, list[float]]:
+    """Mede tempo de BFS, DFS, Dijkstra em subgrafos de tamanhos crescentes."""
+    nos_ordenados = sorted(graus, key=lambda x: -graus[x])
+    resultados: dict[str, list[float]] = {"bfs": [], "dfs": [], "dijkstra": [], "bellman": []}
+
+    for tam in tamanhos:
+        nos_sub = nos_ordenados[:tam]
+        sub = _subgrafo_induzido(adj, nos_sub)
+        origem = nos_sub[0]
+        destino = nos_sub[min(tam // 3, len(nos_sub) - 1)]
+
+        t0 = time.perf_counter()
+        _bfs(sub, origem)
+        resultados["bfs"].append((time.perf_counter() - t0) * 1000)
+
+        t0 = time.perf_counter()
+        _dfs(sub, origem)
+        resultados["dfs"].append((time.perf_counter() - t0) * 1000)
+
+        t0 = time.perf_counter()
+        _dijkstra(sub, origem, destino)
+        resultados["dijkstra"].append((time.perf_counter() - t0) * 1000)
+
+        # Bellman-Ford só até 500 nós (O(V·E) é lento)
+        if tam <= 500:
+            t0 = time.perf_counter()
+            _bellman_ford_simples(sub, origem)
+            resultados["bellman"].append((time.perf_counter() - t0) * 1000)
+        else:
+            resultados["bellman"].append(None)
+
+    return resultados
+
+
+def _bellman_ford_simples(adj: dict[str, list], origem: str) -> dict[str, float]:
+    nos = list(adj.keys())
+    dist = {n: math.inf for n in nos}
+    dist[origem] = 0.0
+    arestas = [(u, v, p) for u, vizinhos in adj.items() for v, p, *_ in vizinhos]
+    for _ in range(len(nos) - 1):
+        for u, v, p in arestas:
+            if dist[u] + p < dist[v]:
+                dist[v] = dist[u] + p
+    return dist
+
+
+# ── PNG 1 — histograma de graus ───────────────────────────────────────────────
+
+def png_histograma(resumo: dict, out: Path) -> None:
     _estilo()
+    dist = resumo["dataset"]["distribuicao_graus"]
+    graus_vals = [int(k) for k in dist]
+    counts = [dist[k] for k in dist]
 
-    ds = report.get("dataset") or {}
-    dist = ds.get("distribuicao_graus")
-    if not dist:
-        raise KeyError('Report sem dataset["distribuicao_graus"]')
-    if not edges_path.exists():
-        raise FileNotFoundError(f"CSV não encontrado: {edges_path}")
+    fig, ax = plt.subplots(figsize=(11, 5), facecolor=BG)
+    ax.set_facecolor(BG)
 
-    graus = _graus_por_filme(edges_path)
-    adj   = _adjacencia(edges_path)
-    sizes = _componentes(adj)
+    limiar_hub = 80
+    cores = [AMARELO if g >= limiar_hub else CIANO for g in graus_vals]
+    bars = ax.bar(graus_vals, counts, color=cores, width=1.0, linewidth=0, alpha=0.85)
+    # glow nos hubs
+    for bar, g in zip(bars, graus_vals):
+        if g >= limiar_hub:
+            bar.set_alpha(1.0)
 
-    bench = report.get("benchmark", {})
-    if isinstance(bench, dict) and "bfs" in bench:
-        medias_b = {
-            "BFS":          _media(bench.get("bfs", [])),
-            "DFS":          _media(bench.get("dfs", [])),
-            "Dijkstra":     _media(bench.get("dijkstra", [])),
-            "Bellman-Ford": _media(bench.get("bellman_ford", [])),
-        }
-    else:
-        medias_b = {
-            "BFS":          _media(report.get("bfs", [])),
-            "DFS":          _media(report.get("dfs", [])),
-            "Dijkstra":     _media(report.get("dijkstra", [])),
-            "Bellman-Ford": _media(report.get("bellman_ford", [])),
-        }
+    ax.set_xlabel("grau do filme (número de conexões)", fontsize=10)
+    ax.set_ylabel("quantidade de filmes", fontsize=10)
+    _titulo(ax, "Distribuição de Graus — Rede IMDb", "cauda longa: maioria dos filmes tem grau baixo, poucos concentram muitas conexões")
 
-    tres_fontes = report.get("tres_fontes", {})
-    dij_entries = report.get("dijkstra", [])
+    patch_hub  = mpatches.Patch(color=AMARELO, label=f"hubs (grau ≥ {limiar_hub})")
+    patch_norm = mpatches.Patch(color=CIANO,   label="demais filmes")
+    ax.legend(handles=[patch_hub, patch_norm])
+    ax.grid(axis="y", linewidth=0.5)
+    ax.tick_params(length=0)
+    fig.tight_layout()
+    _salvar(fig, out)
 
-    grafico_estrutura_rede(dist, graus, sizes,
-                           out_dir / "parte2_estrutura_rede.png")
-    grafico_bfs_vs_dfs(tres_fontes, graus,
-                       out_dir / "parte2_heatmap_bfs_dfs.png")
-    grafico_caminho_dijkstra(dij_entries,
-                             out_dir / "parte2_caminho_dijkstra.png")
-    grafico_heatmap_performance(medias_b,
-                                out_dir / "parte2_heatmap_performance.png")
 
-    gerados = [
-        "parte2_estrutura_rede.png",
-        "parte2_heatmap_bfs_dfs.png",
-        "parte2_caminho_dijkstra.png",
-        "parte2_heatmap_performance.png",
-    ]
-    print("[build_visualizations] Figuras salvas em", out_dir)
-    for nome in gerados:
-        print(" ", (out_dir / nome).resolve())
-    return gerados
+# ── PNG 2 — ranking top 15 hubs ───────────────────────────────────────────────
 
+def png_ranking_hubs(adj: dict[str, list], filmes: dict[str, dict], out: Path) -> None:
+    _estilo()
+    graus = _graus(adj)
+    top = sorted(graus, key=lambda x: -graus[x])[:15]
+    top_rev = list(reversed(top))
+    vals = [graus[f] for f in top_rev]
+
+    titulos = []
+    for f in top_rev:
+        t = f if len(f) <= 30 else f[:27] + "…"
+        titulos.append(t)
+
+    fig, ax = plt.subplots(figsize=(10, 6), facecolor=BG)
+    ax.set_facecolor(BG)
+
+    cores_bar = [AMARELO if i >= len(top_rev) - 3 else CIANO for i in range(len(top_rev))]
+    bars = ax.barh(range(len(top_rev)), vals, color=cores_bar, height=0.6, alpha=0.9)
+
+    for i, (bar, v) in enumerate(zip(bars, vals)):
+        ax.text(v + 0.8, bar.get_y() + bar.get_height() / 2,
+                str(v), va="center", ha="left", color=TXT, fontsize=9, fontweight="bold")
+
+    ax.set_yticks(range(len(top_rev)))
+    ax.set_yticklabels(titulos, fontsize=9)
+    ax.set_xlabel("grau (número de conexões)", fontsize=10)
+    _titulo(ax, "Top 15 Hubs — Filmes mais conectados", "top 3 em amarelo — grau no grafo completo (3.899 filmes)")
+    ax.grid(axis="x", linewidth=0.5)
+    ax.tick_params(length=0)
+    fig.tight_layout()
+    _salvar(fig, out)
+
+
+# ── PNG 3 — BFS por camadas ───────────────────────────────────────────────────
+
+def png_bfs_camadas(adj: dict[str, list], out: Path) -> None:
+    _estilo()
+    fontes = ["Jurassic Park", "Forrest Gump", "Pulp Fiction"]
+    cores_fontes = [AMARELO, VERDE, CIANO]
+
+    resultados_camadas = []
+    for f in fontes:
+        _, camadas = _bfs(adj, f)
+        resultados_camadas.append(camadas)
+
+    max_cam = max(len(c) for c in resultados_camadas)
+    for c in resultados_camadas:
+        while len(c) < max_cam:
+            c.append(0)
+
+    x = np.arange(max_cam)
+    n = len(fontes)
+    largura = 0.25
+
+    fig, ax = plt.subplots(figsize=(11, 5), facecolor=BG)
+    ax.set_facecolor(BG)
+
+    # linha cumulativa com glow em vez de barras
+    cum_series = []
+    for camadas in resultados_camadas:
+        cum = []
+        acc = 0
+        for v in camadas:
+            acc += v
+            cum.append(acc)
+        cum_series.append(cum)
+
+    for fonte, cum, cor in zip(fontes, cum_series, cores_fontes):
+        _glow_line(ax, range(len(cum)), cum, cor, lw=2.5, label=fonte, marker="o", markersize=5)
+
+    ax.set_xticks(range(max_cam))
+    ax.set_xticklabels([f"C{i}" for i in range(max_cam)], fontsize=9)
+    ax.set_ylabel("filmes visitados (acumulado)", fontsize=10)
+    _titulo(ax, "BFS — Expansão Cumulativa por Camada", "C0 = fonte  •  total: 3.899 filmes  •  mundo pequeno: 7 camadas cobrem tudo")
+    ax.legend()
+    ax.grid(axis="y", linewidth=0.5)
+    ax.tick_params(length=0)
+    fig.tight_layout()
+    _salvar(fig, out)
+
+
+# ── PNG 4 — benchmark horizontal ─────────────────────────────────────────────
+
+def png_benchmark(report: dict, out: Path) -> None:
+    _estilo()
+    bench = report["benchmark"]
+
+    def _media(lista: list) -> float:
+        ts = [e["tempo_execucao"] for e in lista if "tempo_execucao" in e]
+        return (sum(ts) / len(ts)) * 1000 if ts else 0.0
+
+    bfs_ms      = _media(bench["bfs"])
+    dfs_ms      = _media(bench["dfs"])
+    dijk_ms     = _media(bench["dijkstra"])
+    bf_ms       = _media(bench["bellman_ford"])  # grafo artificial pequeno
+
+    algs   = ["BFS", "DFS", "Dijkstra", "Bellman-Ford*"]
+    tempos = [bfs_ms, dfs_ms, dijk_ms, bf_ms]
+    cores  = [COL_BFS, COL_DFS, COL_DIJKSTRA, COL_BELLMAN]
+
+    fig, ax = plt.subplots(figsize=(10, 5), facecolor=BG)
+    ax.set_facecolor(BG)
+
+    bars = ax.barh(algs, tempos, color=cores, height=0.55, alpha=0.9)
+    for bar, v, cor in zip(bars, tempos, cores):
+        label = f"{v:.3f} ms"
+        ax.text(v + max(tempos) * 0.012, bar.get_y() + bar.get_height() / 2,
+                label, va="center", ha="left", color=cor, fontsize=10, fontweight="bold")
+
+    ax.set_xlabel("tempo médio de execução (ms)", fontsize=10)
+    _titulo(ax, "Benchmark — Comparação de Desempenho",
+            "* Bellman-Ford testado em grafo artificial pequeno  •  escala padronizada")
+    ax.set_xlim(0, max(tempos) * 1.25)
+    ax.grid(axis="x", linewidth=0.5)
+    ax.tick_params(length=0)
+    fig.tight_layout()
+    _salvar(fig, out)
+
+
+# ── PNG 5 — performance: escala ───────────────────────────────────────────────
+
+def png_performance_escala(adj: dict[str, list], graus: dict[str, int], out: Path) -> None:
+    _estilo()
+    tamanhos = [100, 250, 500, 1000, 2000, 3899]
+    print("  medindo scaling (pode demorar ~30s)…")
+    dados = _medir_scaling(adj, graus, tamanhos)
+
+    fig, ax = plt.subplots(figsize=(11, 5), facecolor=BG)
+    ax.set_facecolor(BG)
+
+    tam_bf = [t for t, v in zip(tamanhos, dados["bellman"]) if v is not None]
+    val_bf = [v for v in dados["bellman"] if v is not None]
+
+    _glow_line(ax, tamanhos, dados["bfs"],      COL_BFS,      lw=2.5, label="BFS",      marker="o", markersize=5)
+    _glow_line(ax, tamanhos, dados["dfs"],      COL_DFS,      lw=2.5, label="DFS",      marker="s", markersize=5)
+    _glow_line(ax, tamanhos, dados["dijkstra"], COL_DIJKSTRA, lw=2.5, label="Dijkstra", marker="^", markersize=5)
+    if val_bf:
+        _glow_line(ax, tam_bf, val_bf, COL_BELLMAN, lw=2.5, label="Bellman-Ford (até 500 nós)",
+                   marker="D", markersize=5, linestyle="--")
+
+    ax.set_xlabel("ordem do grafo (número de vértices)", fontsize=10)
+    ax.set_ylabel("tempo de execução (ms)", fontsize=10)
+    _titulo(ax, "Performance — Escala dos Algoritmos",
+            "BF limitado a 500 nós  •  O(V·E) torna-o impraticável em grafos maiores")
+    ax.legend()
+    ax.grid(linewidth=0.5)
+    ax.tick_params(length=0)
+    fig.tight_layout()
+    _salvar(fig, out)
+
+
+# ── HTML interativo — subgrafo dos hubs ──────────────────────────────────────
+
+def html_subgrafo_hubs(adj: dict[str, list], filmes: dict[str, dict], out: Path) -> None:
+    graus = _graus(adj)
+    top_nos = sorted(graus, key=lambda x: -graus[x])[:35]
+    sub = {n: [(v, p, sim, a) for v, p, sim, a in adj[n] if v in top_nos]
+           for n in top_nos}
+
+    nodes_js, edges_js = [], []
+    for i, nome in enumerate(top_nos):
+        info = filmes.get(nome, {})
+        g = graus[nome]
+        size = 14 + int(g / 10)
+        cor = "#f5c518" if i < 3 else ("#f97316" if i < 10 else "#38bdf8")
+        nodes_js.append({
+            "id": nome, "label": nome[:22] + ("…" if len(nome) > 22 else ""),
+            "title": f"<b>{nome}</b><br>Grau: {g}<br>Gêneros: {info.get('generos','—')}<br>Ano: {info.get('ano','—')}<br>Nota: {info.get('nota','—')}",
+            "size": size, "color": {"background": cor, "border": "#0f172a",
+                                     "highlight": {"background": "#fff", "border": cor}},
+            "font": {"color": "#f1f5f9", "size": 12},
+        })
+
+    edge_set: set[tuple] = set()
+    eid = 0
+    for u in top_nos:
+        for v, p, sim, a in sub[u]:
+            key = (min(u, v), max(u, v))
+            if key not in edge_set:
+                edge_set.add(key)
+                w = max(0.5, min(4, sim / 5))
+                edges_js.append({
+                    "id": eid, "from": u, "to": v,
+                    "width": w, "color": {"color": "#334155", "highlight": "#f5c518"},
+                    "title": f"Sim: {sim} | Atores: {a} | Peso: {round(p,3)}",
+                })
+                eid += 1
+
+    nodes_json = json.dumps(nodes_js, ensure_ascii=False)
+    edges_json = json.dumps(edges_js, ensure_ascii=False)
+
+    # caminho Dijkstra entre top 1 e top 4 para destaque
+    origem_h  = top_nos[0]
+    destino_h = top_nos[3]
+
+    html = f"""<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Subgrafo dos Hubs — IMDb</title>
+<script src="../interface/lib/vis-9.1.2/vis-network.min.js"></script>
+<link rel="stylesheet" href="../interface/lib/vis-9.1.2/vis-network.css">
+<style>
+*{{box-sizing:border-box;margin:0;padding:0}}
+body{{background:#0f172a;color:#f1f5f9;font-family:"Segoe UI",sans-serif}}
+#toolbar{{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:12px 16px;background:#1e293b;border-bottom:1px solid #334155}}
+.tb-title{{font-size:15px;font-weight:800;color:#f5c518;margin-right:8px;text-transform:uppercase;letter-spacing:.04em}}
+.btn{{padding:7px 14px;border:1px solid #334155;border-radius:6px;background:#0f172a;
+  color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;transition:all 140ms}}
+.btn:hover{{border-color:#f5c518;color:#f5c518}}
+.btn.on{{background:#f5c518;color:#0f172a;border-color:#f5c518}}
+#search{{padding:7px 12px;border:1px solid #334155;border-radius:6px;background:#0f172a;
+  color:#f1f5f9;font-size:12px;width:180px;outline:none}}
+#search:focus{{border-color:#f5c518}}
+#graph{{width:100%;height:calc(100vh - 58px)}}
+#back{{margin-left:auto;font-size:12px;color:#94a3b8;text-decoration:none;padding:7px 12px;
+  border:1px solid #334155;border-radius:6px}}
+#back:hover{{color:#f5c518;border-color:#f5c518}}
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <span class="tb-title">★ Hubs IMDb</span>
+  <input id="search" type="text" placeholder="Buscar filme…" oninput="buscar(this.value)">
+  <button class="btn on" onclick="resetar()">Todos</button>
+  <button class="btn" onclick="destacarCaminho()">Dijkstra: {origem_h[:18]}… → {destino_h[:18]}…</button>
+  <a id="back" href="javascript:history.back()">← Voltar</a>
+</div>
+<div id="graph"></div>
+<script>
+const nodes = new vis.DataSet({nodes_json});
+const edges = new vis.DataSet({edges_json});
+const container = document.getElementById("graph");
+const net = new vis.Network(container, {{nodes, edges}}, {{
+  interaction: {{hover:true, tooltipDelay:80}},
+  physics: {{solver:"forceAtlas2Based",
+    forceAtlas2Based:{{gravitationalConstant:-180,centralGravity:0.02,
+      springLength:140,springConstant:0.05,damping:0.9,avoidOverlap:0.8}},
+    stabilization:{{iterations:300,fit:true}}}},
+  edges: {{smooth:{{type:"continuous"}}}},
+  nodes: {{shape:"dot"}}
+}});
+
+function resetar() {{
+  nodes.forEach(n => nodes.update({{id:n.id, hidden:false}}));
+  edges.forEach(e => edges.update({{id:e.id, color:{{color:"#334155"}}, width:e.width||1}}));
+  document.querySelectorAll(".btn").forEach(b=>b.classList.remove("on"));
+  document.querySelector(".btn").classList.add("on");
+}}
+
+function buscar(q) {{
+  if (!q) {{ resetar(); return; }}
+  q = q.toLowerCase();
+  nodes.forEach(n => {{
+    nodes.update({{id:n.id, hidden: !n.id.toLowerCase().includes(q)}});
+  }});
+}}
+
+function destacarCaminho() {{
+  const origem  = {json.dumps(origem_h)};
+  const destino = {json.dumps(destino_h)};
+  // Dijkstra simples no subgrafo
+  const adj = {{}};
+  edges.forEach(e => {{
+    if (!adj[e.from]) adj[e.from] = [];
+    if (!adj[e.to])   adj[e.to]   = [];
+    adj[e.from].push([e.to,   e.id]);
+    adj[e.to  ].push([e.from, e.id]);
+  }});
+  const dist = {{}}, prev = {{}}, prevEdge = {{}};
+  nodes.forEach(n => dist[n.id] = Infinity);
+  dist[origem] = 0;
+  const pq = [[0, origem]];
+  while (pq.length) {{
+    pq.sort((a,b)=>a[0]-b[0]);
+    const [d, u] = pq.shift();
+    if (d > dist[u]) continue;
+    for (const [v, eid] of (adj[u]||[])) {{
+      const e = edges.get(eid);
+      const nd = d + (1/(e.title?.match(/Sim: (\\d+)/)?.[1]||1));
+      if (nd < dist[v]) {{ dist[v]=nd; prev[v]=u; prevEdge[v]=eid; pq.push([nd,v]); }}
+    }}
+  }}
+  const path_edges = new Set();
+  let cur = destino;
+  while (prev[cur]) {{ path_edges.add(prevEdge[cur]); cur = prev[cur]; }}
+  edges.forEach(e => {{
+    edges.update({{id:e.id,
+      color:{{color: path_edges.has(e.id) ? "#f5c518" : "#1e293b"}},
+      width: path_edges.has(e.id) ? 4 : 0.5
+    }});
+  }});
+  net.focus(origem, {{scale:1.2, animation:{{duration:600}}}});
+}}
+</script>
+</body>
+</html>"""
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(html, encoding="utf-8")
+    print(f"  salvo -> {out.name}")
+
+
+# ── main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    root = _projeto_root()
-    parser = argparse.ArgumentParser(description="Gera PNGs AVD da parte 2.")
-    parser.add_argument("--report",      default=str(root / "out" / "parte2_report.json"))
-    parser.add_argument("--edges",       default=str(root / "data" / "dataset_parte2" / "Imdb_arestas.csv"))
-    parser.add_argument("--out-dir",     default=str(root / "out" / "parte2"))
-    parser.add_argument("--scatter-max", type=int, default=50000)
-    args = parser.parse_args()
-    gerar_figuras_parte2(Path(args.report), Path(args.edges), Path(args.out_dir), args.scatter_max)
+    root = _root()
+    out_dir = root / "out" / "parte2"
+
+    print("carregando grafo…")
+    adj, filmes = _carregar_grafo(root)
+    graus = _graus(adj)
+    print(f"  {len(adj)} filmes, {sum(len(v) for v in adj.values())//2} arestas")
+
+    resumo_path = root / "interface" / "data" / "resumo_parte2.json"
+    resumo = json.loads(resumo_path.read_text(encoding="utf-8"))
+
+    report_path = root / "out" / "parte2_report.json"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+
+    print("\n[1/6] histograma de graus…")
+    png_histograma(resumo, out_dir / "parte2_histograma_graus.png")
+
+    print("[2/6] ranking hubs…")
+    png_ranking_hubs(adj, filmes, out_dir / "parte2_ranking_hubs.png")
+
+    print("[3/6] BFS por camadas…")
+    png_bfs_camadas(adj, out_dir / "parte2_bfs_camadas.png")
+
+    print("[4/6] benchmark horizontal…")
+    png_benchmark(report, out_dir / "parte2_benchmark.png")
+
+    print("[5/6] performance / scaling…")
+    png_performance_escala(adj, graus, out_dir / "parte2_performance_escala.png")
+
+    print("[6/6] subgrafo hubs interativo…")
+    html_subgrafo_hubs(adj, filmes, root / "out" / "subgrafo_hubs_p2.html")
+
+    print("\nTudo gerado.")
 
 
 if __name__ == "__main__":

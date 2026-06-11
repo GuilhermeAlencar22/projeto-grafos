@@ -1,17 +1,2 @@
-from src.shared.algorithms import (
-    bfs,
-    dfs,
-    dfs_classificacao_dirigido,
-    dijkstra,
-    bellman_ford,
-    validar_pesos_para_dijkstra,
-)
-
-__all__ = [
-    "bfs",
-    "dfs",
-    "dfs_classificacao_dirigido",
-    "dijkstra",
-    "bellman_ford",
-    "validar_pesos_para_dijkstra",
-]
+"""BFS, DFS, Dijkstra, Bellman-Ford — re-exportados de src.shared."""
+from src.shared.algorithms import *  # noqa: F401, F403

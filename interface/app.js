@@ -58,8 +58,7 @@ function animateNumber(selector, value, decimals = 0) {
 
 function timeValue(value) {
   if (typeof value !== "number") return "--";
-  if (value < 0.001) return `${(value * 1000).toFixed(3)} ms`;
-  return `${value.toFixed(4)} s`;
+  return `${(value * 1000).toFixed(3)} ms`;
 }
 
 function attr(value) {
@@ -208,7 +207,7 @@ function baseNode(id, extra = {}) {
   return {
     id,
     label: movieLabel(id),
-    title: movieTitle(id),
+    title: undefined,
     color: {
       background: extra.background ?? "#f5c518",
       border: extra.border ?? "#ffffff",
@@ -242,7 +241,7 @@ function baseEdge(edge, extra = {}) {
     id: edge.id ?? edgeKey(edgeOrigem(edge), edgeDestino(edge)),
     from: edgeOrigem(edge),
     to: edgeDestino(edge),
-    title: edgeTitle(edge),
+    title: undefined, // edgeTitle(edge),
     label: extra.label ?? "",
     width: rawWidth,
     color: {
@@ -515,8 +514,7 @@ function buildGrafoAdjacency() {
   return adj;
 }
 function dijkstraPath(origem, destino) {
-  const useFullGraph = !!state.grafoCompleto;
-  const adj = useFullGraph ? buildGrafoAdjacency() : buildAmostraAdjacency();
+  const adj = buildAmostraAdjacency();
 
   const dist = new Map([[origem, 0]]);
   const prev = new Map();
@@ -532,7 +530,7 @@ function dijkstraPath(origem, destino) {
 
     const vizinhos = adj.get(current.id) ?? [];
     vizinhos.forEach((v) => {
-      const peso = useFullGraph ? (v.peso ?? 1) : Number(v.edge?.peso ?? 1);
+      const peso = Number(v.edge?.peso ?? 1);
       const nextCost = current.cost + peso;
       if (nextCost < (dist.get(v.to) ?? Infinity)) {
         dist.set(v.to, nextCost);
@@ -552,18 +550,11 @@ function dijkstraPath(origem, destino) {
     step = prev.get(step);
   }
 
-  return {
-    path,
-    cost: dist.get(destino),
-    algorithm: "dijkstra",
-    fullGraph: useFullGraph,
-  };
+  return { path, cost: dist.get(destino), algorithm: "dijkstra" };
 }
 
 function dfsPath(origem, destino) {
-  const useFullGraph = !!state.grafoCompleto;
-  const adj = useFullGraph ? buildGrafoAdjacency() : buildAmostraAdjacency();
-
+  const adj = buildAmostraAdjacency();
   const visited = new Set();
   const stack = [[origem, [origem]]];
 
@@ -571,14 +562,12 @@ function dfsPath(origem, destino) {
     const [node, path] = stack.pop();
     if (visited.has(node)) continue;
     visited.add(node);
-    if (node === destino) return { path, cost: null, algorithm: "profundidade", fullGraph: useFullGraph };
+    if (node === destino) return { path, cost: null, algorithm: "profundidade" };
 
     const vizinhos = adj.get(node) ?? [];
     for (let i = vizinhos.length - 1; i >= 0; i--) {
       const v = vizinhos[i].to;
-      if (!visited.has(v)) {
-        stack.push([v, [...path, v]]);
-      }
+      if (!visited.has(v)) stack.push([v, [...path, v]]);
     }
   }
 
@@ -678,60 +667,59 @@ function makeTraversalGraph(origem, type = "bfs") {
 }
 
 function makeDijkstraGraph() {
-  const route = longestDijkstraPath();
-  if (!route) {
-    return {
-      nodes: [],
-      edges: [],
-      layout: "network",
-    };
+  const movies = state.amostra?.movies ?? {};
+  const ids = Object.keys(movies);
+
+  const CANDIDATE_PAIRS = [
+    ["Harry Potter and the Chamber of Secrets", "Star Trek II: The Wrath of Khan"],
+    ["Harry Potter and the Goblet of Fire", "Jurassic Park"],
+    ["Hobbit: An Unexpected Journey, The", "Finding Forrester"],
+  ];
+
+  let route = null;
+  for (const [a, b] of CANDIDATE_PAIRS) {
+    if (!movies[a] || !movies[b]) continue;
+    const r = dijkstraPath(a, b);
+    if (r && r.path.length >= 8) { route = r; break; }
+    if (r && (!route || r.path.length > route.path.length)) route = r;
   }
 
-  const pathSet = new Set(route.path);
-  const pathEdgeIds = new Set();
-  const nodes = route.path.map((id, index) => {
+  if (!route || route.path.length < 2) {
+    state.lastDijkstraRoute = null;
+    return { nodes: [], edges: [], layout: "network" };
+  }
+
+  state.lastDijkstraRoute = route;
+
+  const pathNodes = route.path.map((id, index) => {
     const isFirst = index === 0;
-    const isLast = index === route.path.length - 1;
-    const baseSize = nodeSizeByGlobalDegree(id, 24, 46);
+    const isLast  = index === route.path.length - 1;
     return baseNode(id, {
-      size: isFirst || isLast ? Math.max(baseSize, 44) : baseSize,
+      size: isFirst || isLast ? 48 : 34,
       background: isFirst ? "#2ecc71" : isLast ? "#ff4d4d" : "#f5c518",
       border: "#ffffff",
     });
   });
 
-  const mainEdges = pathEdges(route.path, { prefix: "dijkstra" }).map((edge) => {
-    pathEdgeIds.add(edgeKey(edgeOrigem(edge), edgeDestino(edge)));
-    return baseEdge(edge, {
+  // constrói arestas via baseEdge (mantém meta para o clique) e força from/to pela ordem do caminho
+  const mainEdges = route.path.slice(0, -1).map((fromId, i) => {
+    const toId = route.path[i + 1];
+    const stored = buscarAresta(fromId, toId) ?? { origem: fromId, destino: toId, similaridade: 0, peso: 0 };
+    const e = baseEdge(stored, {
       color: "#ff9f1c",
       width: 6,
       arrows: "to",
-      label: String(edge.similaridade ?? ""),
+      label: stored.peso != null ? Number(stored.peso).toFixed(2) : "",
     });
+    e.id = `dijkstra-${i}-${fromId}-${toId}`;
+    e.from = fromId;
+    e.to = toId;
+    e.font = { color: "#ff9f1c", size: 14, strokeWidth: 3, strokeColor: "#050505" };
+    e.smooth = { enabled: true, type: "cubicBezier", roundness: 0.2 };
+    return e;
   });
 
-  return {
-    nodes,
-    edges: mainEdges,
-    layout: "network",
-  };
-}
-
-function longestDijkstraPath() {
-  const nodes = Object.keys(state.amostra?.movies ?? {});
-  let best = null;
-
-  for (let i = 0; i < nodes.length; i += 1) {
-    for (let j = i + 1; j < nodes.length; j += 1) {
-      const result = dijkstraPath(nodes[i], nodes[j]);
-      if (!result) continue;
-      if (!best || result.path.length > best.path.length) {
-        best = result;
-      }
-    }
-  }
-
-  return best;
+  return { nodes: pathNodes, edges: mainEdges, layout: "network" };
 }
 
 function makeNeighborhoodGraph(id) {
@@ -915,6 +903,51 @@ function makeFranquiasGraph() {
   return { nodes: nodeList, edges: edgeList, layout: "network" };
 }
 
+function makeTopNotasGraph() {
+  const movies = state.amostra?.movies ?? {};
+  const edges = Object.values(state.amostra?.edges ?? {});
+
+  const top10 = Object.values(movies)
+    .filter(m => m.nota && parseFloat(m.nota) > 0)
+    .sort((a, b) => parseFloat(b.nota) - parseFloat(a.nota))
+    .slice(0, 5)
+    .map(m => m.titulo);
+
+  const top10Set = new Set(top10);
+
+  const selectedEdges = edges.filter(e =>
+    top10Set.has(e.origem) || top10Set.has(e.destino)
+  );
+
+  const nodeSet = new Map();
+  selectedEdges.forEach(e => {
+    nodeSet.set(e.origem, e.origem);
+    nodeSet.set(e.destino, e.destino);
+  });
+  top10.forEach(id => nodeSet.set(id, id));
+
+  const visualNodes = [...nodeSet.keys()].map(id => {
+    const isTop = top10Set.has(id);
+    const nota = parseFloat(movies[id]?.nota ?? 0);
+    const size = isTop ? Math.round(28 + nota * 4) : 18;
+    const cor = isTop
+      ? { background: "#f5c518", border: "#b8940e" }
+      : nodeColorByGenre(id);
+    return baseNode(id, { background: cor.background ?? cor.bg, border: cor.border, size });
+  });
+
+  const visualEdges = selectedEdges.map(e => {
+    const isHighlight = top10Set.has(e.origem) && top10Set.has(e.destino);
+    return baseEdge(e, {
+      color: isHighlight ? "#f5c518" : "rgba(245,197,24,0.25)",
+      width: isHighlight ? 4 : 1,
+      label: "",
+    });
+  });
+
+  return { nodes: visualNodes, edges: visualEdges, layout: "network" };
+}
+
 function graphForMode(mode) {
   const edges = Object.values(state.amostra?.edges ?? {});
   const bySimilarity = [...edges].sort((a, b) => (b.similaridade ?? 0) - (a.similaridade ?? 0));
@@ -926,6 +959,10 @@ function graphForMode(mode) {
 
   if (mode === "franquias") {
     return makeFranquiasGraph();
+  }
+
+  if (mode === "top-notas") {
+    return makeTopNotasGraph();
   }
 
   if (mode === "top") {
@@ -956,6 +993,17 @@ function graphForMode(mode) {
 
   if (mode === "grafo-completo") {
     return makeFullGraph();
+  }
+
+  if (mode === "amostra") {
+    // top 100 por relevância; sempre inclui arestas do último caminho buscado
+    const sorted = [...edges].sort((a, b) =>
+      (b.actors_common ?? 0) - (a.actors_common ?? 0) || (b.similaridade ?? 0) - (a.similaridade ?? 0));
+    const top = sorted.slice(0, 100);
+    const topIds = new Set(top.map(e => e.id));
+    const routeKeys = state._lastRouteEdgeKeys ?? new Set();
+    const extra = edges.filter(e => routeKeys.has(e.id) && !topIds.has(e.id));
+    return makeGraphFromEdges([...top, ...extra], { edgeOptions: { label: "" } });
   }
 
   const sampleEdges = connectedEdgeSample(bySimilarity, 32);
@@ -1315,10 +1363,15 @@ function renderVisualizations(visualizacoes) {
   if (grid) grid.innerHTML = html;
 }
 
+function showDetailsPanel() {
+  const p = document.getElementById("details-panel");
+  if (p) p.style.display = "block";
+}
+
 function renderDetailsForNode(id) {
   const graphNode = state.graph.nodes?.get(id);
   if (graphNode?.bfDescription) {
-    document.getElementById("details-panel").innerHTML = `
+    showDetailsPanel(); document.getElementById("details-panel").innerHTML = `
       <p class="eyebrow">bellman-ford</p>
       <h3>${attr(graphNode.label.replace("\n", " "))}</h3>
       <p>${attr(graphNode.bfDescription)}</p>
@@ -1337,7 +1390,7 @@ function renderDetailsForNode(id) {
   }
 
   const movie = movieInfo(id);
-  const details = document.getElementById("details-panel");
+  const details = document.getElementById("details-panel"); showDetailsPanel();
   const degree = globalDegree().get(id) ?? 0;
   const genreList = movieGenres(id);
   const genreTags = genreList
@@ -1356,7 +1409,7 @@ function renderDetailsForNode(id) {
     ${genreTags ? `<div class="detail-genre-row">${genreTags}</div>` : ""}
     <dl class="detail-list">
       ${movie.ano ? `<div><dt>ano</dt><dd>${attr(movie.ano)}</dd></div>` : ""}
-      ${movie.nota ? `<div><dt>nota IMDb</dt><dd><strong>${attr(movie.nota)}</strong> / 10</dd></div>` : ""}
+      ${movie.nota ? `<div><dt>nota IMDb</dt><dd><strong>${attr(movie.nota)}</strong> / 5</dd></div>` : ""}
       ${movie.diretores ? `<div><dt>diretor</dt><dd>${attr(movie.diretores)}</dd></div>` : ""}
       <div><dt>conexões na rede</dt><dd><strong>${fmt.format(degree)}</strong> filmes</dd></div>
       <div><dt>papel na rede</dt><dd>${attr(networkRole)}</dd></div>
@@ -1368,7 +1421,7 @@ function renderDetailsForEdge(id) {
   const edge = state.graph.edges.get(id);
   const meta = edge?.meta ?? {};
   if (meta.tipo === "bellman-ford") {
-    document.getElementById("details-panel").innerHTML = `
+    showDetailsPanel(); document.getElementById("details-panel").innerHTML = `
       <p class="eyebrow">bellman-ford</p>
       <h3>${attr(meta.caso)}</h3>
       <p>${attr(edge.from)} -> ${attr(edge.to)}</p>
@@ -1401,7 +1454,7 @@ function renderDetailsForEdge(id) {
       ? actorIds.join(", ")
       : `${meta.actors_common ?? "--"} ator(es) em comum`;
   const actorLabel = actorNames.length ? "atores em comum" : "ids dos atores";
-  const details = document.getElementById("details-panel");
+  const details = document.getElementById("details-panel"); showDetailsPanel();
 
   details.innerHTML = `
     <p class="eyebrow">selecao</p>
@@ -1437,7 +1490,7 @@ function renderDetailsForEdge(id) {
 }
 
 function renderRouteDetails(result, origem, destino) {
-  const details = document.getElementById("details-panel");
+  const details = document.getElementById("details-panel"); showDetailsPanel();
   const origemMovie = movieInfo(origem);
   const destinoMovie = movieInfo(destino);
 
@@ -1498,7 +1551,12 @@ function legendaDot(color, label) {
 }
 
 
-function renderModeDetails(mode) {
+function renderModeDetails(_mode) {
+  const panel = document.getElementById("details-panel");
+  if (panel) panel.style.display = "none";
+}
+
+function _renderModeDetailsLegacy(mode) {
   const panel = document.getElementById("details-panel");
 
   if (mode === "franquias") {
@@ -1651,26 +1709,25 @@ function renderBellmanDetails(caso = "ambos") {
       ? "Grafo artificial dirigido com peso negativo controlado. O algoritmo calcula as distâncias finais sem detectar ciclo negativo."
       : "O grafo IMDb tem apenas pesos positivos. Para validar o algoritmo, foram criados dois grafos artificiais dirigidos.";
 
-  document.getElementById("details-panel").innerHTML = `
+  showDetailsPanel(); document.getElementById("details-panel").innerHTML = `
     <p class="eyebrow">algoritmo: pesos negativos</p>
     <h3>${title}</h3>
     <p>${intro}</p>
     <div class="algo-visual">
       <div class="algo-cases">
-        <div class="algo-case algo-case-ok">
+        ${caso !== "com-ciclo" ? `<div class="algo-case algo-case-ok">
           <span class="algo-case-badge">✓ sem ciclo</span>
           <span>peso negativo sem loop — distâncias calculadas</span>
-        </div>
-        <div class="algo-case algo-case-bad">
+        </div>` : ""}
+        ${caso !== "sem-ciclo" ? `<div class="algo-case algo-case-bad">
           <span class="algo-case-badge">⚠ ciclo negativo</span>
-          <span>loop de custo negativo — algoritmo bloqueia</span>
-        </div>
+          <span>loop de custo negativo — distâncias não convergem</span>
+        </div>` : ""}
       </div>
     </div>
     <dl class="detail-list">
       <div><dt>caso 1</dt><dd>grafo com peso negativo mas sem ciclo → calcula distâncias corretamente</dd></div>
       <div><dt>caso 2</dt><dd>grafo com ciclo negativo → detectado e resultado bloqueado</dd></div>
-      <div><dt>complexidade</dt><dd>O(V × E) — mais lento que Dijkstra, mas suporta negativos</dd></div>
       <div><dt>no grafo IMDb</dt><dd>Dijkstra é preferido pois pesos = 1/sim são sempre positivos</dd></div>
     </dl>
   `;
@@ -1706,7 +1763,7 @@ function resetDetails() {
     .map(({ cor, nome }) => `<span class="comm-dot-item"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${cor};margin-right:5px;vertical-align:middle"></span>${nome}</span>`)
     .join("");
 
-  document.getElementById("details-panel").innerHTML = `
+  showDetailsPanel(); document.getElementById("details-panel").innerHTML = `
     <p class="eyebrow">rede cinematográfica IMDb</p>
     <h3>Explore a Rede</h3>
     <p>3.899 filmes conectados por elenco compartilhado. Clique em qualquer nó para explorar.</p>
@@ -1740,6 +1797,9 @@ function resetDetails() {
       }
     });
   });
+  // esconde o painel flutuante ao resetar
+  const dp = document.getElementById("details-panel");
+  if (dp) dp.style.display = "none";
 }
 
 function drawGraph(mode = "similaridade") {
@@ -1757,7 +1817,7 @@ function drawGraph(mode = "similaridade") {
     autoResize: true,
     interaction: {
       hover: true,
-      tooltipDelay: 120,
+      tooltipDelay: 99999,
       navigationButtons: false,
       keyboard: true,
       hideEdgesOnDrag: !!graph.fullGraph,
@@ -1817,9 +1877,27 @@ function drawGraph(mode = "similaridade") {
   placeholder.hidden = graph.nodes.length > 0;
 
   state.network.once("stabilizationIterationsDone", () => {
-    refreshGraphView(true);
     state.network?.stopSimulation();
+    state.network?.fit({ animation: { duration: 600, easingFunction: "easeInOutQuad" } });
   });
+
+  // fix canvas aspect-ratio bug: force resize em múltiplos momentos
+  const _fixCanvasSize = () => {
+    if (!state.network) return;
+    const w = container.offsetWidth, h = container.offsetHeight;
+    if (w > 0 && h > 0) {
+      state.network.setSize(w + "px", h + "px");
+      state.network.redraw();
+    }
+  };
+  [50, 150, 400, 800].forEach(ms => setTimeout(_fixCanvasSize, ms));
+
+  state.network.once("stabilized", _fixCanvasSize);
+
+  // watch for container resize (tab switch, fullscreen, janela)
+  if (state._resizeObserver) state._resizeObserver.disconnect();
+  state._resizeObserver = new ResizeObserver(_fixCanvasSize);
+  state._resizeObserver.observe(container);
 
   state.network.on("click", (params) => {
     if (params.nodes.length) {
@@ -1920,6 +1998,152 @@ function setActiveMode(modeValue) {
   });
 }
 
+
+const MODE_INFO = {
+  amostra: null,
+  franquias: {
+    title: "Franquias",
+    body: `<div style="display:flex;flex-direction:column;gap:6px;">
+  <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:6px;line-height:1.4;">Cada grupo de cor representa uma franquia. Os nós são filmes e as arestas indicam atores e gêneros em comum entre eles.</div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:4px;letter-spacing:.5px;">COR · FRANQUIA · FILMES</div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#ef4444"></span><span><strong>Marvel / Avengers</strong> — 4 filmes</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#f5c518"></span><span><strong>Star Wars</strong> — 4 filmes</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#8b5cf6"></span><span><strong>Harry Potter</strong> — 4 filmes</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#10b981"></span><span><strong>Hobbit / LOTR</strong> — 3 filmes</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#3b82f6"></span><span><strong>X-Men</strong> — 4 filmes</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#06b6d4"></span><span><strong>Jurassic Park</strong> — 4 filmes</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#f97316"></span><span><strong>Fast & Furious</strong> — 3 filmes</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#a855f7"></span><span><strong>Star Trek</strong> — 6 filmes</span></div>
+  <div style="margin-top:6px;font-size:11px;color:rgba(255,255,255,0.45);border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;">Espessura da aresta = similaridade entre filmes (atores + gêneros em comum)</div>
+</div>`
+  },
+  "top-notas": {
+    title: "Top Notas",
+    body: `<div style="display:flex;flex-direction:column;gap:6px;">
+  <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:4px;line-height:1.4;">Os <strong>5 filmes mais bem avaliados</strong> da amostra e todas as conexões que partem deles.</div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:2px;letter-spacing:.5px;">LEGENDA VISUAL</div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#f5c518;border:2px solid #fff;box-sizing:border-box;"></span><span><strong>Nó amarelo grande</strong> — top 5 por nota IMDb</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#888;"></span><span><strong>Nós menores</strong> — filmes conectados aos top 5</span></div>
+  <div class="g2-fr-row"><span style="display:inline-block;width:22px;height:4px;background:#f5c518;border-radius:2px;flex-shrink:0;margin-right:2px;"></span><span><strong>Aresta brilhante</strong> — conexão entre dois top 5</span></div>
+  <div class="g2-fr-row"><span style="display:inline-block;width:22px;height:2px;background:rgba(245,197,24,0.3);border-radius:2px;flex-shrink:0;margin-right:2px;"></span><span><strong>Aresta fraca</strong> — conexão com filme fora do top</span></div>
+  <div style="margin-top:4px;font-size:11px;color:rgba(255,255,255,0.45);border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;">Tamanho do nó proporcional à nota do filme</div>
+</div>`
+  },
+  similaridade: {
+    title: "Hubs",
+    body: `<div style="display:flex;flex-direction:column;gap:6px;">
+  <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:6px;line-height:1.4;">Exibe os <strong>filmes mais conectados</strong> da rede — aqueles com mais atores e gêneros em comum com outros títulos. O tamanho do nó reflete o grau de conexão.</div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:4px;letter-spacing:.5px;">COR · GÊNERO PRINCIPAL</div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#ef4444"></span><span><strong>Action</strong></span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#f59e0b"></span><span><strong>Comedy</strong></span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#3b82f6"></span><span><strong>Drama</strong></span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#8b5cf6"></span><span><strong>Sci-Fi</strong></span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#10b981"></span><span><strong>Animation</strong></span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#f97316"></span><span><strong>Thriller</strong></span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#06b6d4"></span><span><strong>Adventure</strong></span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#ec4899"></span><span><strong>Romance</strong></span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#a855f7"></span><span><strong>Fantasy</strong></span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#6366f1"></span><span><strong>Crime</strong></span></div>
+  <div class="g2-fr-row" style="margin-top:2px;"><span style="display:inline-block;width:22px;height:4px;background:rgba(245,197,24,0.8);border-radius:2px;flex-shrink:0;"></span><span><strong>Aresta grossa</strong> — muitos atores em comum</span></div>
+  <div style="margin-top:6px;font-size:11px;color:rgba(255,255,255,0.45);border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;">Cada filme recebe a cor do seu primeiro gênero listado</div>
+</div>`
+  },
+  bfs: {
+    title: "BFS — Busca em Largura",
+    body: `<div style="display:flex;flex-direction:column;gap:6px;">
+  <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:4px;line-height:1.4;">Explora o grafo <strong>nível a nível</strong> a partir de um filme fonte — visita todos os vizinhos diretos antes de avançar para os mais distantes.</div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:2px;letter-spacing:.5px;">LEGENDA VISUAL</div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#2ecc71;border:2px solid #fff;box-sizing:border-box;"></span><span><strong>Nó fonte</strong> — ponto de partida da busca</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#f5c518;"></span><span><strong>Nós visitados</strong> — filmes alcançados pela BFS</span></div>
+  <div class="g2-fr-row"><span style="display:inline-block;width:22px;height:3px;background:#2ecc71;border-radius:2px;flex-shrink:0;margin-right:2px;"></span><span><strong>Seta verde</strong> — direção da descoberta (de → para)</span></div>
+  <div style="margin-top:4px;font-size:11px;color:rgba(255,255,255,0.45);border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;">Garante o <strong style="color:var(--primary)">menor número de saltos</strong> entre dois filmes — não considera o peso das arestas.</div>
+</div>`
+  },
+  dfs: {
+    title: "DFS — Busca em Profundidade",
+    body: `<div style="display:flex;flex-direction:column;gap:6px;">
+  <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:4px;line-height:1.4;">Explora o grafo <strong>aprofundando ao máximo</strong> cada ramo antes de retroceder — mergulha em um caminho até o fim, depois volta e tenta outro.</div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:2px;letter-spacing:.5px;">LEGENDA VISUAL</div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#2ecc71;border:2px solid #fff;box-sizing:border-box;"></span><span><strong>Nó fonte</strong> — ponto de partida da busca</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#7cc7ff;"></span><span><strong>Nós visitados</strong> — filmes alcançados pela DFS</span></div>
+  <div class="g2-fr-row"><span style="display:inline-block;width:22px;height:3px;background:#7cc7ff;border-radius:2px;flex-shrink:0;margin-right:2px;"></span><span><strong>Seta azul</strong> — ordem de descoberta do caminho</span></div>
+  <div style="margin-top:4px;font-size:11px;color:rgba(255,255,255,0.45);border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;">Útil para detectar <strong style="color:var(--primary)">ciclos</strong> e explorar componentes conexos — o caminho encontrado pode não ser o mais curto.</div>
+</div>`
+  },
+  dijkstra: {
+    title: "Dijkstra",
+    body: `<div style="font-size:13px;color:rgba(255,255,255,0.5);">calculando rota...</div>`
+  },
+  "bellman-sem-ciclo": {
+    title: "Bellman-Ford (BF−)",
+    body: `<div style="display:flex;flex-direction:column;gap:6px;">
+  <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:4px;line-height:1.4;">Grafo artificial dirigido com <strong>peso negativo sem ciclo</strong>. O algoritmo calcula as distâncias finais corretamente.</div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:2px;letter-spacing:.5px;">LEGENDA VISUAL</div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#2ecc71;border:2px solid #fff;box-sizing:border-box;"></span><span><strong>Nó fonte</strong> — ponto de partida (Z)</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#f5c518;"></span><span><strong>Nós alcançados</strong> — vértices relaxados</span></div>
+  <div class="g2-fr-row"><span style="display:inline-block;width:22px;height:3px;background:#f5c518;border-radius:2px;flex-shrink:0;margin-right:2px;"></span><span><strong>Seta amarela</strong> — aresta com peso (número = custo)</span></div>
+</div>`
+  },
+  "bellman-com-ciclo": {
+    title: "Bellman-Ford (BF+)",
+    body: `<div style="display:flex;flex-direction:column;gap:6px;">
+  <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:4px;line-height:1.4;">Grafo artificial dirigido com <strong>ciclo de custo negativo</strong>. O algoritmo detecta o ciclo e bloqueia o resultado.</div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:2px;letter-spacing:.5px;">LEGENDA VISUAL</div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#ff4d4d;border:2px solid #fff;box-sizing:border-box;"></span><span><strong>Nó fonte / ciclo</strong> — vértices envolvidos no ciclo</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#f5c518;"></span><span><strong>Nós normais</strong> — vértices fora do ciclo</span></div>
+  <div class="g2-fr-row"><span style="display:inline-block;width:22px;height:3px;background:#ff4d4d;border-radius:2px;flex-shrink:0;margin-right:2px;"></span><span><strong>Seta vermelha</strong> — aresta do ciclo negativo</span></div>
+  <div class="g2-fr-row"><span style="display:inline-block;width:22px;height:3px;background:#f5c518;border-radius:2px;flex-shrink:0;margin-right:2px;"></span><span><strong>Seta amarela</strong> — aresta normal</span></div>
+</div>`
+  },
+  "grafo-completo": {
+    title: "Grafo Completo",
+    body: "Carrega <strong>todos os 3.899 filmes</strong> e <strong>63.484 arestas</strong> do dataset IMDb.<br><br>⚠️ Pesado — pode travar em máquinas lentas."
+  },
+};
+
+function updateModeInfo(mode) {
+  const panel = document.getElementById("g2-mode-info");
+  const titleEl = document.getElementById("g2-mode-info-title");
+  const bodyEl = document.getElementById("g2-mode-info-body");
+  const info = MODE_INFO[mode];
+  if (!panel) return;
+  if (!info) { panel.style.display = "none"; return; }
+  panel.style.display = "block";
+  titleEl.textContent = info.title;
+  bodyEl.innerHTML = info.body;
+}
+
+function updateDijkstraInfo() {
+  const bodyEl = document.getElementById("g2-mode-info-body");
+  if (!bodyEl) return;
+  const route = state.lastDijkstraRoute;
+  if (!route || route.path.length < 2) {
+    bodyEl.innerHTML = `<div style="font-size:13px;color:rgba(255,255,255,0.5);">Nenhuma rota encontrada.</div>`;
+    return;
+  }
+  const origem = route.path[0];
+  const destino = route.path[route.path.length - 1];
+  const intermediarios = route.path.slice(1, -1);
+  const custo = typeof route.cost === "number" ? route.cost.toFixed(2) : "--";
+  const passagens = intermediarios.map(id => `<div style="padding:2px 0;border-left:2px solid rgba(245,197,24,0.4);padding-left:8px;font-size:12px;color:rgba(255,255,255,0.7);">${id}</div>`).join("");
+
+  bodyEl.innerHTML = `<div style="display:flex;flex-direction:column;gap:6px;">
+  <div style="font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:.5px;">ROTA ENCONTRADA</div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#2ecc71;border:2px solid #fff;box-sizing:border-box;flex-shrink:0;"></span><span style="font-size:13px;"><strong>Origem:</strong> ${origem}</span></div>
+  <div class="g2-fr-row"><span class="g2-fr-dot" style="background:#ff4d4d;border:2px solid #fff;box-sizing:border-box;flex-shrink:0;"></span><span style="font-size:13px;"><strong>Destino:</strong> ${destino}</span></div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px;letter-spacing:.5px;">PASSA POR (${intermediarios.length} filmes)</div>
+  ${passagens || '<div style="font-size:12px;color:rgba(255,255,255,0.4);">conexão direta</div>'}
+  <div style="margin-top:4px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;">
+    <span style="font-size:12px;color:rgba(255,255,255,0.5);">total de filmes</span>
+    <strong style="color:var(--primary);font-size:14px;">${route.path.length}</strong>
+  </div>
+  <div style="display:flex;justify-content:space-between;">
+    <span style="font-size:12px;color:rgba(255,255,255,0.5);">custo total</span>
+    <strong style="color:#ff9f1c;font-size:14px;">${custo}</strong>
+  </div>
+</div>`;
+}
+
 function setupGraphControls() {
   const search = document.getElementById("graph-search");
   const resetButton = document.getElementById("reset-graph-btn");
@@ -1929,8 +2153,27 @@ function setupGraphControls() {
   const routeButton = document.getElementById("route-run-btn");
 
   // modos que mostram filtros de gênero/grau
-  const MODOS_COM_FILTROS = new Set(["franquias", "similaridade", "top", "bfs", "dfs"]);
+  const MODOS_COM_FILTROS = new Set(["amostra"]);
   const filtersBar = document.getElementById("graph-filters");
+
+  window._setAmostPanels = (visible) => {
+    const d = visible ? "" : "none";
+    const df = visible ? "flex" : "none";
+    const sp = document.querySelector(".g2-search-panel");
+    const lp = document.querySelector(".g2-legend-panel");
+    const sep = document.getElementById("g2-topbar-filters");
+    const fl1 = document.getElementById("g2-topbar-filters-genero");
+    const sg = document.getElementById("select-genero");
+    const si = document.getElementById("select-grau");
+    const fl2 = sg?.previousElementSibling;
+    if (sp) sp.style.display = visible ? "flex" : "none";
+    if (lp) lp.style.display = visible ? "block" : "none";
+    if (sep) sep.style.display = d;
+    if (fl1) fl1.style.display = d;
+    if (sg) sg.style.display = d;
+    
+    if (si) { si.style.display = d; if (si.previousElementSibling) si.previousElementSibling.style.display = d; }
+  };
 
   function applyFilters() {
     if (!state.graph.nodes || !state.graph.baseNodes) return;
@@ -1973,9 +2216,17 @@ function setupGraphControls() {
         return;
       }
       setActiveMode(modeValue);
-      // mostrar/ocultar filtros conforme o modo
-      filtersBar?.classList.toggle("is-hidden", !MODOS_COM_FILTROS.has(modeValue));
+      clearRouteHighlight();
+      _setAmostPanels(modeValue === "amostra");
+      state.graph.currentMode = modeValue;
       drawGraph(modeValue);
+      updateModeInfo(modeValue);
+      if (modeValue === "dijkstra") setTimeout(updateDijkstraInfo, 50);
+      // fix canvas size após troca de modo
+      const _c = document.getElementById("network");
+      [80, 300].forEach(ms => setTimeout(() => {
+        if (state.network && _c) { state.network.setSize(_c.offsetWidth+"px", _c.offsetHeight+"px"); state.network.redraw(); }
+      }, ms));
       refreshGraphView(true);
       if (modeValue === "bellman-sem-ciclo") {
         renderBellmanDetails("sem-ciclo");
@@ -2009,45 +2260,137 @@ function setupGraphControls() {
     search.classList.remove("search-miss");
   });
 
-  async function runRoute() {
+  function renderInlineRouteResult(result, origem, destino) {
+  const el = document.getElementById("route-result");
+  if (!el) return;
+  if (!result) {
+    el.style.display = "block";
+    el.innerHTML = `
+      <div class="g2-rr-route">
+        <span class="g2-rr-orig">${origem.length > 14 ? origem.slice(0,13)+"…" : origem}</span>
+        <span class="g2-rr-arr">→</span>
+        <span class="g2-rr-dest">${destino.length > 14 ? destino.slice(0,13)+"…" : destino}</span>
+      </div>
+      <div class="g2-rr-stats">
+        <div class="g2-rr-stat"><span class="g2-rr-val" style="color:#ff4d4d;font-size:12px;">Sem custo</span><span class="g2-rr-lbl">CUSTO</span></div>
+        <div class="g2-rr-stat"><span class="g2-rr-val" style="color:#ff4d4d;font-size:12px;">—</span><span class="g2-rr-lbl">SALTOS</span></div>
+      </div>
+      <p style="font-size:10px;color:rgba(255,255,255,0.45);margin:4px 0 0;">sem caminho na amostra</p>
+    `;
+    return;
+  }
+  const hops = result.path.length - 1;
+  const cost = result.cost != null ? result.cost.toFixed(2) : "—";
+  el.style.display = "block";
+  el.innerHTML = `
+    <div class="g2-rr-route">
+      <span class="g2-rr-orig">${origem.length > 14 ? origem.slice(0,13)+"…" : origem}</span>
+      <span class="g2-rr-arr">→</span>
+      <span class="g2-rr-dest">${destino.length > 14 ? destino.slice(0,13)+"…" : destino}</span>
+    </div>
+    <div class="g2-rr-stats">
+      <div class="g2-rr-stat"><span class="g2-rr-val">${cost}</span><span class="g2-rr-lbl">CUSTO</span></div>
+      <div class="g2-rr-stat"><span class="g2-rr-val">${hops}</span><span class="g2-rr-lbl">SALTOS</span></div>
+    </div>
+  `;
+}
+
+async function runRoute() {
     const origem = routeOrigem.value.trim();
     const destino = routeDestino.value.trim();
     const algorithm = routeAlgorithm.value;
 
     if (!origem || !destino) return;
 
-    if (!state.grafoCompleto) {
-      routeButton.textContent = "carregando...";
-      routeButton.disabled = true;
-      await loadGrafoCompleto();
-      routeButton.textContent = "→";
-      routeButton.disabled = false;
-    }
-
-    const result = algorithm === "dfs"
+    // usa somente a amostra — garante que nos/arestas existem no visual
+    const result = algorithm === "dfs" || algorithm === "bfs"
       ? dfsPath(origem, destino)
       : dijkstraPath(origem, destino);
 
-    if (result) {
-      drawGraph(makePathGraph(result.path, {
-        prefix: `rota-${algorithm}`,
-        color: algorithm === "dfs" ? "#7cc7ff" : "#ff9f1c",
-        width: algorithm === "dfs" ? 4 : 6,
-        arrows: "to",
-        dashes: algorithm === "dfs",
-        labelEdges: algorithm === "dijkstra",
-      }));
+    const movieExists = (id) => !!(state.amostra?.movies?.[id]);
+    routeOrigem.classList.toggle("search-miss", !movieExists(origem));
+    routeDestino.classList.toggle("search-miss", !movieExists(destino));
+
+    // salva chaves do caminho para o graphForMode incluir arestas extras se necessário
+    if (result?.path?.length >= 2) {
+      state._lastRouteEdgeKeys = new Set();
+      for (let i = 0; i < result.path.length - 1; i++) {
+        state._lastRouteEdgeKeys.add(edgeKey(result.path[i], result.path[i + 1]));
+      }
     } else {
-      drawGraph(makeNeighborhoodGraph(origem));
+      state._lastRouteEdgeKeys = new Set();
+    }
+
+    // garante que o grafo amostra está visível (redesenha para incluir arestas da rota)
+    setActiveMode("amostra");
+    drawGraph("amostra");
+    state.graph.currentMode = "amostra";
+
+    if (result?.path?.length >= 2) {
+      highlightRoute(result.path, algorithm);
     }
 
     renderRouteDetails(result, origem, destino);
-    const movieExists = (id) =>
-      !!(state.amostra?.movies?.[id] ?? state.grafoCompleto?.filmes?.[id]);
-    routeOrigem.classList.toggle("search-miss", !movieExists(origem));
-    routeDestino.classList.toggle("search-miss", !movieExists(destino));
+    renderInlineRouteResult(result, origem, destino);
   }
 
+
+  function clearRouteHighlight() {
+    if (!state.graph.nodes || !state.graph.baseNodes) return;
+    state.graph.nodes.update(
+      state.graph.baseNodes.map((n) => ({
+        id: n.id,
+        color: n.color,
+        size: n.size,
+        borderWidth: n.borderWidth ?? 1,
+        font: n.font,
+        label: n.label,
+      }))
+    );
+    if (state.graph.baseEdges) {
+      state.graph.edges.update(
+        state.graph.baseEdges.map((e) => ({
+          id: e.id,
+          color: e.color,
+          width: e.width,
+          dashes: e.dashes ?? false,
+        }))
+      );
+    }
+  }
+
+  function highlightRoute(path, algorithm) {
+    if (!state.graph.nodes || !path?.length) return;
+    const pathSet = new Set(path);
+    const pathColor = "#00e676";
+
+    // destaca apenas as arestas do caminho; nos ficam com borda verde, background preservado
+    const baseNodeMap = new Map((state.graph.baseNodes ?? []).map(n => [n.id, n]));
+    const pathUpdates = path.map((id) => {
+      const orig = baseNodeMap.get(id);
+      const bg = orig?.color?.background ?? orig?.color ?? "#f5c518";
+      return { id, borderWidth: 3, color: { background: bg, border: "#00e676" } };
+    });
+    state.graph.nodes.update(pathUpdates);
+
+    // arestas do caminho: verdes e grossas — usa ID direto (edgeKey = id da aresta na amostra)
+    const edgeUpdates = [];
+    for (let i = 0; i < path.length - 1; i++) {
+      const id = edgeKey(path[i], path[i + 1]);
+      if (state.graph.edges.get(id) != null) {
+        edgeUpdates.push({ id, color: { color: "#00e676", opacity: 1 }, width: 8, dashes: false });
+      }
+    }
+    state.graph.edges.update(edgeUpdates);
+
+    refreshGraphView(true);
+  }
+
+  window.applyFilters = applyFilters;
+  if (!routeButton || !resetButton || !search) {
+    console.error("[setupGraphControls] elemento nao encontrado", { routeButton, resetButton, search });
+    return;
+  }
   routeButton.addEventListener("click", runRoute);
   [routeOrigem, routeDestino].forEach((input) => {
     input.addEventListener("keydown", (event) => {
@@ -2067,17 +2410,13 @@ function setupGraphControls() {
     routeOrigem.classList.remove("search-miss");
     routeDestino.classList.remove("search-miss");
     state.network?.unselectAll();
-    state.network?.fit({
-      animation: {
-        duration: 500,
-        easingFunction: "easeInOutQuad",
-      },
-    });
+    clearRouteHighlight();
+    const rr = document.getElementById("route-result"); if (rr) rr.style.display = "none";
+    state.network?.fit({ animation: { duration: 500, easingFunction: "easeInOutQuad" } });
     resetDetails();
   });
 
-  // carrega modo padrão ao iniciar
-  drawGraph("franquias");
+
   renderModeDetails("franquias");
 }
 
@@ -2087,6 +2426,7 @@ function setupVizModal() {
   const title = document.getElementById("modal-title");
   const caption = document.getElementById("modal-caption");
   const grid = document.getElementById("viz-grid");
+  if (!grid || !modal) return;
 
   function openModal(card) {
     title.textContent = card.dataset.vizTitle;
@@ -2201,21 +2541,25 @@ function setupViews() {
 async function init() {
   const [resumo, amostra] = await Promise.all([
     fetchJson("data/resumo_parte2.json?v=1"),
-    fetchJson("data/parte2_amostra.json?v=7"),
+    fetchJson("data/parte2_amostra.json?v=13"),
   ]);
   state.resumo = resumo;
   state.amostra = amostra;
 
   const dl = document.getElementById("movies-list");
-  if (dl && amostra?.movies) {
-    Object.keys(amostra.movies).sort().forEach((title) => {
+  const movieTitles = amostra?.movies ? Object.keys(amostra.movies).sort() : [];
+  if (dl) {
+    movieTitles.forEach((title) => {
       const opt = document.createElement("option");
       opt.value = title;
       dl.appendChild(opt);
     });
   }
+  setupMovieAutocomplete("route-origem", "ac-origem", movieTitles);
+  setupMovieAutocomplete("route-destino", "ac-destino", movieTitles);
 
   setupViews();
+  renderSaidaDashboard();
   renderMetrics(state.resumo.dataset);
   renderResults(state.resumo);
   renderBenchmarkOutput(state.resumo);
@@ -2224,6 +2568,155 @@ async function init() {
   setupGraphControls();
   setupVizModal();
   setupGraphFullscreen();
+  setupLobbyCanvas();
+  const _dp = document.getElementById("details-panel"); if (_dp) _dp.style.display = "none";
+  setActiveMode("amostra");
+  drawGraph("amostra");
+  state.graph.currentMode = "amostra";
+  _setAmostPanels(true);
+  updateModeInfo("amostra");
+}
+
+function setupLobbyCanvas() {
+  const canvas = document.getElementById("p2-lobby-bg");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const ICONS = ["🎬","🎥","🎞","📽","🎦","🍿"];
+  let W, H, mx = 0, my = 0;
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  class Flake {
+    constructor(init) {
+      this.x = Math.random() * (W || 800);
+      this.y = init ? Math.random() * (H || 600) : -30;
+      this.vy = 0.35 + Math.random() * 0.7;
+      this.vx = (Math.random() - 0.5) * 0.25;
+      this.size = 13 + Math.random() * 15;
+      this.icon = ICONS[Math.floor(Math.random() * ICONS.length)];
+      this.alpha = 0.12 + Math.random() * 0.28;
+      this.rot = Math.random() * Math.PI * 2;
+      this.rotV = (Math.random() - 0.5) * 0.012;
+    }
+    update() {
+      const dx = this.x - mx, dy = this.y - my;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 130 && d > 0) {
+        const f = (130 - d) / 130;
+        this.vx += (dx / d) * f * 1.6;
+        this.vy += (dy / d) * f * 1.6;
+      }
+      this.vx *= 0.97;
+      this.vy = this.vy * 0.97 + 0.018;
+      this.x += this.vx;
+      this.y += this.vy;
+      this.rot += this.rotV;
+      if (this.y > H + 35 || this.x < -50 || this.x > W + 50) {
+        Object.assign(this, new Flake(false));
+      }
+    }
+    draw() {
+      ctx.save();
+      ctx.globalAlpha = this.alpha;
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.rot);
+      ctx.font = this.size + "px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(this.icon, 0, 0);
+      ctx.restore();
+    }
+  }
+
+  const flakes = Array.from({ length: 55 }, () => new Flake(true));
+
+  document.getElementById("inicio").addEventListener("mousemove", e => {
+    const r = canvas.getBoundingClientRect();
+    mx = e.clientX - r.left;
+    my = e.clientY - r.top;
+  });
+
+  let raf;
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    flakes.forEach(f => { f.update(); f.draw(); });
+    raf = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+function renderSaidaDashboard() {
+  const el = document.getElementById("saida-dashboard");
+  if (!el || !state.resumo) return;
+  const r = state.resumo;
+  const consolidated = {
+    dataset: {
+      vertices: r.dataset?.num_vertices,
+      arestas: r.dataset?.num_arestas,
+      ilhas: r.dataset?.componentes_conexas,
+      maior_ilha: r.dataset?.maior_componente_conexa,
+      grau_medio: r.dataset?.grau?.medio,
+    },
+    bfs_dfs: {
+      bfs: (r.buscas?.bfs ?? []).map(compactSearch),
+      dfs: (r.buscas?.dfs ?? []).map(compactSearch),
+    },
+    dijkstra: (r.dijkstra ?? []).map(compactDijkstra),
+    bellman_ford: (r.bellman_ford ?? []).map(item => ({
+      dataset: fileName(item.dataset),
+      origem: item.origem,
+      ciclo_negativo: item.ciclo_negativo,
+      distancias: item.distancias,
+      tempo_s: item.tempo_s,
+    })),
+  };
+  el.innerHTML = `
+    <p class="saida-dash-title">resumo_parte2.json <span style="font-weight:400;color:var(--muted);font-size:11px;">— filtrado</span></p>
+    <pre class="saida-json">${attr(JSON.stringify(consolidated, null, 2))}</pre>`;
+}
+
+function setupMovieAutocomplete(inputId, listId, titles) {
+  const input = document.getElementById(inputId);
+  const list = document.getElementById(listId);
+  if (!input || !list) return;
+
+  let activeIdx = -1;
+
+  function close() { list.classList.remove("open"); list.innerHTML = ""; activeIdx = -1; }
+
+  function open(matches) {
+    list.innerHTML = "";
+    activeIdx = -1;
+    if (!matches.length) { close(); return; }
+    matches.slice(0, 40).forEach((title, i) => {
+      const li = document.createElement("li");
+      li.textContent = title;
+      li.addEventListener("mousedown", (e) => { e.preventDefault(); input.value = title; close(); });
+      list.appendChild(li);
+    });
+    list.classList.add("open");
+  }
+
+  input.addEventListener("input", () => {
+    const q = input.value.trim().toLowerCase();
+    if (!q) { close(); return; }
+    open(titles.filter(t => t.toLowerCase().includes(q)));
+  });
+
+  input.addEventListener("keydown", (e) => {
+    const items = list.querySelectorAll("li");
+    if (e.key === "ArrowUp") { e.preventDefault(); activeIdx = Math.max(0, activeIdx - 1); items.forEach((li, i) => li.classList.toggle("active", i === activeIdx)); items[activeIdx]?.scrollIntoView({ block: "nearest" }); }
+    else if (e.key === "ArrowDown") { e.preventDefault(); activeIdx = Math.min(items.length - 1, activeIdx + 1); items.forEach((li, i) => li.classList.toggle("active", i === activeIdx)); items[activeIdx]?.scrollIntoView({ block: "nearest" }); }
+    else if (e.key === "Enter" && activeIdx >= 0) { input.value = items[activeIdx].textContent; close(); }
+    else if (e.key === "Escape") { close(); }
+  });
+
+  input.addEventListener("blur", () => setTimeout(close, 150));
 }
 
 init().catch((err) => {
